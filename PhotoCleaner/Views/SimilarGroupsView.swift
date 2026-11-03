@@ -8,46 +8,47 @@ struct SimilarGroupsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 if store.phase != .done {
                     VStack(alignment: .leading, spacing: 8) {
-                        ProgressView(value: store.progress).tint(MM.brand)
-                        Text(store.progressText).font(MM.text(12)).foregroundStyle(MM.muted)
+                        ThinProgress(value: store.progress)
+                        Text(store.progressText).font(Theme.caption).foregroundStyle(Theme.text3)
                     }
-                    .padding(16)
-                    .mmCard(radius: 18, shadow: .subtle)
+                    .card(padding: 16)
                 }
 
                 if store.similarGroups.isEmpty && store.phase == .done {
-                    EmptyStateView(icon: "checkmark.circle.fill", title: "没有相似照片", message: "你的相册里没有发现连拍或重复照片")
+                    EmptyStateView(icon: "checkmark", title: "没有相似照片", message: "相册里没有发现连拍或重复照片")
                         .frame(minHeight: 400)
                 }
 
                 if !store.similarGroups.isEmpty {
                     summary
+                    SectionHeader(title: "\(store.similarGroups.count) 组", trailing: "点照片切换选择 · 长按看大图")
                 }
 
                 ForEach(Array(store.similarGroups.enumerated()), id: \.offset) { idx, group in
                     GroupCard(group: group, preview: $preview)
-                        .staggerIn(min(idx + 1, 8))
+                        .fadeIn(idx + 1)
                 }
             }
-            .padding(18)
+            .padding(.horizontal, Theme.pagePadding)
+            .padding(.top, 4)
             .padding(.bottom, 80)
         }
-        .background(MM.canvas.ignoresSafeArea())
+        .background(Theme.bg.ignoresSafeArea())
         .navigationTitle("相似照片")
         .navigationBarTitleDisplayMode(.inline)
-        .confirmationDialog("每组只保留推荐的最佳一张，其余全部标记删除？", isPresented: $confirmAll, titleVisibility: .visible) {
-            Button("全部处理（\(extraCount) 张标记删除）", role: .destructive) {
-                withAnimation {
+        .confirmationDialog("每组只保留推荐的一张，其余全部选为删除？", isPresented: $confirmAll, titleVisibility: .visible) {
+            Button("全部处理（\(extraCount) 张）", role: .destructive) {
+                withAnimation(Theme.spring) {
                     for g in store.similarGroups { store.keepBestDeleteRest(g) }
                 }
                 Haptics.success()
             }
             Button("取消", role: .cancel) {}
         } message: {
-            Text("只是标记，不会立刻删除。最后还需要你在确认页再确认一次。")
+            Text("只是标记，不会立刻删除。最后还要在确认页再确认一次。")
         }
         .fullScreenCover(item: $preview) { PhotoDetailView(item: $0) }
     }
@@ -65,40 +66,28 @@ struct SimilarGroupsView: View {
 
     private var summary: some View {
         VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("\(store.similarGroups.count) 组相似照片")
-                    .font(MM.display(28, .semibold))
-                Text("每组只留最好的一张，可释放约 \(Fmt.bytes(extraBytes))")
-                    .font(MM.text(14, .medium))
-                    .opacity(0.9)
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("每组留最清晰的一张")
+                        .font(Theme.callout)
+                        .foregroundStyle(Theme.text2)
+                    Text("可释放 \(Fmt.bytes(extraBytes))")
+                        .font(Theme.number(26, .bold))
+                        .foregroundStyle(Theme.text)
+                }
+                Spacer()
+                IconBadge(icon: "sparkles")
             }
-            .foregroundStyle(.white)
             Button {
                 Haptics.medium()
                 confirmAll = true
             } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "wand.and.stars")
-                    Text("一键智能清理全部")
-                }
-                .font(MM.text(15, .bold))
-                .foregroundStyle(MM.inkDark)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(Color.white, in: Capsule())
+                Text("一键处理全部 \(extraCount) 张").frame(maxWidth: .infinity)
             }
-            .buttonStyle(PressableStyle())
+            .buttonStyle(PrimaryButtonStyle())
         }
-        .padding(20)
-        .background(
-            ZStack {
-                LinearGradient(colors: CleanCategory.similar.colors, startPoint: .topLeading, endPoint: .bottomTrailing)
-                DriftingBlobs(colors: [Color(hex: 0x7C5CFF)])
-            }
-            .clipShape(RoundedRectangle(cornerRadius: MM.rCard, style: .continuous))
-        )
-        .shadow(color: MM.brand.opacity(0.3), radius: 20, y: 10)
-        .staggerIn(0)
+        .card(padding: 18)
+        .fadeIn(0)
     }
 }
 
@@ -109,31 +98,27 @@ private struct GroupCard: View {
 
     var body: some View {
         let best = store.bestID(in: group)
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(group.count) 张相似")
-                        .font(MM.text(16, .bold))
-                        .foregroundStyle(MM.ink)
-                    if let first = group.first, let item = store.item(first) {
-                        Text(Fmt.date(item.creationDate))
-                            .font(MM.text(12))
-                            .foregroundStyle(MM.muted)
-                    }
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("\(group.count) 张相似")
+                    .font(Theme.headline)
+                    .foregroundStyle(Theme.text)
+                if let first = group.first, let item = store.item(first) {
+                    Text(Fmt.date(item.creationDate))
+                        .font(Theme.caption)
+                        .foregroundStyle(Theme.text3)
                 }
                 Spacer()
-                Chip(text: Fmt.bytes(store.bytes(of: group)))
+                Text(Fmt.bytes(store.bytes(of: group)))
+                    .font(Theme.number(12, .regular))
+                    .foregroundStyle(Theme.text3)
             }
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     ForEach(group, id: \.self) { id in
                         if let item = store.item(id) {
-                            ThumbnailCell(item: item, badge: id == best ? "最佳" : nil)
-                                .frame(width: 118, height: 118)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: MM.rTile, style: .continuous)
-                                        .stroke(id == best ? MM.brand : Color.clear, lineWidth: 3)
-                                )
+                            ThumbnailCell(item: item, isBest: id == best)
+                                .frame(width: 104, height: 104)
                                 .onTapGesture {
                                     Haptics.light()
                                     store.toggleDelete(id)
@@ -144,28 +129,24 @@ private struct GroupCard: View {
                         }
                     }
                 }
+                .padding(2)
             }
             HStack(spacing: 8) {
                 Button {
                     Haptics.medium()
-                    withAnimation(Motion.snappy) { store.keepBestDeleteRest(group) }
+                    withAnimation(Theme.spring) { store.keepBestDeleteRest(group) }
                 } label: {
-                    Label("留最佳，删其余 \(group.count - 1) 张", systemImage: "sparkles")
-                        .font(MM.text(13, .bold))
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 10).padding(.horizontal, 14)
-                        .background(MM.inkDark, in: Capsule())
+                    Text("保留推荐，删其余 \(group.count - 1) 张")
                 }
-                .buttonStyle(PressableStyle())
+                .buttonStyle(SecondaryButtonStyle(tint: Theme.accent))
                 Spacer()
                 Button("全部保留") {
                     Haptics.light()
-                    withAnimation(Motion.snappy) { store.markAll(group, .keep) }
+                    withAnimation(Theme.spring) { store.markAll(group, .keep) }
                 }
-                .buttonStyle(SecondaryButtonStyle())
+                .buttonStyle(SecondaryButtonStyle(tint: Theme.text2))
             }
         }
-        .padding(14)
-        .mmCard(radius: MM.rCard)
+        .card(padding: 14)
     }
 }

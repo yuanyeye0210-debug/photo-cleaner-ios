@@ -12,14 +12,12 @@ struct AssetImageView: View {
 
     var body: some View {
         ZStack {
-            MM.surface
+            Theme.fill
             if let image {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: contentMode)
                     .transition(.opacity)
-            } else {
-                ProgressView().tint(MM.muted)
             }
         }
         .clipped()
@@ -30,16 +28,16 @@ struct AssetImageView: View {
                                                              targetSize: size,
                                                              contentMode: contentMode == .fill ? .aspectFill : .aspectFit,
                                                              allowNetwork: allowNetwork)
-            withAnimation(.easeOut(duration: 0.25)) { image = img }
+            withAnimation(.easeOut(duration: 0.2)) { image = img }
         }
     }
 }
 
-/// 网格里的一格：缩略图 + 标记（MiniMax 风格的圆角与胶囊标签）
+/// 网格里的一格：缩略图 + 选择状态
 struct ThumbnailCell: View {
     @EnvironmentObject var store: CleanupStore
     let item: PhotoItem
-    var badge: String? = nil
+    var isBest: Bool = false
 
     var body: some View {
         let decision = store.decision(for: item.id)
@@ -47,59 +45,51 @@ struct ThumbnailCell: View {
             ZStack(alignment: .topTrailing) {
                 AssetImageView(asset: item.asset, targetSize: geo.size)
                     .frame(width: geo.size.width, height: geo.size.height)
-                    .scaleEffect(decision == .delete ? 1.06 : 1)
-                    .overlay(decision == .delete ? MM.danger.opacity(0.32) : Color.clear)
+                    .overlay(Color.white.opacity(decision == .delete ? 0.35 : 0))
 
-                if decision == .delete {
-                    Image(systemName: "trash.fill")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 26, height: 26)
-                        .background(LinearGradient(colors: MM.deleteGradient, startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
-                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                        .padding(6)
-                        .transition(.scale.combined(with: .opacity))
-                } else if decision == .keep {
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 26, height: 26)
-                        .background(MM.success, in: Circle())
-                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                        .padding(6)
-                        .transition(.scale.combined(with: .opacity))
-                } else {
+                // 右上角选择圈：删除 = 柔和红勾，保留 = 绿色勾，未定 = 空心圈
+                ZStack {
                     Circle()
-                        .stroke(Color.white, lineWidth: 2)
-                        .background(Circle().fill(Color.black.opacity(0.12)))
-                        .frame(width: 24, height: 24)
-                        .padding(7)
+                        .fill(decision == .delete ? Theme.danger : (decision == .keep ? Theme.accent : Color.black.opacity(0.15)))
+                    Circle().stroke(Color.white, lineWidth: 1.5)
+                    if decision != nil {
+                        Image(systemName: decision == .delete ? "trash" : "checkmark")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .transition(.scale)
+                    }
                 }
+                .frame(width: 22, height: 22)
+                .padding(6)
 
                 VStack {
                     Spacer()
                     HStack(spacing: 4) {
-                        if let badge {
-                            Text(badge)
-                                .font(MM.text(10, .bold))
-                                .padding(.horizontal, 7).padding(.vertical, 3)
-                                .background(LinearGradient(colors: [MM.brand, MM.sky], startPoint: .leading, endPoint: .trailing), in: Capsule())
+                        if isBest {
+                            Text("推荐保留")
+                                .font(.system(size: 10, weight: .semibold))
+                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                .background(Theme.accent, in: Capsule())
                                 .foregroundStyle(.white)
                         }
                         Spacer()
                         Text(item.isVideo ? "▶︎ " + Fmt.bytes(item.fileSize) : Fmt.bytes(item.fileSize))
-                            .font(MM.display(10, .medium))
-                            .padding(.horizontal, 6).padding(.vertical, 2)
-                            .background(.black.opacity(0.4), in: Capsule())
+                            .font(Theme.number(10, .medium))
                             .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.5), radius: 2)
                     }
                     .padding(6)
                 }
             }
         }
         .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: MM.rTile, style: .continuous))
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: decision)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.rTile, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.rTile, style: .continuous)
+                .stroke(isBest ? Theme.accent : (decision == .delete ? Theme.danger.opacity(0.6) : Color.clear), lineWidth: 2)
+        )
+        .scaleEffect(decision == .delete ? 0.95 : 1)
+        .animation(Theme.spring, value: decision)
     }
 }
 
@@ -119,20 +109,17 @@ struct PhotoDetailView: View {
                 .ignoresSafeArea()
             HStack {
                 Text("\(Fmt.date(item.creationDate)) · \(Fmt.bytes(item.fileSize))")
-                    .font(MM.text(13, .medium))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14).padding(.vertical, 9)
-                    .background(.ultraThinMaterial, in: Capsule())
+                    .font(Theme.caption)
+                    .foregroundStyle(.white.opacity(0.85))
                 Spacer()
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.white)
-                        .frame(width: 40, height: 40)
-                        .background(.ultraThinMaterial, in: Circle())
+                        .frame(width: 36, height: 36)
+                        .background(Color.white.opacity(0.15), in: Circle())
                 }
             }
-            .environment(\.colorScheme, .dark)
             .padding()
         }
         .onTapGesture { dismiss() }

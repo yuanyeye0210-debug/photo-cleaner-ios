@@ -48,22 +48,10 @@ enum CleanCategory: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .similar: return "square.on.square"
         case .screenshots: return "iphone"
-        case .blurry: return "drop.halffull"
-        case .large: return "externaldrive.fill"
-        case .videos: return "video.fill"
-        case .poorLight: return "sun.max.trianglebadge.exclamationmark"
-        }
-    }
-
-    /// MiniMax 风格的产品卡渐变（蓝 / 紫 / 粉橙 / 品红 / 天蓝 / 炭黑）
-    var colors: [Color] {
-        switch self {
-        case .similar: return [Color(hex: 0x1456F0), Color(hex: 0x3DAEFF)]
-        case .screenshots: return [Color(hex: 0x6D4AFF), Color(hex: 0xB07CFF)]
-        case .blurry: return [Color(hex: 0xF0498F), Color(hex: 0xFF9F45)]
-        case .large: return [Color(hex: 0xEA5EC1), Color(hex: 0x7C5CFF)]
-        case .videos: return [Color(hex: 0x0EA5E9), Color(hex: 0x6366F1)]
-        case .poorLight: return [Color(hex: 0x181E25), Color(hex: 0x5B6878)]
+        case .blurry: return "camera.aperture"
+        case .large: return "externaldrive"
+        case .videos: return "video"
+        case .poorLight: return "sun.max"
         }
     }
 }

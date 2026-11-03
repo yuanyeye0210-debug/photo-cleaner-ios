@@ -1,169 +1,163 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
-<title>相册清理 · MiniMax 风格界面预览</title>
+<title>相册清理 · 简约清新主题预览</title>
 <style>
-@font-face{font-family:Outfit;src:url(../PhotoCleaner/Resources/Fonts/Outfit-Medium.ttf);font-weight:500}
-@font-face{font-family:Outfit;src:url(../PhotoCleaner/Resources/Fonts/Outfit-SemiBold.ttf);font-weight:600}
-@font-face{font-family:Outfit;src:url(../PhotoCleaner/Resources/Fonts/Outfit-Bold.ttf);font-weight:700}
-@font-face{font-family:DMSans;src:url(../PhotoCleaner/Resources/Fonts/DMSans-Regular.ttf);font-weight:400}
-@font-face{font-family:DMSans;src:url(../PhotoCleaner/Resources/Fonts/DMSans-Medium.ttf);font-weight:500}
-@font-face{font-family:DMSans;src:url(../PhotoCleaner/Resources/Fonts/DMSans-Bold.ttf);font-weight:700}
-:root{--ink:#222;--dark:#181e25;--ink2:#45515e;--muted:#8e8e93;--line:#e5e7eb;--soft:#f2f3f5;--surface:#f7f8fa;--brand:#1456f0;--sky:#3daeff;--pink:#ea5ec1;--danger:#f43f5e;--ok:#16a34a;
---glow:0 6px 16px rgba(44,30,116,.13);--hero:linear-gradient(135deg,#e24bb4,#f4607a 55%,#fb9a5b);--del:linear-gradient(135deg,#f43f5e,#fb7185 55%,#fb923c)}
+:root{--accent:#2AA876;--accentSoft:rgba(42,168,118,.10);--danger:#D9534F;--dangerSoft:rgba(217,83,79,.09);
+--bg:#F7F8FA;--card:#fff;--fill:#F1F3F5;--line:#E9ECEF;--t1:#1F2328;--t2:#5F6670;--t3:#9AA1AA}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:DMSans,"Noto Sans CJK SC",sans-serif;color:var(--ink);background:radial-gradient(1200px 500px at 50% -10%,#fde2f1,#fff 60%);width:1800px;height:1000px;overflow:hidden}
-.top{display:flex;align-items:baseline;gap:16px;padding:26px 48px 0}
-.top h1{font-family:Outfit,"Noto Sans CJK SC";font-weight:600;font-size:30px}
-.top span{color:var(--ink2);font-size:15px}
-.row{display:flex;gap:36px;justify-content:center;padding-top:22px}
-.phone{width:390px;height:844px;border-radius:54px;background:#111;padding:11px;box-shadow:0 30px 60px rgba(44,30,116,.22)}
-.scr{width:100%;height:100%;border-radius:44px;background:#fff;overflow:hidden;position:relative;display:flex;flex-direction:column}
-.status{height:46px;display:flex;justify-content:space-between;align-items:center;padding:0 30px;font-family:Outfit;font-weight:600;font-size:15px;flex:none}
-.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:20px}
-.pad{padding:0 18px}
-.disp{font-family:Outfit,"Noto Sans CJK SC";font-weight:600}
-.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:4px 10px;border-radius:99px;background:rgba(0,0,0,.05);color:var(--ink2)}
-.ipill{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.05);display:grid;place-items:center;font-size:16px}
-.art{position:relative;overflow:hidden;border-radius:18px}
-.art::before{content:"";position:absolute;width:90%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.3);filter:blur(26px);right:-30%;top:-40%}
-.art::after{content:"";position:absolute;width:70%;aspect-ratio:1;border-radius:50%;background:var(--blob,#8b5cf6);opacity:.8;filter:blur(30px);left:-25%;bottom:-55%}
-.art>*{position:relative;z-index:1}
-.card{background:#fff;border:1px solid var(--soft);border-radius:24px;box-shadow:var(--glow)}
-.nav{display:flex;align-items:center;justify-content:center;height:44px;position:relative;font-weight:700;font-size:17px;flex:none}
-.nav .back{position:absolute;left:14px;color:var(--brand);font-size:26px;font-weight:400}
-.seg{display:flex;padding:4px;border-radius:99px;background:rgba(0,0,0,.05)}
-.seg div{flex:1;text-align:center;padding:9px 0;border-radius:99px;font-size:14px;font-weight:500;color:var(--ink2)}
-.seg .on{background:var(--dark);color:#fff}
-img{display:block;object-fit:cover}
-/* home */
-.hero{border-radius:24px;padding:20px;color:#fff;background:var(--hero);box-shadow:0 10px 22px rgba(244,96,122,.35);--blob:#8b5cf6}
-.cats{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.cat{padding:6px}
-.cat .art{height:104px}
-.cat .ic{position:absolute;top:10px;left:10px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;color:#fff;font-size:14px}
-.cat .badge{position:absolute;top:11px;right:10px;background:#fff;border-radius:99px;font-size:11px;font-weight:700;padding:3px 8px}
-.cat .num{position:absolute;bottom:6px;left:12px;color:#fff;font-family:Outfit;font-weight:600;font-size:34px;line-height:1}
-.cat .num small{font-family:DMSans,"Noto Sans CJK SC";font-size:12px;font-weight:500;opacity:.85}
-.cat .t{display:flex;justify-content:space-between;align-items:baseline;padding:9px 8px 1px;font-weight:700;font-size:15px}
-.cat .t span{font-family:Outfit;font-weight:500;font-size:12px;color:var(--muted)}
-.cat .s{padding:0 8px 4px;font-size:11.5px;color:var(--ink2);white-space:nowrap;overflow:hidden}
-.bar{position:absolute;left:18px;right:18px;bottom:26px;background:var(--dark);border-radius:99px;padding:8px;display:flex;align-items:center;gap:12px;color:#fff;box-shadow:0 8px 18px rgba(44,30,116,.3)}
-.bar .bi{width:40px;height:40px;border-radius:50%;background:var(--del);display:grid;place-items:center}
-.bar .go{margin-left:auto;background:#fff;color:var(--dark);font-weight:700;font-size:14px;padding:9px 16px;border-radius:99px}
-/* swipe */
-.stack{position:relative;flex:1;margin:12px 22px 0}
-.sc{position:absolute;inset:0;background:#fff;border-radius:34px;padding:6px;box-shadow:0 10px 20px rgba(44,30,116,.2)}
-.sc .ph{width:100%;height:100%;border-radius:28px;overflow:hidden;position:relative}
-.sc .ph img{width:108%;height:108%;margin:-4% 0 0 -2%}
-.sc .grad{position:absolute;inset:0;background:linear-gradient(transparent 50%,rgba(0,0,0,.55))}
-.sc .meta{position:absolute;left:18px;bottom:18px;color:#fff}
-.tag{display:inline-block;font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;color:#fff;backdrop-filter:blur(8px);margin-right:6px}
-.stamp{position:absolute;top:22px;right:22px;background:var(--del);color:#fff;font-weight:700;font-size:18px;padding:10px 18px;border-radius:99px;box-shadow:0 4px 10px rgba(244,63,94,.4)}
-.ctrls{display:flex;justify-content:center;align-items:center;gap:28px;padding:18px 0 30px;flex:none}
-.cb{border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700}
-/* similar */
-.sumc{border-radius:24px;padding:20px;color:#fff;background:linear-gradient(135deg,#1456f0,#3daeff);box-shadow:0 10px 22px rgba(20,86,240,.3);--blob:#7c5cff}
-.thumbs{display:flex;gap:8px;margin:10px 0 12px}
-.th{width:104px;height:104px;border-radius:14px;overflow:hidden;position:relative;flex:none}
-.th img{width:100%;height:100%}
-.th .sz{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.4);color:#fff;font-family:Outfit;font-size:10px;padding:2px 6px;border-radius:99px}
-.th .best{position:absolute;left:6px;bottom:6px;background:linear-gradient(90deg,#1456f0,#3daeff);color:#fff;font-size:10px;font-weight:700;padding:3px 7px;border-radius:99px}
-.th.bestb{outline:3px solid var(--brand);outline-offset:-3px}
-.th .mk{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;display:grid;place-items:center;font-size:11px;color:#fff}
-.th.del::after{content:"";position:absolute;inset:0;background:rgba(244,63,94,.32)}
-.th.del .mk{background:var(--del);z-index:2}
-.btn-dark{background:var(--dark);color:#fff;font-weight:700;font-size:13px;padding:10px 14px;border-radius:99px}
-.btn-soft{background:#f0f0f0;color:var(--ink);font-weight:500;font-size:14px;padding:10px 16px;border-radius:99px}
-/* review */
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.grid .th{width:auto;height:auto;aspect-ratio:1}
-.cta{position:absolute;left:18px;right:18px;bottom:26px;background:var(--del);color:#fff;font-weight:700;font-size:16px;text-align:center;padding:16px;border-radius:99px;box-shadow:0 8px 16px rgba(244,63,94,.3)}
-.lbl{text-align:center;font-size:14px;color:var(--ink2);margin-top:12px;font-weight:500}
+body{font-family:Inter,"Noto Sans CJK SC",sans-serif;color:var(--t1);background:#EEF0F3;width:1800px;height:1000px;overflow:hidden;-webkit-font-smoothing:antialiased}
+.top{display:flex;align-items:center;gap:14px;padding:26px 56px 0}
+.top h1{font-size:22px;font-weight:600;letter-spacing:-.2px}
+.sw{display:flex;gap:6px;margin-left:8px}.sw i{width:14px;height:14px;border-radius:4px;display:block;border:1px solid rgba(0,0,0,.06)}
+.top span{color:var(--t2);font-size:14px}
+.row{display:flex;gap:40px;justify-content:center;padding-top:24px}
+.phone{width:390px;height:844px;border-radius:54px;background:#1b1d20;padding:10px;box-shadow:0 24px 50px rgba(20,24,30,.16)}
+.scr{width:100%;height:100%;border-radius:45px;background:var(--bg);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.status{height:48px;display:flex;justify-content:space-between;align-items:center;padding:0 32px;font-weight:600;font-size:15px;flex:none}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:118px;height:34px;background:#000;border-radius:20px}
+.p{padding:0 20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 6px rgba(0,0,0,.035)}
+.num{font-variant-numeric:tabular-nums}
+svg{display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.badge{width:34px;height:34px;border-radius:10px;background:var(--accentSoft);color:var(--accent);display:grid;place-items:center}
+.badge svg{width:17px;height:17px}
+.sh{font-size:13px;font-weight:600;color:var(--t3);display:flex;justify-content:space-between;padding:0 4px;margin:18px 0 10px}
+.sh span{font-weight:400;font-size:12px}
+.bar4{height:4px;border-radius:4px;background:var(--fill);overflow:hidden}.bar4 i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.nav{height:44px;display:flex;align-items:center;justify-content:center;position:relative;font-size:17px;font-weight:600;flex:none}
+.nav .l{position:absolute;left:12px;color:var(--accent);display:flex;align-items:center;font-weight:400;font-size:17px}
+.nav .r{position:absolute;right:20px;color:var(--accent);font-weight:400;font-size:16px}
+.seg{display:flex;background:var(--fill);border-radius:11px;padding:3px}
+.seg div{flex:1;text-align:center;font-size:14px;color:var(--t2);padding:7px 0;border-radius:8px}
+.seg .on{background:#fff;color:var(--t1);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+img{display:block;object-fit:cover;width:100%;height:100%}
+.th{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1}
+.th .sel{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1.5px solid #fff;background:rgba(0,0,0,.15);display:grid;place-items:center;color:#fff}
+.th .sel svg{width:11px;height:11px;stroke-width:2.6}
+.th.del .sel{background:var(--danger)}.th.keep .sel{background:var(--accent)}
+.th.del img{opacity:.68}.th.del{outline:2px solid rgba(217,83,79,.6);outline-offset:-2px;transform:scale(.95)}
+.th.best{outline:2px solid var(--accent);outline-offset:-2px}
+.th .sz{position:absolute;right:6px;bottom:5px;color:#fff;font-size:10px;font-weight:500;text-shadow:0 0 3px rgba(0,0,0,.6)}
+.th .rec{position:absolute;left:6px;bottom:6px;background:var(--accent);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:99px}
+.sbtn{display:inline-block;background:var(--fill);border-radius:10px;padding:8px 13px;font-size:14px;font-weight:500}
+.pbtn{background:var(--accent);color:#fff;border-radius:14px;text-align:center;padding:14px;font-size:16px;font-weight:600}
+.lbl{text-align:center;font-size:14px;color:var(--t2);margin-top:14px}
 </style></head><body>
-<div class="top"><h1>相册清理 · 新界面</h1><span>设计语言参考 MiniMax（白底 · 彩色渐变产品卡 · 胶囊按钮 · Outfit / DM Sans）＋ vibecoding 社区的交互动效</span></div>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="sq" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+<symbol id="ph" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></symbol>
+<symbol id="ap" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.3 3.3 8.6 13M20.7 9.6l-11.3.2M18.3 19 12.6 9.3M9.7 20.7l5.7-9.8M3.3 14.4l11.3-.2M5.7 5l5.7 9.7"/></symbol>
+<symbol id="hd" viewBox="0 0 24 24"><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M5.5 13 8 5h8l2.5 8M7 16.5h.01M10 16.5h.01"/></symbol>
+<symbol id="vd" viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m15.5 10 6-3.5v11l-6-3.5"/></symbol>
+<symbol id="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+<symbol id="tr" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5.5 7l1 12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+<symbol id="ck" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+<symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+<symbol id="un" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+<symbol id="rf" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.5M20 3.5v5h-5"/></symbol>
+<symbol id="gr" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+<symbol id="cv" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="cl" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+<symbol id="sp" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+</defs></svg>
+
+<div class="top"><h1>相册清理 · 简约清新</h1>
+<div class="sw"><i style="background:#2AA876"></i><i style="background:#F7F8FA"></i><i style="background:#fff"></i><i style="background:#1F2328"></i><i style="background:#D9534F"></i></div>
+<span>薄荷绿单一强调色 · 浅灰底白卡片 · 系统字体 · 细线图标 · 红色只用于删除</span></div>
 <div class="row">
 
 <!-- 1 首页 -->
 <div><div class="phone"><div class="scr"><div class="island"></div>
-<div class="status"><span>9:41</span><span>􀙇 100%</span></div>
-<div class="pad" style="display:flex;align-items:center;gap:10px;margin:6px 0 16px">
- <div><div class="disp" style="font-size:30px">相册清理</div><div style="font-size:13px;color:var(--muted);font-weight:500">Photo Cleaner</div></div>
- <div style="margin-left:auto" class="ipill">⚙︎</div><div class="ipill">↻</div></div>
-<div class="pad"><div class="hero art">
- <div style="display:flex;justify-content:space-between"><span class="chip" style="background:rgba(255,255,255,.22);color:#fff">扫描完成</span><span style="font-family:Outfit;font-weight:500;font-size:15px">8,652 项</span></div>
- <div style="font-size:14px;opacity:.85;margin-top:16px;font-weight:500">相册共占用</div>
- <div class="disp" style="font-size:46px;line-height:1.1">48.6 GB</div>
- <div style="margin-top:14px;background:rgba(255,255,255,.92);color:var(--dark);border-radius:99px;padding:11px 14px;font-size:14px;font-weight:500">✦ 发现 1,284 张可能可以清理的照片</div>
+<div class="status"><span>9:41</span><span>100%</span></div>
+<div class="p" style="display:flex;justify-content:flex-end;gap:18px;color:var(--accent);height:30px;align-items:center"><svg width="20" height="20"><use href="#rf"/></svg><svg width="20" height="20"><use href="#gr"/></svg></div>
+<div class="p" style="font-size:30px;font-weight:700;letter-spacing:-.4px;margin:2px 0 14px">相册清理</div>
+<div class="p"><div class="card" style="padding:18px">
+ <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--t2)"><span>相册占用</span><span class="num" style="font-size:13px;color:var(--t3)">8,652 项</span></div>
+ <div class="num" style="font-size:36px;font-weight:700;letter-spacing:-.6px;margin:6px 0 14px">48.6 GB</div>
+ <div class="bar4"><i style="width:22%"></i></div>
+ <div style="font-size:12px;color:var(--t2);margin-top:8px;display:flex;align-items:center;gap:6px"><i style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:block"></i>约 10.7 GB 可清理 · 1,284 张</div>
 </div></div>
-<div class="pad" style="display:flex;justify-content:space-between;align-items:baseline;margin:20px 0 12px"><span class="disp" style="font-size:22px">智能分类</span><span style="font-size:13px;color:var(--muted)">6 类</span></div>
-<div class="pad cats">
- <div class="card cat"><div class="art" style="background:linear-gradient(135deg,#1456f0,#3daeff);--blob:#3daeff"><div class="ic">❐</div><div class="badge" style="color:#1456f0">412 待看</div><div class="num">436<small> 项</small></div></div><div class="t">相似照片<span>3.1 GB</span></div><div class="s">连拍和重复，留一张最好的</div></div>
- <div class="card cat"><div class="art" style="background:linear-gradient(135deg,#6d4aff,#b07cff);--blob:#b07cff"><div class="ic">▯</div><div class="badge" style="color:#6d4aff">590 待看</div><div class="num">612<small> 项</small></div></div><div class="t">截图<span>1.4 GB</span></div><div class="s">聊天记录、验证码截图</div></div>
- <div class="card cat"><div class="art" style="background:linear-gradient(135deg,#f0498f,#ff9f45);--blob:#ff9f45"><div class="ic">◐</div><div class="badge" style="color:#f0498f">97 待看</div><div class="num">97<small> 项</small></div></div><div class="t">模糊照片<span>402 MB</span></div><div class="s">手抖、失焦的照片</div></div>
- <div class="card cat"><div class="art" style="background:linear-gradient(135deg,#ea5ec1,#7c5cff);--blob:#7c5cff"><div class="ic">▤</div><div class="badge" style="color:#ea5ec1">58 待看</div><div class="num">58<small> 项</small></div></div><div class="t">大文件<span>9.8 GB</span></div><div class="s">占空间最多的照片</div></div>
-</div>
-<div class="bar"><div class="bi">🗑</div><div><div style="font-weight:700;font-size:15px">待删除 126 项</div><div style="font-size:12px;opacity:.7">可释放 1.9 GB</div></div><div class="go">去确认</div></div>
-</div></div><div class="lbl">① 首页 · 渐变产品卡 + 错峰弹入</div></div>
+<div class="p"><div class="sh">分类</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+ <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#sq"/></svg></div><span style="font-size:12px;color:var(--t3)">412 待看</span></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">436</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">相似照片<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">3.1 GB</span></div></div>
+ <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#ph"/></svg></div><span style="font-size:12px;color:var(--t3)">590 待看</span></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">612</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">截图<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">1.4 GB</span></div></div>
+ <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#ap"/></svg></div></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">97</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">模糊照片<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">402 MB</span></div></div>
+ <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#hd"/></svg></div><span style="font-size:12px;color:var(--t3)">41 待看</span></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">58</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">大文件<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">9.8 GB</span></div></div>
+ <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#vd"/></svg></div></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">214</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">视频<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">21.3 GB</span></div></div>
+ <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#sun"/></svg></div></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">33</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">过暗/过曝<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">96 MB</span></div></div>
+</div></div>
+<div class="card" style="position:absolute;left:20px;right:20px;bottom:28px;padding:12px;display:flex;align-items:center;gap:12px;box-shadow:0 6px 16px rgba(0,0,0,.08)">
+ <div class="badge" style="width:38px;height:38px;background:var(--dangerSoft);color:var(--danger)"><svg><use href="#tr"/></svg></div>
+ <div><div style="font-size:16px;font-weight:600">待删除 126 项</div><div style="font-size:12px;color:var(--t2)">可释放 1.9 GB</div></div>
+ <div style="margin-left:auto;color:var(--accent);font-size:14px;font-weight:600">查看</div><svg width="14" height="14" style="color:var(--t3);stroke-width:2.2"><use href="#cv"/></svg></div>
+</div></div><div class="lbl">① 首页</div></div>
 
-<!-- 2 滑动筛选 -->
+<!-- 2 滑动 -->
 <div><div class="phone"><div class="scr"><div class="island"></div>
-<div class="status"><span>9:41</span><span>􀙇 100%</span></div>
-<div class="nav"><span class="back">‹</span>模糊照片</div>
-<div class="pad" style="margin-top:6px"><div class="seg"><div class="on">✋ 滑动筛选</div><div>▦ 网格多选</div></div>
- <div style="display:flex;gap:8px;margin-top:12px"><span class="chip">共 97 项</span><span class="chip">402 MB</span><span class="chip" style="margin-left:auto;color:var(--danger);background:rgba(244,63,94,.1)">已标记删除 12</span></div>
- <div style="display:flex;align-items:baseline;margin-top:14px"><span class="disp" style="font-size:22px">13</span><span style="font-family:Outfit;color:var(--muted);font-size:14px">&nbsp;/ 97</span>
- <span class="chip" style="margin-left:auto;color:var(--danger);background:rgba(244,63,94,.1)">← 左滑删除</span>&nbsp;<span class="chip" style="color:var(--ok);background:#e8ffea">右滑保留 →</span></div>
- <div style="height:6px;border-radius:9px;background:var(--soft);margin-top:10px"><div style="width:13%;height:100%;border-radius:9px;background:linear-gradient(90deg,#f0498f,#ff9f45)"></div></div>
+<div class="status"><span>9:41</span><span>100%</span></div>
+<div class="nav"><span class="l"><svg width="22" height="22" style="stroke-width:2"><use href="#cl"/></svg>返回</span>模糊照片</div>
+<div class="p" style="margin-top:4px"><div class="seg"><div class="on">滑动筛选</div><div>网格多选</div></div>
+<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:10px"><span style="color:var(--t3)">97 项 · 402 MB</span><span style="color:var(--danger)">已选删除 12</span></div>
+<div style="display:flex;justify-content:space-between;margin-top:14px;font-size:12px;color:var(--t3)"><span class="num" style="font-size:13px;color:var(--t2);font-weight:500">13 / 97</span><span>左滑删除 · 右滑保留</span></div>
+<div class="bar4" style="margin-top:8px"><i style="width:13%"></i></div></div>
+<div style="position:relative;flex:1;margin:20px 20px 0">
+ <div style="position:absolute;inset:0;border-radius:20px;overflow:hidden;transform:translateY(20px) scale(.92);box-shadow:0 2px 6px rgba(0,0,0,.04)"><img src="https://picsum.photos/id/1043/500/700"></div>
+ <div style="position:absolute;inset:0;border-radius:20px;overflow:hidden;transform:translateY(7px) scale(.97);box-shadow:0 2px 6px rgba(0,0,0,.04)"><img src="https://picsum.photos/id/1036/500/700"></div>
+ <div style="position:absolute;inset:0;border-radius:20px;overflow:hidden;transform:translateX(-38px) rotate(-4deg);box-shadow:0 6px 14px rgba(0,0,0,.1)"><img src="https://picsum.photos/id/1025/500/700?blur=2">
+  <div style="position:absolute;inset:0;background:linear-gradient(transparent 50%,rgba(0,0,0,.45))"></div>
+  <div style="position:absolute;left:16px;bottom:16px;color:#fff"><span style="font-size:11px;font-weight:500;background:rgba(255,255,255,.22);padding:3px 8px;border-radius:99px">模糊</span><div style="font-size:16px;font-weight:600;margin-top:6px">2026年8月14日 19:32</div><div class="num" style="font-size:12px;opacity:.85">3.4 MB · 4032×3024</div></div>
+  <div style="position:absolute;top:16px;right:16px;background:#fff;color:var(--danger);font-weight:600;font-size:15px;padding:8px 14px;border-radius:99px;display:flex;gap:5px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.12)"><svg width="16" height="16"><use href="#tr"/></svg>删除</div></div>
 </div>
-<div class="stack">
- <div class="sc" style="transform:translateY(28px) scale(.9);opacity:.9"><div class="ph"><img src="https://picsum.photos/id/1043/500/700"></div></div>
- <div class="sc" style="transform:translateY(14px) scale(.95)"><div class="ph"><img src="https://picsum.photos/id/1036/500/700"></div></div>
- <div class="sc" style="transform:translateX(-46px) rotate(-6deg)"><div class="ph"><img src="https://picsum.photos/id/1025/500/700?blur=2" style="margin-left:1%"><div class="grad"></div>
-  <div class="meta"><span class="tag" style="background:rgba(240,73,143,.55)">模糊</span><div style="font-weight:700;font-size:17px;margin-top:6px">2026年8月14日 19:32</div><div style="font-family:Outfit;font-size:13px;opacity:.85">3.4 MB · 4032×3024</div></div>
-  <div class="stamp">🗑 删除</div></div></div>
-</div>
-<div class="ctrls"><div class="cb" style="width:66px;height:66px;background:var(--del);font-size:24px;box-shadow:0 5px 12px rgba(244,63,94,.3)">✕</div><div class="cb" style="width:50px;height:50px;background:#fff;border:1px solid var(--line);color:var(--ink);box-shadow:var(--glow)">↶</div><div class="cb" style="width:66px;height:66px;background:linear-gradient(135deg,#16a34a,#34d399);font-size:24px;box-shadow:0 5px 12px rgba(22,163,74,.3)">♥</div></div>
-</div></div><div class="lbl">② 滑动筛选 · 弹簧物理 + 视差 + 后卡联动</div></div>
+<div style="display:flex;justify-content:center;align-items:center;gap:32px;padding:22px 0 30px">
+ <div style="width:60px;height:60px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--danger);box-shadow:0 3px 8px rgba(0,0,0,.06)"><svg width="22" height="22" style="stroke-width:2"><use href="#x"/></svg></div>
+ <div style="width:46px;height:46px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--t2);box-shadow:0 3px 8px rgba(0,0,0,.06)"><svg width="17" height="17" style="stroke-width:2"><use href="#un"/></svg></div>
+ <div style="width:60px;height:60px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--accent);box-shadow:0 3px 8px rgba(0,0,0,.06)"><svg width="22" height="22" style="stroke-width:2"><use href="#ck"/></svg></div></div>
+</div></div><div class="lbl">② 滑动筛选</div></div>
 
-<!-- 3 相似照片 -->
+<!-- 3 相似 -->
 <div><div class="phone"><div class="scr"><div class="island"></div>
-<div class="status"><span>9:41</span><span>􀙇 100%</span></div>
-<div class="nav"><span class="back">‹</span>相似照片</div>
-<div class="pad" style="margin-top:8px"><div class="sumc art">
- <div class="disp" style="font-size:28px">128 组相似照片</div><div style="font-size:14px;opacity:.9;font-weight:500">每组只留最好的一张，可释放约 2.7 GB</div>
- <div style="margin-top:14px;background:#fff;color:var(--dark);text-align:center;font-weight:700;font-size:15px;padding:14px;border-radius:99px">✧ 一键智能清理全部</div></div></div>
-<div class="pad" style="margin-top:16px"><div class="card" style="padding:14px">
- <div style="display:flex;align-items:center"><div><div style="font-weight:700;font-size:16px">4 张相似</div><div style="font-size:12px;color:var(--muted)">2026年10月2日 17:05</div></div><span class="chip" style="margin-left:auto">18.2 MB</span></div>
- <div class="thumbs"><div class="th bestb"><img src="https://picsum.photos/id/1018/300/300"><div class="best">最佳</div><div class="sz">4.6 MB</div></div>
- <div class="th del"><img src="https://picsum.photos/id/1018/300/300?grayscale&blur=1"><div class="mk">🗑</div><div class="sz">4.5 MB</div></div>
- <div class="th del"><img src="https://picsum.photos/id/1018/320/320?blur=2"><div class="mk">🗑</div><div class="sz">4.4 MB</div></div></div>
- <div style="display:flex;align-items:center"><span class="btn-dark">✦ 留最佳，删其余 3 张</span><span class="btn-soft" style="margin-left:auto">全部保留</span></div></div></div>
-<div class="pad" style="margin-top:14px"><div class="card" style="padding:14px">
- <div style="display:flex;align-items:center"><div><div style="font-weight:700;font-size:16px">3 张相似</div><div style="font-size:12px;color:var(--muted)">2026年9月21日 08:44</div></div><span class="chip" style="margin-left:auto">11.0 MB</span></div>
- <div class="thumbs"><div class="th"><img src="https://picsum.photos/id/1039/300/300"><div class="mk" style="background:rgba(0,0,0,.12)"></div><div class="sz">3.8 MB</div></div>
- <div class="th bestb"><img src="https://picsum.photos/id/1039/310/310"><div class="best">最佳</div><div class="sz">3.7 MB</div></div>
- <div class="th"><img src="https://picsum.photos/id/1039/290/290?blur=1"><div class="mk" style="background:rgba(0,0,0,.12)"></div><div class="sz">3.5 MB</div></div></div>
- <div style="display:flex;align-items:center"><span class="btn-dark">✦ 留最佳，删其余 2 张</span><span class="btn-soft" style="margin-left:auto">全部保留</span></div></div></div>
-</div></div><div class="lbl">③ 相似照片 · 自动推荐最佳</div></div>
+<div class="status"><span>9:41</span><span>100%</span></div>
+<div class="nav"><span class="l"><svg width="22" height="22" style="stroke-width:2"><use href="#cl"/></svg>返回</span>相似照片</div>
+<div class="p" style="margin-top:4px"><div class="card" style="padding:18px">
+ <div style="display:flex;justify-content:space-between"><div><div style="font-size:14px;color:var(--t2)">每组留最清晰的一张</div><div class="num" style="font-size:26px;font-weight:700;margin-top:4px;letter-spacing:-.4px">可释放 2.7 GB</div></div><div class="badge"><svg><use href="#sp"/></svg></div></div>
+ <div class="pbtn" style="margin-top:14px">一键处理全部 308 张</div></div>
+<div class="sh">128 组<span>点照片切换选择 · 长按看大图</span></div>
+<div class="card" style="padding:14px">
+ <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:16px;font-weight:600">4 张相似</span><span style="font-size:12px;color:var(--t3)">2026年10月2日 17:05</span><span class="num" style="margin-left:auto;font-size:12px;color:var(--t3)">18.2 MB</span></div>
+ <div style="display:flex;gap:6px;margin:12px 0">
+  <div class="th best" style="width:104px;flex:none"><img src="https://picsum.photos/id/1018/300/300"><div class="sel keep" style="background:var(--accent)"><svg><use href="#ck"/></svg></div><div class="rec">推荐保留</div></div>
+  <div class="th del" style="width:104px;flex:none"><img src="https://picsum.photos/id/1018/300/300?blur=1"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">4.5 MB</div></div>
+  <div class="th del" style="width:104px;flex:none"><img src="https://picsum.photos/id/1018/320/320?blur=2"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">4.4 MB</div></div></div>
+ <div style="display:flex"><span class="sbtn" style="color:var(--accent)">保留推荐，删其余 3 张</span><span class="sbtn" style="margin-left:auto;color:var(--t2)">全部保留</span></div></div>
+<div class="card" style="padding:14px;margin-top:12px">
+ <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:16px;font-weight:600">3 张相似</span><span style="font-size:12px;color:var(--t3)">2026年9月21日 08:44</span><span class="num" style="margin-left:auto;font-size:12px;color:var(--t3)">11.0 MB</span></div>
+ <div style="display:flex;gap:6px;margin:12px 0">
+  <div class="th" style="width:104px;flex:none"><img src="https://picsum.photos/id/1039/300/300"><div class="sel"></div><div class="sz">3.8 MB</div></div>
+  <div class="th best" style="width:104px;flex:none"><img src="https://picsum.photos/id/1039/310/310"><div class="sel"></div><div class="rec">推荐保留</div></div>
+  <div class="th" style="width:104px;flex:none"><img src="https://picsum.photos/id/1039/290/290?blur=1"><div class="sel"></div><div class="sz">3.5 MB</div></div></div>
+ <div style="display:flex"><span class="sbtn" style="color:var(--accent)">保留推荐，删其余 2 张</span><span class="sbtn" style="margin-left:auto;color:var(--t2)">全部保留</span></div></div>
+</div></div></div><div class="lbl">③ 相似照片</div></div>
 
-<!-- 4 确认删除 -->
+<!-- 4 确认 -->
 <div><div class="phone"><div class="scr"><div class="island"></div>
-<div class="status"><span>9:41</span><span>􀙇 100%</span></div>
-<div class="nav"><span class="back">‹</span>确认删除<span style="position:absolute;right:16px;color:var(--brand);font-size:14px;font-weight:500">清空清单</span></div>
-<div class="pad" style="margin-top:8px"><div class="art" style="border-radius:24px;padding:22px;color:#fff;background:var(--del);--blob:#ea5ec1;box-shadow:0 10px 20px rgba(244,63,94,.3)">
- <span class="chip" style="background:rgba(255,255,255,.22);color:#fff">共 126 项</span>
- <div style="font-size:14px;opacity:.85;margin-top:14px;font-weight:500">可释放空间</div><div class="disp" style="font-size:50px;line-height:1.1">1.9 GB</div></div>
- <div style="background:var(--surface);border-radius:16px;padding:13px;margin-top:16px;font-size:13px;color:var(--ink2);display:flex;gap:8px"><span style="color:var(--brand)">ⓘ</span>点下方按钮后，iPhone 会弹出系统确认框。删除的照片进入「最近删除」，30 天内可恢复。</div>
- <div style="display:flex;justify-content:space-between;align-items:baseline;margin:16px 0 10px"><span class="disp" style="font-size:22px">待删除清单</span><span style="font-size:13px;color:var(--muted)">按大小排序</span></div>
- <div class="grid">
-  <div class="th del"><img src="https://picsum.photos/id/1050/240/240"><div class="mk">🗑</div><div class="sz">▶ 212 MB</div></div>
-  <div class="th del"><img src="https://picsum.photos/id/1067/240/240"><div class="mk">🗑</div><div class="sz">▶ 96 MB</div></div>
-  <div class="th del"><img src="https://picsum.photos/id/1074/240/240"><div class="mk">🗑</div><div class="sz">14 MB</div></div>
-  <div class="th del"><img src="https://picsum.photos/id/1080/240/240"><div class="mk">🗑</div><div class="sz">9.1 MB</div></div>
-  <div class="th del"><img src="https://picsum.photos/id/1062/240/240"><div class="mk">🗑</div><div class="sz">8.7 MB</div></div>
-  <div class="th del"><img src="https://picsum.photos/id/1084/240/240"><div class="mk">🗑</div><div class="sz">6.2 MB</div></div>
- </div></div>
-<div class="cta">🗑 删除 126 项，释放 1.9 GB</div>
-</div></div><div class="lbl">④ 确认删除 · 数字滚动 + 系统二次确认</div></div>
+<div class="status"><span>9:41</span><span>100%</span></div>
+<div class="nav"><span class="l"><svg width="22" height="22" style="stroke-width:2"><use href="#cl"/></svg>返回</span>确认删除<span class="r">清空</span></div>
+<div class="p" style="margin-top:4px"><div class="card" style="padding:18px">
+ <div style="font-size:14px;color:var(--t2)">可释放空间</div><div class="num" style="font-size:36px;font-weight:700;letter-spacing:-.6px;margin:4px 0 6px">1.9 GB</div>
+ <div style="font-size:12px;color:var(--t3)">共 126 项 · 删除后进入「最近删除」，30 天内可恢复</div></div>
+<div class="sh">待删除<span>点缩略图可移出</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+ <div class="th del"><img src="https://picsum.photos/id/1050/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">▶︎ 212 MB</div></div>
+ <div class="th del"><img src="https://picsum.photos/id/1067/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">▶︎ 96 MB</div></div>
+ <div class="th del"><img src="https://picsum.photos/id/1074/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">14 MB</div></div>
+ <div class="th del"><img src="https://picsum.photos/id/1080/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">9.1 MB</div></div>
+ <div class="th del"><img src="https://picsum.photos/id/1062/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">8.7 MB</div></div>
+ <div class="th del"><img src="https://picsum.photos/id/1084/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">6.2 MB</div></div>
+ <div class="th del"><img src="https://picsum.photos/id/1015/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">5.9 MB</div></div>
+ <div class="th del"><img src="https://picsum.photos/id/1016/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">5.2 MB</div></div>
+ <div class="th del"><img src="https://picsum.photos/id/1019/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">4.8 MB</div></div>
+</div></div>
+<div style="position:absolute;left:20px;right:20px;bottom:28px;background:var(--danger);color:#fff;border-radius:14px;text-align:center;padding:15px;font-size:16px;font-weight:600">删除 126 项</div>
+</div></div><div class="lbl">④ 确认删除</div></div>
 
 </div></body></html>

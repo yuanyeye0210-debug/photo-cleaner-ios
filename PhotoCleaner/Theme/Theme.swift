@@ -1,62 +1,44 @@
 import SwiftUI
-import CoreText
 
-/// 设计规范：参考 MiniMax 官网的设计语言（白底 + 彩色渐变产品卡、胶囊按钮、紫色调阴影、Outfit/DM Sans 字体）
-/// 来源：https://www.minimax.io 、https://design.hagicode.com/designs/minimax/
-enum MM {
+/// 唯一的设计来源：简约清新主题（薄荷绿单一强调色 · 浅灰底 · 白卡片 · 系统字体）
+/// 所有界面只从这里取颜色、字体、圆角、间距和动画。
+enum Theme {
     // MARK: 颜色
-    static let canvas = Color.white
-    static let surface = Color(hex: 0xF7F8FA)          // 次级底色（极浅灰）
-    static let ink = Color(hex: 0x222222)               // 主文字
-    static let inkDark = Color(hex: 0x181E25)           // 深色按钮 / 深色面
-    static let ink2 = Color(hex: 0x45515E)              // 次文字
-    static let muted = Color(hex: 0x8E8E93)             // 弱文字
-    static let line = Color(hex: 0xE5E7EB)
-    static let lineSoft = Color(hex: 0xF2F3F5)
-    static let pill = Color.black.opacity(0.05)         // 胶囊导航底
+    static let accent = Color(hex: 0x2AA876)            // 薄荷绿：唯一强调色
+    static let accentSoft = Color(hex: 0x2AA876, alpha: 0.10)
+    static let danger = Color(hex: 0xD9534F)            // 柔和红：只用于删除
+    static let dangerSoft = Color(hex: 0xD9534F, alpha: 0.09)
 
-    static let brand = Color(hex: 0x1456F0)
-    static let blue500 = Color(hex: 0x3B82F6)
-    static let blueLight = Color(hex: 0x60A5FA)
-    static let sky = Color(hex: 0x3DAEFF)
-    static let pink = Color(hex: 0xEA5EC1)
-    static let danger = Color(hex: 0xF43F5E)
-    static let success = Color(hex: 0x16A34A)
-    static let successBg = Color(hex: 0xE8FFEA)
+    static let bg = Color(hex: 0xF7F8FA)                // 页面底色
+    static let card = Color.white                       // 卡片
+    static let fill = Color(hex: 0xF1F3F5)              // 次级填充（分段控件、次按钮、占位）
+    static let hairline = Color(hex: 0xE9ECEF)          // 1px 细线
 
-    /// 官网首屏那种粉-珊瑚-橙渐变
-    static let heroGradient: [Color] = [Color(hex: 0xE24BB4), Color(hex: 0xF4607A), Color(hex: 0xFB9A5B)]
-    /// 删除相关：珊瑚红渐变
-    static let deleteGradient: [Color] = [Color(hex: 0xF43F5E), Color(hex: 0xFB7185), Color(hex: 0xFB923C)]
+    static let text = Color(hex: 0x1F2328)              // 主文字
+    static let text2 = Color(hex: 0x5F6670)             // 次文字
+    static let text3 = Color(hex: 0x9AA1AA)             // 弱文字
 
-    // MARK: 阴影
-    static let glow = Color(red: 44 / 255, green: 30 / 255, blue: 116 / 255)
+    // MARK: 圆角 / 间距
+    static let rCard: CGFloat = 16
+    static let rTile: CGFloat = 10
+    static let rButton: CGFloat = 14
+    static let pagePadding: CGFloat = 20
+    static let gap: CGFloat = 12
 
-    // MARK: 圆角
-    static let rCard: CGFloat = 24
-    static let rArt: CGFloat = 18
-    static let rTile: CGFloat = 14
-
-    // MARK: 字体（Outfit 负责标题与数字，DM Sans 负责界面文字；中文自动回落到苹方）
-    static func display(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
-        let name: String
-        switch weight {
-        case .bold, .heavy, .black: name = "OutfitThin-Bold"
-        case .medium, .regular, .light, .thin, .ultraLight: name = "OutfitThin-Medium"
-        default: name = "OutfitThin-SemiBold"
-        }
-        return FontRegistry.available(name) ? .custom(name, size: size) : .system(size: size, weight: weight, design: .rounded)
+    // MARK: 字体（全部系统字体）
+    static let largeTitle = Font.system(size: 30, weight: .bold)
+    static let title = Font.system(size: 20, weight: .semibold)
+    static let headline = Font.system(size: 16, weight: .semibold)
+    static let body = Font.system(size: 15)
+    static let callout = Font.system(size: 14)
+    static let caption = Font.system(size: 12)
+    static func number(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
+        .system(size: size, weight: weight).monospacedDigit()
     }
 
-    static func text(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        let name: String
-        switch weight {
-        case .bold, .heavy, .black, .semibold: name = "DMSans9pt-Bold"
-        case .medium: name = "DMSans9pt-Medium"
-        default: name = "DMSans9pt-Regular"
-        }
-        return FontRegistry.available(name) ? .custom(name, size: size) : .system(size: size, weight: weight)
-    }
+    // MARK: 动画
+    static let spring = Animation.spring(response: 0.35, dampingFraction: 0.82)
+    static let springSoft = Animation.spring(response: 0.5, dampingFraction: 0.88)
 }
 
 extension Color {
@@ -69,190 +51,155 @@ extension Color {
     }
 }
 
-/// 运行时注册包内字体（不依赖 Info.plist 路径）
-enum FontRegistry {
-    private static var registered = Set<String>()
-
-    static func registerAll() {
-        let urls = (Bundle.main.urls(forResourcesWithExtension: "ttf", subdirectory: nil) ?? [])
-            + (Bundle.main.urls(forResourcesWithExtension: "ttf", subdirectory: "Fonts") ?? [])
-        for url in urls {
-            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
-        }
-        for name in ["OutfitThin-Medium", "OutfitThin-SemiBold", "OutfitThin-Bold",
-                     "DMSans9pt-Regular", "DMSans9pt-Medium", "DMSans9pt-Bold"]
-        where UIFont(name: name, size: 12) != nil {
-            registered.insert(name)
-        }
-    }
-
-    static func available(_ name: String) -> Bool { registered.contains(name) }
-}
-
 // MARK: - 卡片
 
-enum MMShadow { case glow, subtle, none }
-
-struct MMCardModifier: ViewModifier {
-    var radius: CGFloat = MM.rCard
-    var shadow: MMShadow = .glow
-    var fill: Color = MM.canvas
+struct CardModifier: ViewModifier {
+    var radius: CGFloat = Theme.rCard
+    var padding: CGFloat? = nil
 
     func body(content: Content) -> some View {
         content
-            .background(fill, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).stroke(MM.lineSoft, lineWidth: 1))
-            .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
+            .padding(padding ?? 0)
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).stroke(Theme.hairline, lineWidth: 1))
+            .shadow(color: Color.black.opacity(0.035), radius: 6, x: 0, y: 2)
     }
-
-    private var shadowColor: Color {
-        switch shadow {
-        case .glow: return MM.glow.opacity(0.13)
-        case .subtle: return Color.black.opacity(0.06)
-        case .none: return .clear
-        }
-    }
-    private var shadowRadius: CGFloat { shadow == .glow ? 16 : 6 }
-    private var shadowY: CGFloat { shadow == .glow ? 6 : 3 }
 }
 
 extension View {
-    func mmCard(radius: CGFloat = MM.rCard, shadow: MMShadow = .glow, fill: Color = MM.canvas) -> some View {
-        modifier(MMCardModifier(radius: radius, shadow: shadow, fill: fill))
+    func card(radius: CGFloat = Theme.rCard, padding: CGFloat? = nil) -> some View {
+        modifier(CardModifier(radius: radius, padding: padding))
     }
+
+    /// 轻微的依次出现（只做透明度 + 少量位移）
+    func fadeIn(_ index: Int = 0) -> some View { modifier(FadeIn(index: index)) }
 }
 
-/// MiniMax 产品卡里的渐变「插画区」：渐变 + 两团柔光
-struct GradientArt: View {
-    let colors: [Color]
-    var radius: CGFloat = MM.rArt
-
-    var body: some View {
-        ZStack {
-            LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
-            GeometryReader { geo in
-                Circle()
-                    .fill(Color.white.opacity(0.28))
-                    .frame(width: geo.size.width * 0.9)
-                    .blur(radius: 28)
-                    .offset(x: geo.size.width * 0.45, y: -geo.size.height * 0.45)
-                Circle()
-                    .fill((colors.last ?? .purple).opacity(0.9))
-                    .frame(width: geo.size.width * 0.7)
-                    .blur(radius: 30)
-                    .offset(x: -geo.size.width * 0.25, y: geo.size.height * 0.55)
+struct FadeIn: ViewModifier {
+    let index: Int
+    @State private var shown = false
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            .offset(y: shown ? 0 : 8)
+            .onAppear {
+                guard !shown else { return }
+                withAnimation(Theme.springSoft.delay(Double(min(index, 8)) * 0.04)) { shown = true }
             }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
     }
 }
 
 // MARK: - 按钮
 
-/// 主按钮：深色胶囊（MiniMax 的 Primary Dark）；传 colors 则为渐变胶囊
+/// 主按钮：实心强调色（destructive 时为柔和红）
 struct PrimaryButtonStyle: ButtonStyle {
-    var colors: [Color]? = nil
+    var destructive = false
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(MM.text(16, .bold))
+            .font(.system(size: 16, weight: .semibold))
             .foregroundStyle(.white)
-            .padding(.vertical, 16)
-            .padding(.horizontal, 22)
-            .background(background)
-            .clipShape(Capsule())
-            .shadow(color: (colors?.first ?? MM.inkDark).opacity(0.22), radius: 14, y: 6)
-            .opacity(isEnabled ? (configuration.isPressed ? 0.88 : 1) : 0.45)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
-    }
-
-    @ViewBuilder private var background: some View {
-        if let colors {
-            LinearGradient(colors: colors, startPoint: .leading, endPoint: .trailing)
-        } else {
-            MM.inkDark
-        }
+            .padding(.vertical, 15)
+            .padding(.horizontal, 20)
+            .background(destructive ? Theme.danger : Theme.accent,
+                        in: RoundedRectangle(cornerRadius: Theme.rButton, style: .continuous))
+            .opacity(isEnabled ? (configuration.isPressed ? 0.85 : 1) : 0.4)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(Theme.spring, value: configuration.isPressed)
     }
 }
 
-/// 次按钮：浅灰胶囊
+/// 次按钮：浅灰底，文字为强调色或灰色
 struct SecondaryButtonStyle: ButtonStyle {
-    var tint: Color = MM.ink
+    var tint: Color = Theme.text
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(MM.text(14, .medium))
+            .font(.system(size: 14, weight: .medium))
             .foregroundStyle(tint)
-            .padding(.vertical, 10)
-            .padding(.horizontal, 16)
-            .background(Color(hex: 0xF0F0F0), in: Capsule())
-            .scaleEffect(configuration.isPressed ? 0.96 : 1)
-            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
+            .padding(.vertical, 9)
+            .padding(.horizontal, 14)
+            .background(Theme.fill, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .opacity(configuration.isPressed ? 0.7 : 1)
+            .animation(Theme.spring, value: configuration.isPressed)
     }
 }
 
-/// 顶部小圆按钮（胶囊导航风格）
-struct IconPill: View {
+struct PressableStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .opacity(configuration.isPressed ? 0.9 : 1)
+            .animation(Theme.spring, value: configuration.isPressed)
+    }
+}
+
+// MARK: - 小组件
+
+/// 圆形浅色图标底 + 细线 SF Symbol
+struct IconBadge: View {
     let icon: String
-    var action: (() -> Void)? = nil
+    var tint: Color = Theme.accent
+    var size: CGFloat = 34
     var body: some View {
         Image(systemName: icon)
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(MM.ink)
-            .frame(width: 40, height: 40)
-            .background(MM.pill, in: Circle())
+            .font(.system(size: size * 0.44, weight: .regular))
+            .foregroundStyle(tint)
+            .frame(width: size, height: size)
+            .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: size * 0.3, style: .continuous))
     }
 }
 
-/// 胶囊分段控件（替代系统 segmented）
-struct PillSegment<T: Hashable & Identifiable>: View {
+/// 分段控件（滑块用 matchedGeometryEffect 平滑移动）
+struct Segmented<T: Hashable & Identifiable>: View {
     let options: [T]
     @Binding var selection: T
     let label: (T) -> String
-    var icon: ((T) -> String)? = nil
     @Namespace private var ns
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 2) {
             ForEach(options) { opt in
-                let on = opt == selection
                 Button {
                     Haptics.light()
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { selection = opt }
+                    withAnimation(Theme.spring) { selection = opt }
                 } label: {
-                    HStack(spacing: 6) {
-                        if let icon { Image(systemName: icon(opt)).font(.system(size: 13, weight: .semibold)) }
-                        Text(label(opt)).font(MM.text(14, .medium))
-                    }
-                    .foregroundStyle(on ? Color.white : MM.ink2)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background {
-                        if on {
-                            Capsule().fill(MM.inkDark).matchedGeometryEffect(id: "seg", in: ns)
+                    Text(label(opt))
+                        .font(.system(size: 14, weight: opt == selection ? .semibold : .regular))
+                        .foregroundStyle(opt == selection ? Theme.text : Theme.text2)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background {
+                            if opt == selection {
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color.white)
+                                    .shadow(color: .black.opacity(0.06), radius: 3, y: 1)
+                                    .matchedGeometryEffect(id: "seg", in: ns)
+                            }
                         }
-                    }
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(4)
-        .background(MM.pill, in: Capsule())
+        .padding(3)
+        .background(Theme.fill, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
     }
 }
 
-/// 小标签胶囊
-struct Chip: View {
-    let text: String
-    var fg: Color = MM.ink2
-    var bg: Color = MM.pill
+/// 细进度条
+struct ThinProgress: View {
+    let value: Double
+    var tint: Color = Theme.accent
     var body: some View {
-        Text(text)
-            .font(MM.text(12, .medium))
-            .foregroundStyle(fg)
-            .padding(.horizontal, 10).padding(.vertical, 4)
-            .background(bg, in: Capsule())
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Theme.fill)
+                Capsule().fill(tint)
+                    .frame(width: geo.size.width * CGFloat(min(max(value, 0), 1)))
+            }
+        }
+        .frame(height: 4)
+        .animation(Theme.springSoft, value: value)
     }
 }
 
@@ -261,12 +208,14 @@ struct SectionHeader: View {
     var trailing: String? = nil
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(title).font(MM.display(22, .semibold)).foregroundStyle(MM.ink)
+            Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text3)
+                .textCase(.uppercase)
             Spacer()
             if let trailing {
-                Text(trailing).font(MM.text(13, .medium)).foregroundStyle(MM.muted)
+                Text(trailing).font(Theme.caption).foregroundStyle(Theme.text3)
             }
         }
-        .padding(.top, 6)
+        .padding(.horizontal, 4)
+        .padding(.top, 8)
     }
 }

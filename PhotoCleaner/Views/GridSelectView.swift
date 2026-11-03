@@ -6,43 +6,38 @@ struct GridSelectView: View {
     let ids: [String]
     @State private var preview: PhotoItem?
 
-    private let columns = [GridItem(.adaptive(minimum: 104), spacing: 8)]
+    private let columns = [GridItem(.adaptive(minimum: 104), spacing: 6)]
 
     var body: some View {
         ScrollView {
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 Button {
                     Haptics.medium()
-                    withAnimation(Motion.snappy) { store.markAll(ids.filter { store.decision(for: $0) != .keep }, .delete) }
+                    withAnimation(Theme.spring) { store.markAll(ids.filter { store.decision(for: $0) != .keep }, .delete) }
                 } label: {
-                    Label("全选删除", systemImage: "checkmark.circle.fill")
-                        .font(MM.text(14, .bold))
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 10).padding(.horizontal, 16)
-                        .background(MM.inkDark, in: Capsule())
+                    Label("全选", systemImage: "checkmark.circle")
                 }
-                .buttonStyle(PressableStyle())
+                .buttonStyle(SecondaryButtonStyle(tint: Theme.accent))
 
                 Button {
                     Haptics.light()
-                    withAnimation(Motion.snappy) { store.markAll(ids.filter { store.toDelete.contains($0) }, nil) }
+                    withAnimation(Theme.spring) { store.markAll(ids.filter { store.toDelete.contains($0) }, nil) }
                 } label: {
-                    Label("全部取消", systemImage: "xmark")
+                    Label("取消全选", systemImage: "circle")
                 }
-                .buttonStyle(SecondaryButtonStyle())
+                .buttonStyle(SecondaryButtonStyle(tint: Theme.text2))
                 Spacer()
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 2)
+            .padding(.horizontal, Theme.pagePadding)
 
-            Text("点一下标记删除，长按查看大图。标记了「保留」的照片不会被全选。")
-                .font(MM.text(12))
-                .foregroundStyle(MM.muted)
+            Text("点一下选中删除，长按看大图。已标记「保留」的不会被全选。")
+                .font(Theme.caption)
+                .foregroundStyle(Theme.text3)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
+                .padding(.horizontal, Theme.pagePadding)
+                .padding(.top, 2)
 
-            LazyVGrid(columns: columns, spacing: 8) {
+            LazyVGrid(columns: columns, spacing: 6) {
                 ForEach(Array(ids.enumerated()), id: \.element) { idx, id in
                     if let item = store.item(id) {
                         ThumbnailCell(item: item)
@@ -54,7 +49,7 @@ struct GridSelectView: View {
                                 Haptics.medium()
                                 preview = item
                             }
-                            .staggerIn(min(idx, 12))
+                            .fadeIn(idx)
                     }
                 }
             }

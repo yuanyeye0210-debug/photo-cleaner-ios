@@ -25,12 +25,17 @@
 
 ## 界面设计
 
-![界面预览](preview/mockups.png)
+主题：**简约清新**（参考 Apple 照片 / Things 3 / Notion 的克制风格）
 
-- 设计语言参考 **MiniMax 官网**（https://www.minimax.io ）：白底、彩色渐变「产品卡」、胶囊按钮、紫色调柔和阴影、Outfit + DM Sans 字体。设计规范整理参考 https://design.hagicode.com/designs/minimax/ 。
-- 交互动效参考 vibecoding 社区的画廊作品：卡片错峰弹入、拖动视差与 3D 倾斜、后排卡片联动、月份横滑 3D 封面流 + 逐项吸附（iOS 17+）、数字滚动、分段控件滑块动画、触感反馈。
-- 字体 Outfit / DM Sans 以 SIL OFL 1.1 协议随 App 打包（`PhotoCleaner/Resources/Fonts`），中文自动使用系统苹方。
-- 设计参数集中在 `PhotoCleaner/Theme/Theme.swift`，动效在 `PhotoCleaner/Theme/Motion.swift`。
+- 只有一个强调色：薄荷绿 `#2AA876`（按钮、图标、进度条、选中状态）
+- 背景浅灰 `#F7F8FA`，内容放在白色卡片里（1px 细边框 + 很淡的阴影）
+- 文字三级灰：`#1F2328` / `#5F6670` / `#9AA1AA`
+- 红色 `#D9534F` 只用于删除
+- 系统字体（SF），细线 SF Symbols 图标，没有渐变、没有光斑
+- 动效只保留轻量的：滑动卡片弹簧、卡片堆叠、数字滚动、淡入
+- 所有颜色、字号、圆角、动画都在 `PhotoCleaner/Theme/Theme.swift` 一个文件里，改主题只改这里
+
+预览图：`preview/mockups.png`（由 `preview/mockup.html` 生成）
 
 ## 没有 Mac，怎么装到 iPhone 上？
 
