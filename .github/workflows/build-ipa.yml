@@ -54,9 +54,11 @@ jobs:
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/PhotoCleaner.xcarchive" \
-            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            CODE_SIGNING_ALLOWED=YES \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_IDENTITY="-" \
             | tail -60
 
       - name: 打包成 IPA
@@ -68,6 +70,7 @@ jobs:
           cp -R "$APP" "$RUNNER_TEMP/ipa/Payload/"
           cd "$RUNNER_TEMP/ipa"
           zip -qry PhotoCleaner-unsigned.ipa Payload
+          codesign -dv --verbose=2 Payload/PhotoCleaner.app || true
           ls -lh PhotoCleaner-unsigned.ipa
 
       - name: 上传 IPA
