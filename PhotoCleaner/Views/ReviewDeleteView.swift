@@ -25,11 +25,27 @@ struct ReviewDeleteView: View {
                     CardHeader(icon: "trash.fill", tint: Theme.danger, title: "可释放空间") {
                         PillBadge(text: "\(store.toDelete.count) 项", tint: Theme.orange)
                     }
-                    BigNumber(value: phase == .done ? "\(deletedCount)" : Fmt.bytes(store.toDeleteBytes),
-                              unit: phase == .done ? "项已删除" : nil, size: 44)
+                    BigNumber(value: phase == .done ? "\(deletedCount)" : Fmt.bytes(store.toDeleteFreedBytes),
+                              unit: phase == .done ? String(localized: "项已删除") : nil, size: 44)
                     Text("删除后进入「最近删除」，30 天内可恢复")
                         .font(Theme.caption)
                         .foregroundStyle(Theme.text2)
+                    Label {
+                        Text("开了 iCloud 照片的话，删除会同步到你所有设备（iPad、Mac 上也会删掉）")
+                    } icon: {
+                        Image(systemName: "icloud")
+                    }
+                    .font(Theme.caption)
+                    .foregroundStyle(Theme.text3)
+                    if store.failedCount > 0 {
+                        Label {
+                            Text("上次有 \(store.failedCount) 项没删掉，还留在下面，可以再试一次")
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                        }
+                        .font(Theme.caption)
+                        .foregroundStyle(Theme.orange)
+                    }
                 }
                 .card(padding: 18)
 
@@ -42,6 +58,8 @@ struct ReviewDeleteView: View {
                         ForEach(sortedIDs, id: \.self) { id in
                             if let item = store.item(id) {
                                 ThumbnailCell(item: item)
+                                    .accessibilityAddTraits(.isButton)
+                                    .accessibilityHint(Text("点按移出待删除"))
                                     .onTapGesture {
                                         Haptics.light()
                                         withAnimation(Theme.spring) { store.set(id, nil) }
@@ -85,7 +103,7 @@ struct ReviewDeleteView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(store.toDelete.count) 项").font(Theme.number(17, .bold)).foregroundStyle(Theme.text)
                         .contentTransition(.numericText())
-                    Text(Fmt.bytes(store.toDeleteBytes)).font(Theme.caption).foregroundStyle(Theme.text2)
+                    Text(Fmt.bytes(store.toDeleteFreedBytes)).font(Theme.caption).foregroundStyle(Theme.text2)
                 }
                 .transition(.opacity)
             }

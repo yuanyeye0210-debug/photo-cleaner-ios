@@ -1,9 +1,13 @@
 import SwiftUI
 
-/// 左滑标记删除、右滑保留（只做标记，确认后才真正删除）
+/// 左滑标记删除、右滑保留、上滑稍后再看（只做标记，确认后才真正删除）
 struct SwipeReviewView: View {
     @EnvironmentObject var store: CleanupStore
     let ids: [String]
+    /// 「稍后再看」模式：队列就是稍后再看的照片
+    var includeLater = false
+
+    private enum Action { case delete, keep, later }
 
     @State private var queue: [String] = []
     @State private var pos = 0
@@ -54,7 +58,7 @@ struct SwipeReviewView: View {
         .padding(.bottom, 12)
         .onAppear {
             guard !loaded else { return }
-            queue = store.undecided(ids).filter { store.item($0) != nil }
+            queue = store.undecided(ids, includeLater: includeLater).filter { store.item($0) != nil }
             loaded = true
             prefetch()
         }
@@ -63,7 +67,7 @@ struct SwipeReviewView: View {
     }
 
     /// 拖动进度 0…1，后排卡片随之上移
-    private var lift: CGFloat { min(1, abs(offset.width) / threshold) }
+    private var lift: CGFloat { min(1, max(abs(offset.width), max(0, -offset.height)) / threshold) }
 
     private var visibleIndices: [Int] {
         guard pos < queue.count else { return [] }
@@ -78,7 +82,7 @@ struct SwipeReviewView: View {
                     .foregroundStyle(Theme.text2)
                     .contentTransition(.numericText())
                 Spacer()
-                Text("左滑标记删除 · 右滑保留 · 不会立即删除")
+                Text("左滑删除 · 右滑保留 · 上滑稍后")
                     .font(Theme.caption)
                     .foregroundStyle(Theme.text3)
             }
@@ -93,6 +97,7 @@ struct SwipeReviewView: View {
         let drag = isTop ? offset : .zero
         let deleteAmount = Double(max(0, -drag.width) / threshold)
         let keepAmount = Double(max(0, drag.width) / threshold)
+        let laterAmount = Double(max(0, -drag.height) / threshold) * (abs(drag.height) > abs(drag.width) ? 1 : 0)
         let d = CGFloat(depth) - (depth > 0 ? lift : 0)
 
         GeometryReader { geo in
@@ -122,16 +127,20 @@ struct SwipeReviewView: View {
                 .padding(16)
 
                 // 拖动时的提示
-                hint(icon: "trash", text: "标记删除", color: Theme.danger)
+                hint(icon: "trash", text: String(localized: "标记删除"), color: Theme.danger)
                     .opacity(deleteAmount)
                     .scaleEffect(CGFloat(0.85 + min(1, deleteAmount) * 0.15))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .padding(16)
-                hint(icon: "checkmark", text: "保留", color: Theme.green)
+                hint(icon: "checkmark", text: String(localized: "保留"), color: Theme.green)
                     .opacity(keepAmount)
                     .scaleEffect(CGFloat(0.85 + min(1, keepAmount) * 0.15))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .padding(16)
+                hint(icon: "clock.arrow.circlepath", text: String(localized: "稍后再看"), color: Theme.blue)
+                    .opacity(laterAmount)
+                    .scaleEffect(CGFloat(0.85 + min(1, laterAmount) * 0.15))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -139,27 +148,39 @@ struct SwipeReviewView: View {
         .shadow(color: .black.opacity(isTop ? 0.10 : 0.04), radius: isTop ? 14 : 6, y: isTop ? 6 : 2)
         .scaleEffect(1 - d * 0.04)
         .offset(y: d * 10)
-        .offset(x: drag.width, y: drag.height * 0.25)
+        .offset(x: drag.width, y: drag.height < 0 ? drag.height * 0.7 : drag.height * 0.25)
         .rotationEffect(.degrees(Double(drag.width) / 22))
         .allowsHitTesting(isTop)
         .onTapGesture { preview = item }
+        .accessibilityElement(children: .ignore)
+        .accessibilityHidden(!isTop)
+        .accessibilityLabel(accessibilityText(for: item))
+        .accessibilityHint(Text("向左滑标记删除，向右滑保留，向上滑稍后再看。也可以用操作菜单。"))
+        .accessibilityAddTraits(.isImage)
+        .accessibilityAction(named: Text("标记删除")) { swipe(.delete) }
+        .accessibilityAction(named: Text("保留")) { swipe(.keep) }
+        .accessibilityAction(named: Text("稍后再看")) { swipe(.later) }
+        .accessibilityAction(named: Text("查看大图")) { preview = item }
         .gesture(
             DragGesture(minimumDistance: 20)
                 .onChanged { v in
                     guard !flying else { return }
-                    let wasPast = abs(offset.width) > threshold
+                    let wasPast = abs(offset.width) > threshold || -offset.height > threshold
                     offset = v.translation
-                    if !wasPast && abs(offset.width) > threshold { Haptics.light() }
+                    if !wasPast && (abs(offset.width) > threshold || -offset.height > threshold) { Haptics.light() }
                 }
                 .onEnded { v in
                     guard !flying else { return }
-                    let dx = v.translation.width
-                    // 必须明显横向拖动（横向 > 纵向的 1.5 倍）且越过阈值才算数，防止误触
-                    let horizontal = abs(dx) > abs(v.translation.height) * 1.5
+                    let dx = v.translation.width, dy = v.translation.height
+                    // 必须明显横向拖动（横向 > 纵向的 1.5 倍）且越过阈值才算数，防止误触；上滑同理
+                    let horizontal = abs(dx) > abs(dy) * 1.5
+                    let vertical = abs(dy) > abs(dx) * 1.5
                     if horizontal && dx < -threshold {
                         swipe(.delete)
                     } else if horizontal && dx > threshold {
                         swipe(.keep)
+                    } else if vertical && dy < -threshold {
+                        swipe(.later)
                     } else {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { offset = .zero }
                     }
@@ -170,18 +191,28 @@ struct SwipeReviewView: View {
 
     private func tags(for item: PhotoItem) -> [String] {
         var t: [String] = []
-        if item.isScreenshot { t.append("截图") }
-        if item.isVideo { t.append("视频") }
+        if item.isScreenshot { t.append(String(localized: "截图")) }
+        if item.isVideo { t.append(String(localized: "视频")) }
+        if item.isLivePhoto { t.append(String(localized: "实况")) }
+        if item.burstID != nil { t.append(String(localized: "连拍")) }
+        if store.later.contains(item.id) { t.append(String(localized: "稍后再看")) }
         if let a = item.analysis {
-            if let code = a.verificationCode { t.append("验证码 \(code)") }
-            if a.tags.contains(.qrCode) { t.append("二维码") }
-            if a.tags.contains(.document) { t.append("文档") }
-            if a.textHeavy && !item.isScreenshot { t.append("文字多") }
-            if store.isBlurry(item) { t.append("模糊") }
-            if store.isPoorLight(item) { t.append(a.brightness < 35 ? "过暗" : "过曝") }
-            if store.isLowQuality(item) { t.append("低质量") }
+            if let code = a.verificationCode { t.append(String(localized: "验证码 \(code)")) }
+            if a.tags.contains(.qrCode) { t.append(String(localized: "二维码")) }
+            if a.tags.contains(.document) { t.append(String(localized: "文档")) }
+            if a.textHeavy && !item.isScreenshot { t.append(String(localized: "文字多")) }
+            if store.isBlurry(item) { t.append(String(localized: "模糊")) }
+            if store.isPoorLight(item) { t.append(a.brightness < 35 ? String(localized: "过暗") : String(localized: "过曝")) }
+            if store.isLowQuality(item) { t.append(String(localized: "低质量")) }
         }
         return Array(t.prefix(4))
+    }
+
+    private func accessibilityText(for item: PhotoItem) -> String {
+        let kind = item.isVideo ? String(localized: "视频") : String(localized: "照片")
+        var parts = [kind, Fmt.date(item.creationDate), Fmt.bytes(item.fileSize)]
+        parts.append(contentsOf: tags(for: item))
+        return parts.joined(separator: ", ")
     }
 
     private func hint(icon: String, text: String, color: Color) -> some View {
@@ -200,14 +231,20 @@ struct SwipeReviewView: View {
     }
 
     private var controlRow: some View {
-        HStack(spacing: 32) {
+        HStack(spacing: 24) {
             CircleButton(icon: "xmark", color: Theme.danger, size: 60) { swipe(.delete) }
                 .disabled(pos >= queue.count)
+                .accessibilityLabel(Text("标记删除"))
             CircleButton(icon: "arrow.uturn.backward", color: Theme.text2, size: 46) { undo() }
                 .disabled(history.isEmpty)
                 .opacity(history.isEmpty ? 0.4 : 1)
+                .accessibilityLabel(Text("撤销"))
+            CircleButton(icon: "clock.arrow.circlepath", color: Theme.blue, size: 46) { swipe(.later) }
+                .disabled(pos >= queue.count)
+                .accessibilityLabel(Text("稍后再看"))
             CircleButton(icon: "checkmark", color: Theme.green, size: 60) { swipe(.keep) }
                 .disabled(pos >= queue.count)
+                .accessibilityLabel(Text("保留"))
         }
         .padding(.top, 4)
     }
@@ -235,10 +272,14 @@ struct SwipeReviewView: View {
                             .font(Theme.callout).foregroundStyle(Theme.text2)
                         Text("照片还没删除 · 点缩略图可取消标记")
                             .font(Theme.caption).foregroundStyle(Theme.text3)
+                        Text("开了 iCloud 照片的话，删除会同步到你所有设备")
+                            .font(Theme.caption).foregroundStyle(Theme.text3)
                         LazyVGrid(columns: gridColumns, spacing: 6) {
                             ForEach(marked, id: \.self) { id in
                                 if let item = store.item(id) {
                                     ThumbnailCell(item: item)
+                                        .accessibilityLabel(Text("已标记删除，点按取消"))
+                                        .accessibilityAddTraits(.isButton)
                                         .onTapGesture {
                                             Haptics.light()
                                             withAnimation(Theme.spring) { store.set(id, .keep) }
@@ -283,7 +324,7 @@ struct SwipeReviewView: View {
         }
     }
 
-    private func swipe(_ decision: Decision) {
+    private func swipe(_ decision: Action) {
         guard pos < queue.count, !flying else { return }
         let id = queue[pos]
         // 图片还没显示出来时不允许标记删除，弹回并提示
@@ -297,10 +338,18 @@ struct SwipeReviewView: View {
         flying = true
         if decision == .delete { Haptics.medium() } else { Haptics.light() }
         withAnimation(.easeIn(duration: 0.22)) {
-            offset = CGSize(width: decision == .delete ? -700 : 700, height: offset.height + 30)
+            switch decision {
+            case .delete: offset = CGSize(width: -700, height: offset.height + 30)
+            case .keep: offset = CGSize(width: 700, height: offset.height + 30)
+            case .later: offset = CGSize(width: offset.width, height: -1100)
+            }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
-            store.set(id, decision)
+            switch decision {
+            case .delete: store.set(id, .delete)
+            case .keep: store.set(id, .keep)
+            case .later: store.setLater(id)
+            }
             history.append(id)
             offset = .zero
             pos += 1

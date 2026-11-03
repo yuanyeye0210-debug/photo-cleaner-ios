@@ -5,9 +5,14 @@ struct LibraryView: View {
     @EnvironmentObject var store: CleanupStore
 
     enum Mode: String, CaseIterable, Identifiable {
-        case stack = "分类"
-        case timeline = "时间线"
+        case stack, timeline
         var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .stack: return String(localized: "分类")
+            case .timeline: return String(localized: "时间线")
+            }
+        }
     }
     @State private var mode: Mode = .stack
 
@@ -17,7 +22,7 @@ struct LibraryView: View {
                 .font(Theme.largeTitle)
                 .foregroundStyle(Theme.text)
                 .padding(.top, 8)
-            Segmented(options: Mode.allCases, selection: $mode, label: { $0.rawValue })
+            Segmented(options: Mode.allCases, selection: $mode, label: { $0.title })
 
             switch mode {
             case .stack:
@@ -108,6 +113,10 @@ struct CategoryStack: View {
         .padding(.horizontal, 16)
         .frame(height: rowHeight)
         .card(radius: 22)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(cat.title)，\(ids.count) 项，\(Fmt.bytes(store.bytes(of: ids)))"))
+        .accessibilityHint(Text(cat.subtitle))
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -118,7 +127,7 @@ struct MonthTimeline: View {
 
     var body: some View {
         if store.months.isEmpty {
-            EmptyStateView(icon: "calendar", title: "还没有数据", message: "扫描完成后按月份显示")
+            EmptyStateView(icon: "calendar", title: String(localized: "还没有数据"), message: String(localized: "扫描完成后按月份显示"))
         } else {
             SnapTimeline(items: store.months, cardHeight: 200, index: $index) { month, active in
                 MonthTimelineCard(month: month, active: active)
@@ -135,15 +144,30 @@ struct MonthTimelineCard: View {
     var body: some View {
         let marked = month.ids.filter { store.toDelete.contains($0) }.count
         let parts = month.id.split(separator: "-")
+        let m = parts.count == 2 ? (Int(parts[1]) ?? 0) : 0
+        let chinese = Locale.current.language.languageCode == .chinese
+        let cleaned = store.isMonthCleaned(month.id)
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(parts.count == 2 ? String(Int(parts[1]) ?? 0) : month.title)
+                Text(verbatim: chinese || !(1...12).contains(m) ? String(m) : Calendar.current.shortMonthSymbols[m - 1])
                     .font(Theme.number(40, .bold))
                     .foregroundStyle(active ? Theme.orange : Theme.text)
-                Text("月").font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.text2)
+                if chinese {
+                    Text(verbatim: "月").font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.text2)
+                }
                 Text(parts.first.map { String($0) } ?? "").font(Theme.caption).foregroundStyle(Theme.text3)
                 Spacer()
-                if marked > 0 { PillBadge(text: "删除 \(marked)", tint: Theme.danger) }
+                if marked > 0 { PillBadge(text: String(localized: "删除 \(marked)"), tint: Theme.danger) }
+                Button {
+                    Haptics.light()
+                    withAnimation(Theme.spring) { store.toggleMonthCleaned(month.id) }
+                } label: {
+                    PillBadge(text: cleaned ? String(localized: "已清理") : String(localized: "标为已清理"),
+                              icon: cleaned ? "checkmark.seal.fill" : "checkmark.seal",
+                              tint: cleaned ? Theme.green : Theme.text2, style: .soft)
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityLabel(cleaned ? Text("这个月已清理，点按取消") : Text("把这个月标为已清理"))
             }
             HStack(spacing: 6) {
                 ForEach(month.ids.prefix(4), id: \.self) { id in
@@ -160,7 +184,7 @@ struct MonthTimelineCard: View {
                     .font(Theme.caption).foregroundStyle(Theme.text2)
                 Spacer()
                 NavigationLink(value: Route.month(month.id)) {
-                    PillBadge(text: "整理", tint: Theme.blue, style: .soft, chevron: true)
+                    PillBadge(text: String(localized: "整理"), tint: Theme.blue, style: .soft, chevron: true)
                 }
                 .buttonStyle(PressableStyle())
             }
@@ -168,6 +192,7 @@ struct MonthTimelineCard: View {
         .padding(16)
         .frame(maxHeight: .infinity, alignment: .top)
         .card()
+        .opacity(cleaned && !active ? 0.6 : 1)
         .overlay(RoundedRectangle(cornerRadius: Theme.rCard, style: .continuous)
             .stroke(active ? Theme.orange.opacity(0.35) : Color.clear, lineWidth: 1))
     }

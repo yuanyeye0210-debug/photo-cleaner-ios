@@ -52,11 +52,11 @@ enum Theme {
     /// 按时间问候：夜深了 / 早上好 / 中午好 / 下午好 / 晚上好
     static func greeting(_ date: Date = Date()) -> String {
         switch Calendar.current.component(.hour, from: date) {
-        case 5..<11: return "早上好"
-        case 11..<14: return "中午好"
-        case 14..<18: return "下午好"
-        case 18..<23: return "晚上好"
-        default: return "夜深了"
+        case 5..<11: return String(localized: "早上好")
+        case 11..<14: return String(localized: "中午好")
+        case 14..<18: return String(localized: "下午好")
+        case 18..<23: return String(localized: "晚上好")
+        default: return String(localized: "夜深了")
         }
     }
 }
@@ -66,6 +66,9 @@ extension CleanCategory {
     var tint: Color {
         switch self {
         case .similar: return Theme.purple
+        case .exactDuplicates: return Theme.blue
+        case .bursts: return Theme.purple
+        case .livePhotos: return Theme.orange
         case .screenshots: return Theme.blue
         case .blurry: return Theme.green
         case .large: return Theme.orange

@@ -3,6 +3,8 @@ import SwiftUI
 enum Route: Hashable {
     case category(CleanCategory)
     case month(String)
+    case quick(QuickMode)
+    case compressVideos
     case review
     case settings
 }
@@ -14,11 +16,18 @@ struct RouteDestination: View {
     var body: some View {
         switch route {
         case .category(let c):
-            if c == .similar {
-                SimilarGroupsView()
-            } else {
-                CategoryView(title: c.title, ids: store.ids(in: c), tint: c.tint)
+            switch c {
+            case .similar, .exactDuplicates, .bursts:
+                SimilarGroupsView(category: c)
+            case .livePhotos:
+                LivePhotosView()
+            default:
+                CategoryView(title: c.title, ids: store.ids(in: c), tint: c.tint, category: c)
             }
+        case .quick(let m):
+            QuickModeView(mode: m)
+        case .compressVideos:
+            CompressVideosView()
         case .month(let key):
             CategoryView(title: store.months.first(where: { $0.id == key })?.title ?? key,
                          ids: store.months.first(where: { $0.id == key })?.ids ?? [],
@@ -59,13 +68,25 @@ struct DashboardView: View {
                     .card(padding: 14)
                 }
 
+                if !store.cloudOnlyIDs.isEmpty || store.allowCloudAnalysis {
+                    CloudCard()
+                }
+
                 NavigationLink(value: Route.review) {
                     PendingCard()
                 }
                 .buttonStyle(PressableStyle())
                 .fadeIn(1)
 
-                SectionHeader(title: "分类", trailing: store.phase == .done ? "分析完成" : store.progressText)
+                SectionHeader(title: String(localized: "小批量整理"), trailing: String(localized: "每次几分钟"))
+                QuickModesCard()
+                    .fadeIn(2)
+
+                StatsCard()
+                    .fadeIn(3)
+
+                SectionHeader(title: String(localized: "分类"),
+                              trailing: store.phase == .done ? String(localized: "分析完成") : store.progressText)
                 LazyVGrid(columns: columns, spacing: Theme.gap) {
                     ForEach(Array(CleanCategory.allCases.enumerated()), id: \.element) { idx, cat in
                         NavigationLink(value: Route.category(cat)) {
@@ -108,7 +129,7 @@ struct DashboardView: View {
                     .glassSurface(Circle(), interactive: true)
             }
             .buttonStyle(PressableStyle())
-            .accessibilityLabel("设置")
+            .accessibilityLabel(Text("设置"))
         }
         .padding(.top, 8)
     }
@@ -118,31 +139,60 @@ struct DashboardView: View {
 struct StatusCard: View {
     @EnvironmentObject var store: CleanupStore
 
-    private var scanning: Bool { store.phase == .loading || store.phase == .analyzing }
+    private var scanning: Bool { store.isScanning }
+
+    /// 整体分析进度（含缓存里已有的）
+    private var overall: Double {
+        if store.phase == .loading { return store.progress }
+        return store.analyzableCount > 0 ? Double(store.analyzedCount) / Double(store.analyzableCount) : store.progress
+    }
 
     var body: some View {
         let cleanable = store.cleanableIDs
         let cleanableBytes = store.bytes(of: cleanable)
         let ratio = store.totalBytes > 0 ? Double(cleanableBytes) / Double(store.totalBytes) : 0
-        let videos = store.items.filter { $0.isVideo }.count
+        let videos = store.items.filter { $0.isVideo && !$0.burstHidden }.count
+        let photos = store.items.filter { !$0.isVideo && !$0.burstHidden }.count
+        let showProgress = scanning || store.phase == .paused
         VStack(alignment: .leading, spacing: 18) {
-            CardHeader(icon: "gauge.with.dots.needle.33percent", tint: Theme.orange, title: "相册状态") {
+            CardHeader(icon: "gauge.with.dots.needle.33percent", tint: Theme.orange, title: String(localized: "相册状态")) {
                 if scanning {
-                    PillBadge(text: "扫描中", icon: "clock.fill")
+                    PillBadge(text: String(localized: "扫描中"), icon: "clock.fill")
+                } else if store.phase == .paused {
+                    PillBadge(text: String(localized: "已暂停"), icon: "pause.fill", tint: Theme.blue)
                 } else {
-                    PillBadge(text: "可清理", icon: "exclamationmark.circle.fill")
+                    PillBadge(text: String(localized: "可清理"), icon: "exclamationmark.circle.fill")
                 }
             }
             HStack(spacing: 18) {
-                SegmentedRingGauge(value: scanning ? store.progress : ratio,
-                                   center: "\(Int(((scanning ? store.progress : ratio) * 100).rounded()))",
-                                   caption: scanning ? "扫描 %" : "可清理 %")
+                SegmentedRingGauge(value: showProgress ? overall : ratio,
+                                   center: "\(Int(((showProgress ? overall : ratio) * 100).rounded()))%",
+                                   caption: showProgress ? String(localized: "已分析") : String(localized: "可清理"))
                     .frame(width: 148, height: 148)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(showProgress ? Text("已分析 \(Int((overall * 100).rounded()))%")
+                                                     : Text("可清理 \(Int((ratio * 100).rounded()))%"))
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], alignment: .leading, spacing: 16) {
-                    Metric(icon: "photo.fill", tint: Theme.purple, label: "照片", value: "\(store.items.count - videos)")
-                    Metric(icon: "video.fill", tint: Theme.pink, label: "视频", value: "\(videos)")
-                    Metric(icon: "externaldrive.fill", tint: Theme.orange, label: "占用", value: Fmt.bytes(store.totalBytes))
-                    Metric(icon: "sparkles", tint: Theme.blue, label: "可清理", value: Fmt.bytes(cleanableBytes))
+                    Metric(icon: "photo.fill", tint: Theme.purple, label: String(localized: "照片"), value: "\(photos)")
+                    Metric(icon: "video.fill", tint: Theme.pink, label: String(localized: "视频"), value: "\(videos)")
+                    Metric(icon: "externaldrive.fill", tint: Theme.orange, label: String(localized: "占用"), value: Fmt.bytes(store.totalBytes))
+                    Metric(icon: "sparkles", tint: Theme.blue, label: String(localized: "可清理"), value: Fmt.bytes(cleanableBytes))
+                }
+            }
+            if store.phase == .analyzing || store.phase == .paused {
+                HStack(spacing: 10) {
+                    Text("已分析 \(store.analyzedCount) / \(store.analyzableCount) 张")
+                        .font(Theme.caption).foregroundStyle(Theme.text2)
+                        .contentTransition(.numericText())
+                    Spacer()
+                    Button {
+                        Haptics.light()
+                        if store.phase == .paused { store.resumeAnalysis() } else { store.pauseAnalysis() }
+                    } label: {
+                        Label(store.phase == .paused ? String(localized: "继续") : String(localized: "暂停"),
+                              systemImage: store.phase == .paused ? "play.fill" : "pause.fill")
+                    }
+                    .buttonStyle(SecondaryButtonStyle(tint: Theme.blue))
                 }
             }
         }
@@ -156,25 +206,25 @@ struct PendingCard: View {
 
     var body: some View {
         let cleanableBytes = max(store.bytes(of: store.cleanableIDs), 1)
-        let ratio = min(1, Double(store.toDeleteBytes) / Double(cleanableBytes))
+        let ratio = min(1, Double(store.toDeleteFreedBytes) / Double(cleanableBytes))
         VStack(alignment: .leading, spacing: 14) {
-            CardHeader(icon: "trash.fill", tint: Theme.danger, title: "待删除") {
+            CardHeader(icon: "trash.fill", tint: Theme.danger, title: String(localized: "待删除")) {
                 if store.toDelete.isEmpty {
-                    PillBadge(text: "未选择", tint: Theme.orange)
+                    PillBadge(text: String(localized: "未选择"), tint: Theme.orange)
                 } else {
-                    PillBadge(text: "去确认", tint: Theme.blue, style: .soft, chevron: true)
+                    PillBadge(text: String(localized: "去确认"), tint: Theme.blue, style: .soft, chevron: true)
                 }
             }
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("已选").font(.system(size: 14)).foregroundStyle(Theme.text2)
-                    BigNumber(value: "\(store.toDelete.count)", unit: "项")
+                    BigNumber(value: "\(store.toDelete.count)", unit: String(localized: "项"))
                 }
                 Spacer()
                 VStack(alignment: .leading, spacing: 10) {
                     VStack(alignment: .leading, spacing: 1) {
                         Text("可释放").font(.system(size: 14)).foregroundStyle(Theme.text2)
-                        Text(store.toDelete.isEmpty ? "--" : Fmt.bytes(store.toDeleteBytes))
+                        Text(store.toDelete.isEmpty ? "--" : Fmt.bytes(store.toDeleteFreedBytes))
                             .font(Theme.number(17, .semibold)).foregroundStyle(Theme.text)
                     }
                     VStack(alignment: .leading, spacing: 1) {
@@ -211,7 +261,7 @@ struct CategoryCard: View {
     var body: some View {
         let ids = store.ids(in: category)
         let pending = store.undecided(ids).count
-        let analyzing = store.phase != .done && category.needsAnalysis
+        let analyzing = store.isScanning && category.needsAnalysis
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 IconBadge(icon: category.icon, tint: category.tint, size: 30)
@@ -222,7 +272,7 @@ struct CategoryCard: View {
                 Spacer(minLength: 0)
                 if analyzing { ProgressView().scaleEffect(0.7) }
             }
-            BigNumber(value: "\(ids.count)", unit: "项", size: 32)
+            BigNumber(value: "\(ids.count)", unit: String(localized: "项"), size: 32)
             HStack {
                 Text(Fmt.bytes(store.bytes(of: ids)))
                 Spacer()
@@ -233,14 +283,9 @@ struct CategoryCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .card(radius: 22, padding: 14)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(category.title)，\(ids.count) 项，\(Fmt.bytes(store.bytes(of: ids)))"))
+        .accessibilityAddTraits(.isButton)
     }
 }
 
-extension CleanupStore {
-    /// 可清理（不含视频、大文件和美食/宠物/风景这种「看情况」的类别）
-    var cleanableIDs: [String] {
-        Array(Set(CleanCategory.allCases
-            .filter { $0 != .videos && $0 != .large && !$0.isBrowse }
-            .flatMap { ids(in: $0) }))
-    }
-}

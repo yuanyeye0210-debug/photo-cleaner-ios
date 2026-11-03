@@ -6,11 +6,18 @@ struct CategoryView: View {
     let title: String
     let ids: [String]
     var tint: Color = Theme.green
+    var includeLater = false
+    var category: CleanCategory? = nil
 
     enum Mode: String, CaseIterable, Identifiable {
-        case swipe = "滑动筛选"
-        case grid = "网格多选"
+        case swipe, grid
         var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .swipe: return String(localized: "滑动筛选")
+            case .grid: return String(localized: "网格多选")
+            }
+        }
     }
     @State private var mode: Mode = .swipe
 
@@ -23,19 +30,34 @@ struct CategoryView: View {
                 LinkedProgressHeader(done: done, total: ids.count,
                                      marked: marked.count, markedBytes: store.bytes(of: marked),
                                      tint: tint)
-                Segmented(options: Mode.allCases, selection: $mode, label: { $0.rawValue })
+                Segmented(options: Mode.allCases, selection: $mode, label: { $0.title })
+                if category == .videos && !ids.isEmpty {
+                    NavigationLink(value: Route.compressVideos) {
+                        HStack(spacing: 10) {
+                            IconBadge(icon: "wand.and.stars", tint: Theme.pink, size: 30)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("压缩成 HEVC 省空间").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                                Text("画质几乎不变，原视频确认后再删").font(Theme.caption).foregroundStyle(Theme.text2)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.text3)
+                        }
+                        .card(radius: 18, padding: 12)
+                    }
+                    .buttonStyle(PressableStyle())
+                }
             }
             .padding(.horizontal, Theme.pagePadding)
             .padding(.top, 4)
             .padding(.bottom, 8)
 
             if ids.isEmpty {
-                EmptyStateView(icon: "checkmark", title: "这里很干净",
-                               message: store.phase == .done ? "没有找到需要清理的内容" : "还在分析中，稍后再来看看")
+                EmptyStateView(icon: "checkmark", title: String(localized: "这里很干净"),
+                               message: store.isScanning ? String(localized: "还在分析中，稍后再来看看") : String(localized: "没有找到需要清理的内容"))
             } else {
                 switch mode {
                 case .swipe:
-                    SwipeReviewView(ids: ids)
+                    SwipeReviewView(ids: ids, includeLater: includeLater)
                 case .grid:
                     GridSelectView(ids: ids)
                 }

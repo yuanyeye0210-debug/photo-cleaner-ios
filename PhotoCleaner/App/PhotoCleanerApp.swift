@@ -3,13 +3,28 @@ import SwiftUI
 @main
 struct PhotoCleanerApp: App {
     @StateObject private var store = CleanupStore()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(store)
+                .onOpenURL { url in
+                    if let link = DeepLink(url: url) { DeepLinkRouter.shared.pending = link }
+                }
+        }
+        .onChange(of: scenePhase) { phase in
+            // 退到后台时把还没写盘的决定、缓存立即保存
+            if phase != .active { store.flush() }
         }
     }
+}
+
+/// 小组件 / 快捷指令 / URL 打开 App 时要跳到的页面
+@MainActor
+final class DeepLinkRouter: ObservableObject {
+    static let shared = DeepLinkRouter()
+    @Published var pending: DeepLink?
 }
 
 struct RootView: View {
@@ -36,9 +51,9 @@ enum AppTab: Int, CaseIterable, Identifiable {
     var id: Int { rawValue }
     var title: String {
         switch self {
-        case .home: return "首页"
-        case .library: return "分类"
-        case .clean: return "清理"
+        case .home: return String(localized: "首页")
+        case .library: return String(localized: "分类")
+        case .clean: return String(localized: "清理")
         }
     }
     var icon: String {
@@ -54,6 +69,7 @@ enum AppTab: Int, CaseIterable, Identifiable {
 /// 切页用「圆形扩散转场」：往右的页签从指尖处扩散铺满，往左时当前页原路缩回
 struct MainTabs: View {
     @EnvironmentObject var store: CleanupStore
+    @ObservedObject private var router = DeepLinkRouter.shared
 
     @State private var tab: AppTab = .home
     @State private var leaving: AppTab?
@@ -69,7 +85,7 @@ struct MainTabs: View {
     @Namespace private var glassNS
     @Namespace private var tabNS
 
-    private var scanning: Bool { store.phase == .loading || store.phase == .analyzing }
+    private var scanning: Bool { store.isScanning }
     private var tabBarVisible: Bool { (paths[tab] ?? []).isEmpty }
 
     /// 正在做转场的那一层
@@ -104,6 +120,8 @@ struct MainTabs: View {
             }
         }
         .animation(Theme.spring, value: tabBarVisible)
+        .onAppear { handle(router.pending) }
+        .onReceive(router.$pending) { handle($0) }
         .sheet(isPresented: $showSettings) {
             NavigationStack {
                 SettingsView()
@@ -117,6 +135,28 @@ struct MainTabs: View {
             .presentationDragIndicator(.visible)
             .glassSheetBackground()
             .preferredColorScheme(.dark)
+        }
+    }
+
+    private func handle(_ link: DeepLink?) {
+        guard let link else { return }
+        router.pending = nil
+        showSettings = false
+        var target: AppTab = .home
+        var route: [Route] = []
+        switch link {
+        case .home: break
+        case .review: target = .clean
+        case .category(let c):
+            if let cat = CleanCategory(rawValue: c) { route = [.category(cat)] }
+        case .quick(let q):
+            if let m = QuickMode(rawValue: q) { route = [.quick(m)] }
+        }
+        paths[target] = route
+        if target != tab {
+            leaving = nil
+            reveal = 1
+            tab = target
         }
     }
 
@@ -246,7 +286,7 @@ struct MainTabs: View {
                     .disabled(scanning)
                     .glassID("action", in: glassNS)
                     .transition(.scale(scale: 0.6).combined(with: .opacity))
-                    .accessibilityLabel("重新扫描")
+                    .accessibilityLabel(Text("重新扫描"))
                 }
             }
         }

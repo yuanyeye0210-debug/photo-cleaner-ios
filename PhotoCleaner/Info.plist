@@ -6,6 +6,22 @@
 	<string>zh-Hans</string>
 	<key>CFBundleDisplayName</key>
 	<string>相册清理</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>zh-Hans</string>
+		<string>en</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.yeyuanye.photocleaner</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>photocleaner</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

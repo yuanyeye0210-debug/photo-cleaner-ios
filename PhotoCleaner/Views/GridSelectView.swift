@@ -41,6 +41,9 @@ struct GridSelectView: View {
                 ForEach(Array(ids.enumerated()), id: \.element) { idx, id in
                     if let item = store.item(id) {
                         ThumbnailCell(item: item)
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityHint(Text("点按切换是否删除"))
+                            .accessibilityAction(named: Text("查看大图")) { preview = item }
                             .onTapGesture {
                                 Haptics.light()
                                 store.toggleDelete(id)

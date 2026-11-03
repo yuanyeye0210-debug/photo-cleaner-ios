@@ -1,7 +1,7 @@
 import Foundation
 
 /// AI（苹果 Vision）识别结果 → 清理分类的纯规则部分（不依赖 Vision / UIKit，便于单元测试）
-enum ContentTag: String, Sendable, Hashable {
+enum ContentTag: String, Sendable, Hashable, Codable {
     case document      // 文档 / 票据 / 证件
     case qrCode        // 含二维码
     case food          // 美食

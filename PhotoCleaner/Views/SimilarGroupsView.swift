@@ -1,15 +1,42 @@
 import SwiftUI
 
-/// 相似照片分组：自动推荐每组最好的一张
+/// 分组清理：相似照片（推荐最好的一张）、完全重复（留最早的原件）、连拍（留系统选中的一张）
 struct SimilarGroupsView: View {
     @EnvironmentObject var store: CleanupStore
+    var category: CleanCategory = .similar
     @State private var confirmAll = false
     @State private var preview: PhotoItem?
+
+    private var groups: [[String]] { store.groups(for: category) }
+
+    private var emptyTitle: String {
+        switch category {
+        case .exactDuplicates: return String(localized: "没有完全重复的文件")
+        case .bursts: return String(localized: "没有连拍")
+        default: return String(localized: "没有相似照片")
+        }
+    }
+
+    private var emptyMessage: String {
+        switch category {
+        case .exactDuplicates: return String(localized: "相册里没有一模一样的照片或视频")
+        case .bursts: return String(localized: "相册里没有连拍照片")
+        default: return String(localized: "相册里没有发现长得像的照片")
+        }
+    }
+
+    private var summaryText: String {
+        switch category {
+        case .exactDuplicates: return String(localized: "文件一模一样，每组留最早的一份")
+        case .bursts: return String(localized: "每组连拍留系统挑中的一张（你在相册里选过的优先）")
+        default: return String(localized: "每组留最好的一张（看表情、AI 评分和清晰度）")
+        }
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                if store.phase != .done {
+                if store.isScanning && category != .bursts {
                     VStack(alignment: .leading, spacing: 8) {
                         ThinProgress(value: store.progress)
                         Text(store.progressText).font(Theme.caption).foregroundStyle(Theme.text3)
@@ -17,18 +44,19 @@ struct SimilarGroupsView: View {
                     .card(padding: 16)
                 }
 
-                if store.similarGroups.isEmpty && store.phase == .done {
-                    EmptyStateView(icon: "checkmark", title: "没有相似照片", message: "相册里没有发现连拍或重复照片")
+                if groups.isEmpty && !store.isScanning {
+                    EmptyStateView(icon: "checkmark", title: emptyTitle, message: emptyMessage)
                         .frame(minHeight: 400)
                 }
 
-                if !store.similarGroups.isEmpty {
+                if !groups.isEmpty {
                     summary
-                    SectionHeader(title: "\(store.similarGroups.count) 组", trailing: "点照片切换选择 · 长按看大图")
+                    SectionHeader(title: String(localized: "\(groups.count) 组"),
+                                  trailing: String(localized: "点照片切换选择 · 长按看大图"))
                 }
 
-                ForEach(Array(store.similarGroups.enumerated()), id: \.offset) { idx, group in
-                    GroupCard(group: group, preview: $preview)
+                ForEach(Array(groups.enumerated()), id: \.offset) { idx, group in
+                    GroupCard(group: group, category: category, preview: $preview)
                         .fadeIn(idx + 1)
                 }
             }
@@ -37,12 +65,16 @@ struct SimilarGroupsView: View {
             .padding(.bottom, 80)
         }
         .background(Theme.bg.ignoresSafeArea())
-        .navigationTitle("相似照片")
+        .navigationTitle(category.title)
         .navigationBarTitleDisplayMode(.inline)
-        .confirmationDialog("每组只保留推荐的一张，其余全部选为删除？", isPresented: $confirmAll, titleVisibility: .visible) {
+        .confirmationDialog("每组只保留一张，其余全部选为删除？", isPresented: $confirmAll, titleVisibility: .visible) {
             Button("全部处理（\(extraCount) 张）", role: .destructive) {
                 withAnimation(Theme.spring) {
-                    for g in store.similarGroups { store.keepBestDeleteRest(g) }
+                    if category == .similar {
+                        for g in groups { store.keepBestDeleteRest(g, category: category) }
+                    } else {
+                        store.keepOneInAllGroups(category)
+                    }
                 }
                 Haptics.success()
             }
@@ -54,12 +86,12 @@ struct SimilarGroupsView: View {
     }
 
     private var extraCount: Int {
-        store.similarGroups.reduce(0) { $0 + max(0, $1.count - 1) }
+        groups.reduce(0) { $0 + max(0, $1.count - 1) }
     }
 
     private var extraBytes: Int64 {
-        store.similarGroups.reduce(Int64(0)) { sum, g in
-            let best = store.bestID(in: g)
+        groups.reduce(Int64(0)) { sum, g in
+            let best = store.keeperID(in: g, category: category)
             return sum + store.bytes(of: g.filter { $0 != best })
         }
     }
@@ -68,7 +100,7 @@ struct SimilarGroupsView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("每组留最好的一张（看表情、AI 评分和清晰度）")
+                    Text(summaryText)
                         .font(Theme.callout)
                         .foregroundStyle(Theme.text2)
                     Text("可释放 \(Fmt.bytes(extraBytes))")
@@ -76,7 +108,7 @@ struct SimilarGroupsView: View {
                         .foregroundStyle(Theme.text)
                 }
                 Spacer()
-                IconBadge(icon: "sparkles", tint: Theme.purple)
+                IconBadge(icon: category == .similar ? "sparkles" : category.icon, tint: category.tint)
             }
             Button {
                 Haptics.medium()
@@ -94,14 +126,23 @@ struct SimilarGroupsView: View {
 private struct GroupCard: View {
     @EnvironmentObject var store: CleanupStore
     let group: [String]
+    var category: CleanCategory = .similar
     @Binding var preview: PhotoItem?
     @State private var expanded = false
 
+    private var title: String {
+        switch category {
+        case .exactDuplicates: return String(localized: "\(group.count) 份相同")
+        case .bursts: return String(localized: "\(group.count) 张连拍")
+        default: return String(localized: "\(group.count) 张相似")
+        }
+    }
+
     var body: some View {
-        let best = store.bestID(in: group)
+        let best = store.keeperID(in: group, category: category)
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                Text("\(group.count) 张相似")
+                Text(title)
                     .font(Theme.headline)
                     .foregroundStyle(Theme.text)
                 if let first = group.first, let item = store.item(first) {
@@ -114,10 +155,11 @@ private struct GroupCard: View {
                     Haptics.light()
                     expanded.toggle()
                 } label: {
-                    PillBadge(text: expanded ? "收起" : Fmt.bytes(store.bytes(of: group)),
+                    PillBadge(text: expanded ? String(localized: "收起") : Fmt.bytes(store.bytes(of: group)),
                               tint: Theme.blue, style: .soft)
                 }
                 .buttonStyle(PressableStyle())
+                .accessibilityLabel(expanded ? Text("收起") : Text("展开这一组"))
             }
             // 03 叠卡展开：一组照片先叠在一起，点一下依次摊开，收起时原路叠回
             ScrollView(.horizontal, showsIndicators: false) {
@@ -126,6 +168,9 @@ private struct GroupCard: View {
                         if let item = store.item(id) {
                             ThumbnailCell(item: item, isBest: id == best)
                                 .frame(width: 104, height: 104)
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityHint(expanded ? Text("点按切换是否删除，长按查看大图") : Text("点按展开这一组"))
+                                .accessibilityAction(named: Text("查看大图")) { preview = item }
                                 .onTapGesture {
                                     Haptics.light()
                                     if expanded { store.toggleDelete(id) } else { expanded = true }
@@ -143,7 +188,7 @@ private struct GroupCard: View {
             HStack(spacing: 8) {
                 Button {
                     Haptics.medium()
-                    withAnimation(Theme.spring) { store.keepBestDeleteRest(group) }
+                    withAnimation(Theme.spring) { store.keepBestDeleteRest(group, category: category) }
                 } label: {
                     Text("保留推荐，删其余 \(group.count - 1) 张")
                 }

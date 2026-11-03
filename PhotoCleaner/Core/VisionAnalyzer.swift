@@ -27,40 +27,42 @@ enum VisionAnalyzer {
         }
     }
 
-    /// 特征向量 + 内容识别 + 美观评分 + 二维码，每张照片一次
+    /// 特征向量 + 内容识别 + 美观评分 + 二维码：一次 perform 一起跑（共用一次解码和缩放）
     static func analyze(_ cg: CGImage, orientation: CGImagePropertyOrientation) -> Basic {
         var out = Basic()
         let handler = VNImageRequestHandler(cgImage: cg, orientation: orientation, options: [:])
 
-        // 1. AI 相似度：图像特征向量
-        let fp = VNGenerateImageFeaturePrintRequest()
+        let fp = VNGenerateImageFeaturePrintRequest()          // AI 相似度
         if #available(iOS 17.0, *) {
             fp.revision = VNGenerateImageFeaturePrintRequestRevision2
         }
-        if (try? handler.perform([fp])) != nil, let obs = fp.results?.first {
-            out.feature = vector(from: obs)
-        }
-
-        // 2. 内容识别
-        let cls = VNClassifyImageRequest()
-        if (try? handler.perform([cls])) != nil, let res = cls.results {
-            out.labels = res.filter { $0.confidence >= 0.1 }.map { ($0.identifier, $0.confidence) }
-        }
-
-        // 3. 美观评分（iOS 18 起）
-        if #available(iOS 18.0, *) {
+        let cls = VNClassifyImageRequest()                      // 内容识别
+        let bc = VNDetectBarcodesRequest()                      // 二维码
+        bc.symbologies = [.qr]
+        var requests: [VNRequest] = [fp, cls, bc]
+        var aesthetics: VNRequest?
+        if #available(iOS 18.0, *) {                            // 美观评分
             let a = VNCalculateImageAestheticsScoresRequest()
-            if (try? handler.perform([a])) != nil, let o = a.results?.first {
-                out.aesthetics = o.overallScore
-                out.isUtility = o.isUtility
+            aesthetics = a
+            requests.append(a)
+        }
+
+        if (try? handler.perform(requests)) == nil {
+            // 合并执行失败（某个请求不支持当前设备）：逐个补跑没有结果的
+            for r in requests where (r.results ?? []).isEmpty {
+                _ = try? handler.perform([r])
             }
         }
 
-        // 4. 二维码
-        let bc = VNDetectBarcodesRequest()
-        bc.symbologies = [.qr]
-        if (try? handler.perform([bc])) != nil, let r = bc.results, !r.isEmpty {
-            out.hasQR = true
+        if let obs = fp.results?.first { out.feature = vector(from: obs) }
+        if let res = cls.results {
+            out.labels = res.filter { $0.confidence >= 0.1 }.map { ($0.identifier, $0.confidence) }
+        }
+        if let r = bc.results, !r.isEmpty { out.hasQR = true }
+        if #available(iOS 18.0, *), let a = aesthetics as? VNCalculateImageAestheticsScoresRequest,
+           let o = a.results?.first {
+            out.aesthetics = o.overallScore
+            out.isUtility = o.isUtility
         }
         return out
     }

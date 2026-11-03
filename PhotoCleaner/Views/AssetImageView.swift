@@ -120,6 +120,21 @@ struct ThumbnailCell: View {
         )
         .scaleEffect(decision == .delete ? 0.95 : 1)
         .animation(Theme.spring, value: decision)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityText(decision))
+        .accessibilityAddTraits(.isImage)
+    }
+
+    private func accessibilityText(_ d: Decision?) -> String {
+        var parts = [item.isVideo ? String(localized: "视频") : String(localized: "照片"),
+                     Fmt.date(item.creationDate), Fmt.bytes(item.fileSize)]
+        if isBest { parts.append(String(localized: "推荐保留")) }
+        switch d {
+        case .delete: parts.append(String(localized: "已标记删除"))
+        case .keep: parts.append(String(localized: "已保留"))
+        case .none: break
+        }
+        return parts.joined(separator: ", ")
     }
 }
 
@@ -169,6 +184,7 @@ struct PhotoDetailView: View {
                         .frame(width: 40, height: 40)
                         .glassSurface(Circle(), interactive: true)
                 }
+                .accessibilityLabel(Text("关闭"))
             }
             .padding()
         }

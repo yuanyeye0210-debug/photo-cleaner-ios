@@ -1,26 +1,6 @@
 import CoreGraphics
 import Foundation
 
-/// 单张图片的分析结果
-struct AnalysisResult: Sendable {
-    var dHash: UInt64
-    var sharpness: Double   // 拉普拉斯方差，越大越清晰
-    var brightness: Double  // 平均亮度 0...255
-
-    // MARK: AI（苹果 Vision，本机运行）
-    var feature: [Float]? = nil         // 图像特征向量（已归一化），用于 AI 相似度
-    var aesthetics: Float? = nil        // 美观评分 -1~1（iOS 18+）
-    var isUtility: Bool? = nil          // 工具性照片：票据、文档、截图等（iOS 18+）
-    var tags: Set<ContentTag> = []      // 内容识别：文档、二维码、美食、宠物、风景
-    var textChecked = false             // 是否做过文字识别
-    var textLines = 0
-    var textChars = 0
-    var verificationCode: String? = nil
-    var faceQuality: Float? = nil       // 人脸拍摄质量 0~1（只对相似组里的照片计算）
-
-    var textHeavy: Bool { VisionRules.isTextHeavy(lines: textLines, chars: textChars) }
-}
-
 /// 把 CGImage 画成灰度小图后调用 ImageMath 计算
 enum ImageAnalyzer {
     static func grayscale(_ cg: CGImage, width: Int, height: Int) -> GrayImage? {

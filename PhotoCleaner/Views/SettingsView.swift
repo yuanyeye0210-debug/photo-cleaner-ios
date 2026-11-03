@@ -8,14 +8,14 @@ struct SettingsView: View {
 
     private let blurValues = Array(stride(from: 10, through: 300, by: 5))
     private let largeValues = Array(2...50)
-    private let limitValues = Array(stride(from: 500, through: 20000, by: 500))
+    @State private var confirmCache = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 // 名字（首页问候语用）
                 VStack(alignment: .leading, spacing: 12) {
-                    CardHeader(icon: "person.fill", tint: Theme.purple, title: "称呼")
+                    CardHeader(icon: "person.fill", tint: Theme.purple, title: String(localized: "称呼"))
                     TextField("你的名字", text: $userName)
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(Theme.text)
@@ -28,8 +28,8 @@ struct SettingsView: View {
 
                 // 05 惯性滚轮
                 VStack(alignment: .leading, spacing: 12) {
-                    CardHeader(icon: "slider.horizontal.3", tint: Theme.orange, title: "识别设置") {
-                        PillBadge(text: "上下甩动", tint: Theme.orange)
+                    CardHeader(icon: "slider.horizontal.3", tint: Theme.orange, title: String(localized: "识别设置")) {
+                        PillBadge(text: String(localized: "上下甩动"), tint: Theme.orange)
                     }
                     HStack(spacing: 8) {
                         wheel("模糊阈值", values: blurValues,
@@ -38,22 +38,49 @@ struct SettingsView: View {
                         wheel("大文件 MB", values: largeValues,
                               selection: Binding(get: { Int(store.largeFileMB) }, set: { store.largeFileMB = Double($0) }),
                               tint: Theme.orange)
-                        wheel("分析张数", values: limitValues,
-                              selection: $store.analyzeLimit,
-                              tint: Theme.blue)
                     }
-                    Text("模糊阈值越大，越多照片被判为模糊（默认 60）。相似、模糊、过暗/过曝需要逐张分析，改了分析张数后回首页点刷新。")
+                    Text("模糊阈值越大，越多照片被判为模糊（默认 60）。")
                         .font(Theme.caption)
                         .foregroundStyle(Theme.text2)
                 }
                 .card(padding: 18)
 
+                // 分析：全部照片、结果缓存、暂停 / 继续、iCloud
                 VStack(alignment: .leading, spacing: 12) {
-                    CardHeader(icon: "checkmark.circle.fill", tint: Theme.green, title: "记录")
+                    CardHeader(icon: "cpu", tint: Theme.blue, title: String(localized: "分析")) {
+                        PillBadge(text: String(localized: "\(store.analyzedCount) / \(store.analyzableCount)"), tint: Theme.blue, style: .soft)
+                    }
+                    Text("会分析相册里的全部照片。分析结果存在本机，下次打开只分析新拍的或编辑过的照片。")
+                        .font(Theme.caption).foregroundStyle(Theme.text2)
+                    HStack(spacing: 8) {
+                        if store.phase == .analyzing {
+                            Button { store.pauseAnalysis() } label: { Label(String(localized: "暂停分析"), systemImage: "pause.fill") }
+                                .buttonStyle(SecondaryButtonStyle(tint: Theme.blue))
+                        } else if store.phase == .paused {
+                            Button { store.resumeAnalysis() } label: { Label(String(localized: "继续分析"), systemImage: "play.fill") }
+                                .buttonStyle(SecondaryButtonStyle(tint: Theme.blue))
+                        }
+                        Spacer()
+                        Button(String(localized: "清除缓存重新分析")) { confirmCache = true }
+                            .buttonStyle(SecondaryButtonStyle(tint: Theme.text2))
+                            .disabled(store.isScanning)
+                    }
+                    Toggle(isOn: $store.allowCloudAnalysis) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("允许从 iCloud 下载来分析").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                            Text("\(store.cloudOnlyIDs.count) 张原图只在 iCloud。打开后会用流量下载缩略图来分析").font(Theme.caption).foregroundStyle(Theme.text3)
+                        }
+                    }
+                    .tint(Theme.accent)
+                }
+                .card(padding: 18)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    CardHeader(icon: "checkmark.circle.fill", tint: Theme.green, title: String(localized: "记录"))
                     HStack(alignment: .firstTextBaseline) {
                         Text("已标记保留").font(Theme.callout).foregroundStyle(Theme.text2)
                         Spacer()
-                        BigNumber(value: "\(store.kept.count)", unit: "张", size: 24)
+                        BigNumber(value: "\(store.kept.count)", unit: String(localized: "张"), size: 24)
                     }
                     Button("清除「保留」记录", role: .destructive) { confirmReset = true }
                         .glassButton()
@@ -62,8 +89,8 @@ struct SettingsView: View {
                 .card(padding: 18)
 
                 VStack(alignment: .leading, spacing: 10) {
-                    CardHeader(icon: "lock.fill", tint: Theme.blue, title: "关于")
-                    Text("所有分析都在本机完成，不联网、不上传。删除使用系统相册接口，删除前系统会再次确认。")
+                    CardHeader(icon: "lock.fill", tint: Theme.blue, title: String(localized: "关于"))
+                    Text("所有分析都在本机完成，不上传任何照片（只有打开 iCloud 下载开关时才会从你自己的 iCloud 下载原图）。删除使用系统相册接口，删除前系统会再次确认。")
                         .font(Theme.callout).foregroundStyle(Theme.text2)
                     Text("用苹果 Vision 本机 AI 识别相似照片、内容（文档、二维码、美食、宠物、风景）、文字和人脸表情。照片质量评分需要 iOS 18 及以上。")
                         .font(Theme.callout).foregroundStyle(Theme.text2)
@@ -88,9 +115,12 @@ struct SettingsView: View {
         .confirmationDialog("确定清除保留记录？", isPresented: $confirmReset, titleVisibility: .visible) {
             Button("清除", role: .destructive) { store.resetKept() }
         }
+        .confirmationDialog("清除分析缓存？全部照片会重新分析一遍。", isPresented: $confirmCache, titleVisibility: .visible) {
+            Button("清除并重新分析", role: .destructive) { store.resetAnalysisCache() }
+        }
     }
 
-    private func wheel(_ title: String, values: [Int], selection: Binding<Int>, tint: Color) -> some View {
+    private func wheel(_ title: LocalizedStringKey, values: [Int], selection: Binding<Int>, tint: Color) -> some View {
         VStack(spacing: 6) {
             Text(title).font(Theme.caption).foregroundStyle(Theme.text2)
             InertiaWheel(values: values, selection: selection, rowHeight: 34, tint: tint)
