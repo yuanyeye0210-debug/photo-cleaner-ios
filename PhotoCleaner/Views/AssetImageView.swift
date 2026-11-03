@@ -11,9 +11,11 @@ struct AssetImageView: View {
     @State private var image: UIImage?
 
     var body: some View {
+        // 没加载完时先用内存里已有的图（比如网格/卡片里的缩略图），避免出现空白
+        let shown = image ?? PhotoLibraryService.shared.cachedImage(for: asset.localIdentifier)
         ZStack {
             Theme.fill
-            if let image {
+            if let image = shown {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: contentMode)
@@ -93,24 +95,44 @@ struct ThumbnailCell: View {
     }
 }
 
-/// 全屏预览
+/// 全屏预览：先立刻显示已缓存的缩略图，再渐进换成高清图
 struct PhotoDetailView: View {
     let item: PhotoItem
     @Environment(\.dismiss) private var dismiss
+    @State private var image: UIImage?
+    @State private var isFinal = false
 
     var body: some View {
+        let shown = image ?? PhotoLibraryService.shared.cachedImage(for: item.id)
         ZStack(alignment: .top) {
             Color.black.ignoresSafeArea()
-            AssetImageView(asset: item.asset,
-                           targetSize: UIScreen.main.bounds.size,
-                           contentMode: .fit,
-                           allowNetwork: true)
-                .background(Color.black)
-                .ignoresSafeArea()
-            HStack {
+            Group {
+                if let shown {
+                    Image(uiImage: shown)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    Color.black
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
+            .overlay {
+                if shown == nil {
+                    VStack(spacing: 10) {
+                        ProgressView().tint(.white).controlSize(.large)
+                        Text("正在加载…").font(Theme.caption).foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+            }
+
+            HStack(spacing: 10) {
                 Text("\(Fmt.date(item.creationDate)) · \(Fmt.bytes(item.fileSize))")
                     .font(Theme.caption)
                     .foregroundStyle(.white.opacity(0.85))
+                if shown != nil && !isFinal {
+                    ProgressView().tint(.white).controlSize(.mini)
+                }
                 Spacer()
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
@@ -123,5 +145,15 @@ struct PhotoDetailView: View {
             .padding()
         }
         .onTapGesture { dismiss() }
+        .task(id: item.id) {
+            let scale = UIScreen.main.scale
+            let b = UIScreen.main.bounds.size
+            let size = CGSize(width: b.width * scale, height: b.height * scale)
+            for await (img, done) in PhotoLibraryService.shared.progressiveImages(for: item.asset, targetSize: size) {
+                image = img
+                if done { isFinal = true }
+            }
+            isFinal = true
+        }
     }
 }

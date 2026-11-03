@@ -5,6 +5,23 @@ import UIKit
 final class PhotoLibraryService {
     static let shared = PhotoLibraryService()
     let imageManager = PHCachingImageManager()
+    /// 内存缓存：每张照片已加载过的最大图，打开大图时可立刻先显示
+    private let memCache: NSCache<NSString, UIImage> = {
+        let c = NSCache<NSString, UIImage>()
+        c.countLimit = 400
+        return c
+    }()
+
+    func cachedImage(for id: String) -> UIImage? {
+        memCache.object(forKey: id as NSString)
+    }
+
+    private func remember(_ img: UIImage, for id: String) {
+        let key = id as NSString
+        if let old = memCache.object(forKey: key),
+           old.size.width * old.scale >= img.size.width * img.scale { return }
+        memCache.setObject(img, forKey: key)
+    }
 
     private init() {
         imageManager.allowsCachingHighQualityImages = false
@@ -60,12 +77,42 @@ final class PhotoLibraryService {
         options.resizeMode = .fast
         options.isNetworkAccessAllowed = allowNetwork
         options.isSynchronous = false
-        return await withCheckedContinuation { (cont: CheckedContinuation<UIImage?, Never>) in
+        let img = await withCheckedContinuation { (cont: CheckedContinuation<UIImage?, Never>) in
             imageManager.requestImage(for: asset,
                                       targetSize: targetSize,
                                       contentMode: contentMode,
                                       options: options) { image, _ in
                 cont.resume(returning: image)
+            }
+        }
+        if let img { remember(img, for: asset.localIdentifier) }
+        return img
+    }
+
+    /// 渐进加载：先尽快给一张低清图（本地已有的），再给高清图。用于全屏大图。
+    func progressiveImages(for asset: PHAsset,
+                           targetSize: CGSize,
+                           contentMode: PHImageContentMode = .aspectFit) -> AsyncStream<(UIImage, Bool)> {
+        AsyncStream { continuation in
+            let options = PHImageRequestOptions()
+            options.deliveryMode = .opportunistic
+            options.resizeMode = .fast
+            options.isNetworkAccessAllowed = true
+            options.isSynchronous = false
+            let id = imageManager.requestImage(for: asset,
+                                               targetSize: targetSize,
+                                               contentMode: contentMode,
+                                               options: options) { [weak self] image, info in
+                let degraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
+                let failed = info?[PHImageErrorKey] != nil || ((info?[PHImageCancelledKey] as? Bool) ?? false)
+                if let image {
+                    self?.remember(image, for: asset.localIdentifier)
+                    continuation.yield((image, !degraded))
+                }
+                if !degraded || failed { continuation.finish() }
+            }
+            continuation.onTermination = { [weak self] _ in
+                self?.imageManager.cancelImageRequest(id)
             }
         }
     }
