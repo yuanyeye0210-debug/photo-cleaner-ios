@@ -30,6 +30,36 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
         ENABLE_PREVIEWS: YES
+    dependencies:
+      - target: PhotoCleanerWidget
+        embed: true
+  # 桌面小组件（iOS 17+）。不加 App Group 权限，免费 Apple ID 侧载也能装；数字直接用 PhotoKit 读
+  PhotoCleanerWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: PhotoCleanerWidget
+        excludes:
+          - Info.plist
+      - path: PhotoCleaner/Core/CleanLogic.swift
+    info:
+      path: PhotoCleanerWidget/Info.plist
+      properties:
+        CFBundleDevelopmentRegion: zh-Hans
+        CFBundleDisplayName: 相册清理
+        CFBundleLocalizations: [zh-Hans, en]
+        NSPhotoLibraryUsageDescription: 小组件需要读取相册里的截图数量和往年今天的照片数量，只在手机本地统计。
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yeyuanye.photocleaner.widget
+        PRODUCT_NAME: PhotoCleanerWidget
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+        APPLICATION_EXTENSION_API_ONLY: YES
   PhotoCleanerTests:
     type: bundle.unit-test
     platform: iOS

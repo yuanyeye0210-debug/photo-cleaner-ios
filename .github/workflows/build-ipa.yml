@@ -46,7 +46,7 @@ jobs:
             -scheme PhotoCleaner \
             -destination "id=$UDID" \
             CODE_SIGNING_ALLOWED=NO > "$RUNNER_TEMP/test.log" 2>&1 \
-            || { grep -E "error:|failed|FAILED|Fatal" "$RUNNER_TEMP/test.log" | head -80; tail -80 "$RUNNER_TEMP/test.log"; exit 1; }
+            || { grep -E "error:|failed|FAILED|Fatal" "$RUNNER_TEMP/test.log" | head -40 | sed 's/^/::error::/'; tail -80 "$RUNNER_TEMP/test.log"; exit 1; }
           grep -E "Executed|passed|TEST SUCCEEDED" "$RUNNER_TEMP/test.log" | tail -10
 
       - name: 编译归档（不签名）
@@ -62,7 +62,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" > "$RUNNER_TEMP/archive.log" 2>&1 \
-            || { grep -E "error:" "$RUNNER_TEMP/archive.log" | head -80; tail -60 "$RUNNER_TEMP/archive.log"; exit 1; }
+            || { grep -E "error:" "$RUNNER_TEMP/archive.log" | head -40 | sed 's/^/::error::/'; tail -60 "$RUNNER_TEMP/archive.log"; exit 1; }
           tail -15 "$RUNNER_TEMP/archive.log"
 
       - name: 打包成 IPA
@@ -75,7 +75,15 @@ jobs:
           cd "$RUNNER_TEMP/ipa"
           zip -qry PhotoCleaner-unsigned.ipa Payload
           codesign -dv --verbose=2 Payload/PhotoCleaner.app || true
+          ls Payload/PhotoCleaner.app/PlugIns || true
           ls -lh PhotoCleaner-unsigned.ipa
+          # 备用：去掉小组件的版本（如果侧载时小组件导致装不上，就装这个）
+          mkdir -p "$RUNNER_TEMP/ipa-nowidget"
+          cp -R Payload "$RUNNER_TEMP/ipa-nowidget/"
+          rm -rf "$RUNNER_TEMP/ipa-nowidget/Payload/PhotoCleaner.app/PlugIns"
+          cd "$RUNNER_TEMP/ipa-nowidget"
+          zip -qry PhotoCleaner-unsigned-nowidget.ipa Payload
+          ls -lh PhotoCleaner-unsigned-nowidget.ipa
 
       - name: 上传 IPA
         uses: actions/upload-artifact@v4
@@ -84,3 +92,29 @@ jobs:
           path: ${{ runner.temp }}/ipa/PhotoCleaner-unsigned.ipa
           if-no-files-found: error
           retention-days: 30
+
+      - name: 上传无小组件版 IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoCleaner-unsigned-nowidget-ipa
+          path: ${{ runner.temp }}/ipa-nowidget/PhotoCleaner-unsigned-nowidget.ipa
+          retention-days: 30
+
+      - name: 导出待翻译文字（xliff）
+        continue-on-error: true
+        run: |
+          xcodebuild -exportLocalizations \
+            -project PhotoCleaner.xcodeproj \
+            -localizationPath "$RUNNER_TEMP/loc" \
+            -exportLanguage en \
+            -sdk iphoneos \
+            CODE_SIGNING_ALLOWED=NO > "$RUNNER_TEMP/loc.log" 2>&1 || tail -40 "$RUNNER_TEMP/loc.log"
+          find "$RUNNER_TEMP/loc" -name "*.xliff" | head
+
+      - name: 上传 xliff
+        uses: actions/upload-artifact@v4
+        with:
+          name: localizations
+          path: ${{ runner.temp }}/loc
+          if-no-files-found: ignore
+          retention-days: 7
