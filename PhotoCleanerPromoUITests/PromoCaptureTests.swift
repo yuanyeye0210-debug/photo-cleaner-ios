@@ -25,6 +25,11 @@ final class PromoCaptureTests: XCTestCase {
     func handleAlerts() {
         for _ in 0..<5 {
             var tapped = false
+            for label in ["允许完全访问", "Allow Full Access"] {
+                let b = app.buttons[label]
+                if b.exists { b.tap(); tapped = true; sleep(1); break }
+            }
+            if tapped { continue }
             for label in ["允许完全访问", "Allow Full Access", "允许访问所有照片", "Allow Access to All Photos", "打开", "Open", "好", "OK", "允许", "Allow"] {
                 let b = springboard.buttons[label]
                 if b.exists { b.tap(); tapped = true; sleep(1); break }
@@ -84,9 +89,24 @@ final class PromoCaptureTests: XCTestCase {
         app.launch()
         sleep(3)
         shot("00-permission")
+        addUIInterruptionMonitor(withDescription: "photos") { alert in
+            for label in ["允许完全访问", "Allow Full Access", "允许访问所有照片", "Allow Access to All Photos"] {
+                let b = alert.buttons[label]
+                if b.exists { b.tap(); return true }
+            }
+            return false
+        }
         let allow = app.buttons["允许访问相册"]
-        if allow.exists { allow.tap(); sleep(2); handleAlerts() }
+        if allow.exists { allow.tap(); sleep(3); handleAlerts() }
+        app.tap(); sleep(2)
         handleAlerts()
+        // 兜底：系统弹窗找不到按钮时，按位置点「允许完全访问」
+        if !app.buttons["设置"].exists {
+            shot("00b-alert")
+            springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.764)).tap()
+            sleep(3)
+            handleAlerts()
+        }
         sleep(2)
         mark("home-scan"); shot("01-home-scanning")
         sleep(25); shot("02-home-scanning2")
@@ -100,7 +120,7 @@ final class PromoCaptureTests: XCTestCase {
         if openFromHome("相似照片，") {
             mark("similar"); shot("cat-similar")
             let del = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "整组全部删除")).firstMatch
-            if del.exists { del.tap(); sleep(2); shot("similar-deleteall"); 
+            if del.exists { del.tap(); sleep(2); shot("similar-deleteall")
                 let c = app.buttons["取消"]; if c.exists { c.tap() } else { app.tap() }; sleep(1) }
             app.swipeUp(velocity: 500); sleep(1); shot("cat-similar-2")
             back()
