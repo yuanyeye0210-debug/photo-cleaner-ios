@@ -94,12 +94,19 @@ struct SwipeReviewView: View {
 
     @ViewBuilder
     private func card(for item: PhotoItem, isTop: Bool, depth: Int) -> some View {
-        let drag = isTop ? offset : .zero
-        let deleteAmount = Double(max(0, -drag.width) / threshold)
-        let keepAmount = Double(max(0, drag.width) / threshold)
-        let laterAmount = Double(max(0, -drag.height) / threshold) * (abs(drag.height) > abs(drag.width) ? 1 : 0)
-        let d = CGFloat(depth) - (depth > 0 ? lift : 0)
+        let drag: CGSize = isTop ? offset : .zero
+        let deleteAmount: Double = Double(max(0, -drag.width) / threshold)
+        let keepAmount: Double = Double(max(0, drag.width) / threshold)
+        let upward: Bool = abs(drag.height) > abs(drag.width)
+        let laterAmount: Double = upward ? Double(max(0, -drag.height) / threshold) : 0
+        let liftNow: CGFloat = depth > 0 ? lift : 0
+        let d: CGFloat = CGFloat(depth) - liftNow
+        let face = cardFace(item, deleteAmount: deleteAmount, keepAmount: keepAmount, laterAmount: laterAmount)
+        let placed = positioned(face, isTop: isTop, d: d, drag: drag)
+        interactive(placed, item: item, isTop: isTop)
+    }
 
+    private func cardFace(_ item: PhotoItem, deleteAmount: Double, keepAmount: Double, laterAmount: Double) -> some View {
         GeometryReader { geo in
             ZStack(alignment: .bottomLeading) {
                 AssetImageView(asset: item.asset, targetSize: geo.size, contentMode: .fill,
@@ -143,13 +150,23 @@ struct SwipeReviewView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
+    }
+
+    private func positioned<V: View>(_ v: V, isTop: Bool, d: CGFloat, drag: CGSize) -> some View {
+        let lift: CGFloat = drag.height < 0 ? drag.height * 0.7 : drag.height * 0.25
+        let angle = Double(drag.width) / 22
+        return v
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Color.black.opacity(0.04), lineWidth: 1))
         .shadow(color: .black.opacity(isTop ? 0.10 : 0.04), radius: isTop ? 14 : 6, y: isTop ? 6 : 2)
-        .scaleEffect(1 - d * 0.04)
-        .offset(y: d * 10)
-        .offset(x: drag.width, y: drag.height < 0 ? drag.height * 0.7 : drag.height * 0.25)
-        .rotationEffect(.degrees(Double(drag.width) / 22))
+        .scaleEffect(1 - d * CGFloat(0.04))
+        .offset(y: d * CGFloat(10))
+        .offset(x: drag.width, y: lift)
+        .rotationEffect(.degrees(angle))
+    }
+
+    private func interactive<V: View>(_ v: V, item: PhotoItem, isTop: Bool) -> some View {
+        v
         .allowsHitTesting(isTop)
         .onTapGesture { preview = item }
         .accessibilityElement(children: .ignore)
