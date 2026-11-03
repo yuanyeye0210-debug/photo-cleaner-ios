@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 左滑删除、右滑保留（参考 immich-swipe / tidybyte 的交互）
+/// 左滑保留、右滑标记删除（只做标记，确认后才真正删除）
 struct SwipeReviewView: View {
     @EnvironmentObject var store: CleanupStore
     let ids: [String]
@@ -12,6 +12,8 @@ struct SwipeReviewView: View {
     @State private var loaded = false
     @State private var preview: PhotoItem?
     @State private var flying = false
+    @State private var phase: CompletionPhase = .idle
+    @State private var deletedCount = 0
 
     private let threshold: CGFloat = 110
 
@@ -32,7 +34,7 @@ struct SwipeReviewView: View {
                 .padding(.horizontal, Theme.pagePadding)
                 .padding(.top, 6)
             }
-            controls
+            if !(loaded && pos >= queue.count) { controls }
         }
         .padding(.bottom, 12)
         .onAppear {
@@ -59,7 +61,7 @@ struct SwipeReviewView: View {
                     .foregroundStyle(Theme.text2)
                     .contentTransition(.numericText())
                 Spacer()
-                Text("左滑删除 · 右滑保留")
+                Text("左滑保留 · 右滑标记删除 · 不会立即删除")
                     .font(Theme.caption)
                     .foregroundStyle(Theme.text3)
             }
@@ -72,8 +74,8 @@ struct SwipeReviewView: View {
     @ViewBuilder
     private func card(for item: PhotoItem, isTop: Bool, depth: Int) -> some View {
         let drag = isTop ? offset : .zero
-        let deleteAmount = Double(max(0, -drag.width) / threshold)
-        let keepAmount = Double(max(0, drag.width) / threshold)
+        let deleteAmount = Double(max(0, drag.width) / threshold)
+        let keepAmount = Double(max(0, -drag.width) / threshold)
         let d = CGFloat(depth) - (depth > 0 ? lift : 0)
 
         GeometryReader { geo in
@@ -100,15 +102,15 @@ struct SwipeReviewView: View {
                 .padding(16)
 
                 // 拖动时的提示
-                hint(icon: "trash", text: "删除", color: Theme.danger)
+                hint(icon: "trash", text: "标记删除", color: Theme.danger)
                     .opacity(deleteAmount)
                     .scaleEffect(CGFloat(0.85 + min(1, deleteAmount) * 0.15))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .padding(16)
                 hint(icon: "checkmark", text: "保留", color: Theme.green)
                     .opacity(keepAmount)
                     .scaleEffect(CGFloat(0.85 + min(1, keepAmount) * 0.15))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .padding(16)
             }
         }
@@ -122,7 +124,7 @@ struct SwipeReviewView: View {
         .allowsHitTesting(isTop)
         .onTapGesture { preview = item }
         .gesture(
-            DragGesture()
+            DragGesture(minimumDistance: 20)
                 .onChanged { v in
                     guard !flying else { return }
                     let wasPast = abs(offset.width) > threshold
@@ -131,9 +133,12 @@ struct SwipeReviewView: View {
                 }
                 .onEnded { v in
                     guard !flying else { return }
-                    if v.translation.width < -threshold || v.predictedEndTranslation.width < -threshold * 2.2 {
+                    let dx = v.translation.width
+                    // 必须明显横向拖动（横向 > 纵向的 1.5 倍）且越过阈值才算数，防止误触
+                    let horizontal = abs(dx) > abs(v.translation.height) * 1.5
+                    if horizontal && dx > threshold {
                         swipe(.delete)
-                    } else if v.translation.width > threshold || v.predictedEndTranslation.width > threshold * 2.2 {
+                    } else if horizontal && dx < -threshold {
                         swipe(.keep)
                     } else {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { offset = .zero }
@@ -172,12 +177,12 @@ struct SwipeReviewView: View {
 
     private var controlRow: some View {
         HStack(spacing: 32) {
-            CircleButton(icon: "xmark", color: Theme.danger, size: 60) { swipe(.delete) }
+            CircleButton(icon: "checkmark", color: Theme.green, size: 60) { swipe(.keep) }
                 .disabled(pos >= queue.count)
             CircleButton(icon: "arrow.uturn.backward", color: Theme.text2, size: 46) { undo() }
                 .disabled(history.isEmpty)
                 .opacity(history.isEmpty ? 0.4 : 1)
-            CircleButton(icon: "checkmark", color: Theme.green, size: 60) { swipe(.keep) }
+            CircleButton(icon: "xmark", color: Theme.danger, size: 60) { swipe(.delete) }
                 .disabled(pos >= queue.count)
         }
         .padding(.top, 4)
@@ -187,21 +192,71 @@ struct SwipeReviewView: View {
         queue.filter { store.toDelete.contains($0) }
     }
 
+    private let gridColumns = [GridItem(.adaptive(minimum: 84), spacing: 6)]
+
+    /// 一类看完：列出本轮标记的照片，点缩略图可取消，确认后才真正删除
     private var finishedView: some View {
-        VStack(spacing: 10) {
-            Spacer()
-            IconBadge(icon: "checkmark", tint: Theme.green, size: 56)
-            Text("这一类看完了").font(Theme.title).foregroundStyle(Theme.text)
-                .padding(.top, 4)
-            Text("本轮选了 \(markedInQueue.count) 项删除，可释放 \(Fmt.bytes(store.bytes(of: markedInQueue)))")
-                .font(Theme.callout)
-                .foregroundStyle(Theme.text2)
-            Text("回到首页，点底部「待删除」统一确认")
-                .font(Theme.caption)
-                .foregroundStyle(Theme.text3)
-            Spacer()
+        let marked = markedInQueue
+        return ScrollView {
+            VStack(spacing: 12) {
+                IconBadge(icon: "checkmark", tint: Theme.green, size: 56)
+                    .padding(.top, 12)
+                Text(phase == .done ? "已删除 \(deletedCount) 项" : "这一类看完了")
+                    .font(Theme.title).foregroundStyle(Theme.text)
+                if phase != .done {
+                    if marked.isEmpty {
+                        Text("没有标记要删除的照片").font(Theme.callout).foregroundStyle(Theme.text2)
+                    } else {
+                        Text("标记了 \(marked.count) 项，可释放 \(Fmt.bytes(store.bytes(of: marked)))")
+                            .font(Theme.callout).foregroundStyle(Theme.text2)
+                        Text("照片还没删除 · 点缩略图可取消标记")
+                            .font(Theme.caption).foregroundStyle(Theme.text3)
+                        LazyVGrid(columns: gridColumns, spacing: 6) {
+                            ForEach(marked, id: \.self) { id in
+                                if let item = store.item(id) {
+                                    ThumbnailCell(item: item)
+                                        .onTapGesture {
+                                            Haptics.light()
+                                            withAnimation(Theme.spring) { store.set(id, .keep) }
+                                        }
+                                        .transition(.scale(scale: 0.8).combined(with: .opacity))
+                                }
+                            }
+                        }
+                        .padding(.horizontal, Theme.pagePadding)
+                    }
+                } else {
+                    Text("可在系统相册「最近删除」中恢复").font(Theme.caption).foregroundStyle(Theme.text3)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.bottom, 20)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom) {
+            if !marked.isEmpty || phase != .idle {
+                CompletionButton(title: "确认删除 \(marked.count) 项", tint: Theme.danger, phase: phase) {
+                    confirmDelete(marked)
+                }
+                .padding(.horizontal, Theme.pagePadding)
+                .padding(.bottom, 6)
+            }
+        }
+        .animation(Theme.spring, value: marked.count)
+    }
+
+    private func confirmDelete(_ ids: [String]) {
+        guard !ids.isEmpty, phase == .idle else { return }
+        Haptics.warning()
+        phase = .working
+        Task {
+            // 系统会再弹一次确认框，用户点「删除」后才真正删除
+            if await store.delete(ids) {
+                deletedCount = ids.count
+                phase = .done
+            } else {
+                phase = .idle
+            }
+        }
     }
 
     private func swipe(_ decision: Decision) {
@@ -210,7 +265,7 @@ struct SwipeReviewView: View {
         let id = queue[pos]
         if decision == .delete { Haptics.medium() } else { Haptics.light() }
         withAnimation(.easeIn(duration: 0.22)) {
-            offset = CGSize(width: decision == .delete ? -700 : 700, height: offset.height + 30)
+            offset = CGSize(width: decision == .delete ? 700 : -700, height: offset.height + 30)
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
             store.set(id, decision)

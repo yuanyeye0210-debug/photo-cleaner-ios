@@ -304,9 +304,13 @@ final class CleanupStore: ObservableObject {
 
     // MARK: - 删除
 
-    /// 返回 true 表示删除成功
+    /// 删除全部已标记项，返回 true 表示删除成功
     func deleteMarked() async -> Bool {
-        let ids = Array(toDelete)
+        await delete(Array(toDelete))
+    }
+
+    /// 删除指定项（系统会弹窗二次确认），返回 true 表示删除成功
+    func delete(_ ids: [String]) async -> Bool {
         guard !ids.isEmpty else { return false }
         let freed = bytes(of: ids)
         do {
@@ -320,7 +324,7 @@ final class CleanupStore: ObservableObject {
         similarGroups = similarGroups
             .map { $0.filter { !gone.contains($0) } }
             .filter { $0.count > 1 }
-        toDelete.removeAll()
+        toDelete.subtract(gone)
         persist()
         rebuildCategories()
         lastDeleteMessage = "已删除 \(ids.count) 项，释放 \(Fmt.bytes(freed))。可在系统相册「最近删除」中恢复。"

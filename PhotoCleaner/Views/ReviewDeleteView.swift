@@ -34,7 +34,7 @@ struct ReviewDeleteView: View {
                 .card(padding: 18)
 
                 if store.toDelete.isEmpty && phase != .done {
-                    EmptyStateView(icon: "trash", title: "还没有待删除", message: "在分类里左滑或点选照片，会出现在这里", tint: Theme.blue)
+                    EmptyStateView(icon: "trash", title: "还没有待删除", message: "在分类里右滑或点选照片，会出现在这里", tint: Theme.blue)
                         .frame(minHeight: 300)
                 } else {
                     SectionHeader(title: "待删除", trailing: "点缩略图可移出")
