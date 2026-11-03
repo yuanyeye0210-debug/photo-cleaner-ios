@@ -1,0 +1,80 @@
+# 安卓版：在 GitHub 的 Linux 云电脑上跑单元测试并编译可安装的 APK
+# 用法：推送 android/ 下的代码 → Actions → Build APK → 完成后在页面底部 Artifacts 下载 PhotoCleaner-apk
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - 'android/**'
+      - '.github/workflows/build-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 配置 Gradle 缓存
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: 单元测试（失败会让整个构建失败）
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon testDebugUnitTest
+
+      - name: 测试结果汇总
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import glob, re
+          t = f = e = 0
+          for x in glob.glob('app/build/test-results/testDebugUnitTest/*.xml'):
+              s = open(x, encoding='utf-8').read()
+              m = re.search(r'tests="(\d+)".*?failures="(\d+)" errors="(\d+)"', s)
+              if m:
+                  t += int(m[1]); f += int(m[2]); e += int(m[3])
+          print(f"单元测试：{t} 个，失败 {f}，错误 {e}")
+          if t == 0:
+              raise SystemExit("没有跑到任何单元测试")
+          PY
+
+      - name: 编译 Release APK
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: 整理 APK
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk out/PhotoCleaner.apk
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk out/PhotoCleaner-armeabi-v7a.apk
+          cp app/build/outputs/apk/release/app-x86_64-release.apk out/PhotoCleaner-x86_64-emulator.apk
+          ls -la out
+          "$ANDROID_HOME"/build-tools/*/apksigner verify --print-certs out/PhotoCleaner.apk | head -3 || true
+
+      - name: 上传 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoCleaner-apk
+          path: android/out/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: 上传测试报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: android/app/build/reports/tests/
+          if-no-files-found: ignore
