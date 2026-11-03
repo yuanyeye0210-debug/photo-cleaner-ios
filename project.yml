@@ -9,6 +9,9 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
+    # 让编译器提取 String(localized:)、Text 等里的文字，供 Localizable.xcstrings 翻译
+    SWIFT_EMIT_LOC_STRINGS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "1"
 targets:
