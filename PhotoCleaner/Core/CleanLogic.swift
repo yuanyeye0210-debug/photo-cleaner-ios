@@ -282,3 +282,12 @@ enum DeepLink: Equatable, Sendable {
         }
     }
 }
+
+// MARK: - 分组操作
+
+enum GroupActions {
+    /// 「整组全部删除」：一组全部标记删除、不留推荐的那张；收藏的照片永远不标记
+    static func deleteAll(_ group: [String], isFavorite: (String) -> Bool) -> [String] {
+        group.filter { !isFavorite($0) }
+    }
+}

@@ -10,6 +10,11 @@ on:
       - 'android/**'
       - '.github/workflows/build-apk.yml'
 
+# 连续推送时只保留最新的一次构建
+concurrency:
+  group: build-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     # 液态玻璃（.glassEffect 等）需要 iOS 26 SDK → 用 macOS 26 + 最新正式版 Xcode（26.x）

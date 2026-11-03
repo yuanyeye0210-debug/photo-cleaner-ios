@@ -66,7 +66,7 @@ struct PermissionView: View {
                 .font(.system(size: 17, weight: .regular))
                 .foregroundStyle(Theme.accent)
                 .frame(width: 24)
-            Text(text)
+            Text.loc(text)
                 .font(Theme.body)
                 .foregroundStyle(Theme.text)
         }

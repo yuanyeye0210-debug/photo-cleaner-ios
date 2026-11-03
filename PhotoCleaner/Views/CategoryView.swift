@@ -79,9 +79,9 @@ struct EmptyStateView: View {
         VStack(spacing: 12) {
             Spacer()
             IconBadge(icon: icon, tint: tint, size: 60)
-            Text(title).font(Theme.title).foregroundStyle(Theme.text)
+            Text.loc(title).font(Theme.title).foregroundStyle(Theme.text)
                 .padding(.top, 4)
-            Text(message)
+            Text.loc(message)
                 .font(Theme.callout)
                 .foregroundStyle(Theme.text2)
                 .multilineTextAlignment(.center)

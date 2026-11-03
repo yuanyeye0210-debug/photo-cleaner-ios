@@ -275,6 +275,12 @@ final class CleanLogicTests: XCTestCase {
         XCTAssertEqual(FileSizes.estimate(pixelWidth: 0, pixelHeight: 0, isVideo: true, duration: 10), 15_000_000)
         XCTAssertEqual(FileSizes.estimatedHEVCSavings(1000), 400)
     }
+    func testDeleteWholeGroupSkipsFavoritesAndKeepsNoKeeper() {
+        let fav: Set<String> = ["b"]
+        XCTAssertEqual(GroupActions.deleteAll(["a", "b", "c"]) { fav.contains($0) }, ["a", "c"])
+        XCTAssertEqual(GroupActions.deleteAll(["a", "c"]) { _ in false }, ["a", "c"])
+        XCTAssertTrue(GroupActions.deleteAll(["b"]) { fav.contains($0) }.isEmpty)
+    }
 }
 
 /// 可复现的随机数（测试用）

@@ -787,6 +787,14 @@ final class CleanupStore: ObservableObject {
         set(best, .keep)
     }
 
+    /// 整组全部删除（不保留任何一张；收藏的不动）。返回实际标记的数量
+    @discardableResult
+    func deleteWholeGroup(_ group: [String]) -> Int {
+        let del = GroupActions.deleteAll(group) { item($0)?.isFavorite == true }
+        markAll(del, .delete)
+        return del.count
+    }
+
     /// 完全重复 / 连拍：所有组一键只留一张
     func keepOneInAllGroups(_ category: CleanCategory) {
         var del: [String] = [], keep: [String] = []

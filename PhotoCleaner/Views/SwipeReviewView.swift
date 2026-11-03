@@ -399,7 +399,7 @@ struct SwipeReviewView: View {
 struct Tag: View {
     let text: String
     var body: some View {
-        Text(text)
+        Text.loc(text)
             .font(.system(size: 11, weight: .medium))
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(Color.white.opacity(0.22), in: Capsule())

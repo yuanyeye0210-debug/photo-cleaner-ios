@@ -35,7 +35,7 @@ struct CompletionButton: View {
                     .frame(width: collapsed ? h : geo.size.width, height: h)
                 switch phase {
                 case .idle:
-                    Text(title)
+                    Text.loc(title)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
                         .transition(.opacity)

@@ -129,6 +129,7 @@ private struct GroupCard: View {
     var category: CleanCategory = .similar
     @Binding var preview: PhotoItem?
     @State private var expanded = false
+    @State private var confirmDeleteAll = false
 
     private var title: String {
         switch category {
@@ -200,7 +201,30 @@ private struct GroupCard: View {
                 }
                 .buttonStyle(SecondaryButtonStyle(tint: Theme.text2))
             }
+            Button {
+                Haptics.light()
+                confirmDeleteAll = true
+            } label: {
+                Label(String(localized: "整组全部删除"), systemImage: "trash")
+            }
+            .buttonStyle(SecondaryButtonStyle(tint: Theme.danger))
+            .accessibilityHint(Text("这一组全部标记删除，一张都不保留"))
         }
         .card(padding: 14)
+        .confirmationDialog(String(localized: "这组 \(group.count) 张全部标记删除，不保留？"),
+                            isPresented: $confirmDeleteAll, titleVisibility: .visible) {
+            Button(String(localized: "全部标记删除"), role: .destructive) {
+                Haptics.medium()
+                withAnimation(Theme.spring) { _ = store.deleteWholeGroup(group) }
+            }
+            Button(String(localized: "取消"), role: .cancel) {}
+        } message: {
+            let fav = group.filter { store.item($0)?.isFavorite == true }.count
+            if fav > 0 {
+                Text("其中 \(fav) 张是收藏，不会被标记。标记后还要在「清理」页确认，系统也会再问一次才真正删除。")
+            } else {
+                Text("标记后还要在「清理」页确认，系统也会再问一次才真正删除。")
+            }
+        }
     }
 }

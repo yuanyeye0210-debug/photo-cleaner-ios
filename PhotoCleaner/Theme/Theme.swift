@@ -206,7 +206,7 @@ struct PillBadge: View {
     var body: some View {
         HStack(spacing: 4) {
             if let icon { Image(systemName: icon).font(.system(size: 12, weight: .bold)) }
-            Text(text).font(.system(size: 13, weight: .semibold))
+            Text.loc(text).font(.system(size: 13, weight: .semibold))
             if chevron { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)) }
         }
         .foregroundStyle(tint)
@@ -227,7 +227,7 @@ struct CardHeader<Trailing: View>: View {
     var body: some View {
         HStack(spacing: 12) {
             if let icon { IconBadge(icon: icon, tint: tint, size: 36) }
-            Text(title).font(.system(size: 19, weight: .bold)).foregroundStyle(Theme.text)
+            Text.loc(title).font(.system(size: 19, weight: .bold)).foregroundStyle(Theme.text)
             Spacer(minLength: 8)
             trailing()
         }
@@ -253,7 +253,7 @@ struct BigNumber: View {
                 .foregroundStyle(tint)
                 .contentTransition(.numericText())
             if let unit {
-                Text(unit).font(.system(size: size * 0.4, weight: .semibold)).foregroundStyle(Theme.text2)
+                Text.loc(unit).font(.system(size: size * 0.4, weight: .semibold)).foregroundStyle(Theme.text2)
             }
         }
         .animation(Theme.springSoft, value: value)
@@ -269,7 +269,7 @@ struct Metric: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             IconBadge(icon: icon, tint: tint, size: 30)
-            Text(label).font(.system(size: 13)).foregroundStyle(Theme.text2)
+            Text.loc(label).font(.system(size: 13)).foregroundStyle(Theme.text2)
             Text(value)
                 .font(Theme.number(17, .semibold))
                 .foregroundStyle(Theme.text)
@@ -382,13 +382,20 @@ struct SectionHeader: View {
     var trailing: String? = nil
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(title).font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.text)
+            Text.loc(title).font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.text)
             Spacer()
             if let trailing {
-                Text(trailing).font(Theme.caption).foregroundStyle(Theme.text2)
+                Text.loc(trailing).font(Theme.caption).foregroundStyle(Theme.text2)
             }
         }
         .padding(.horizontal, 4)
         .padding(.top, 10)
+    }
+}
+
+extension Text {
+    /// 组件收到的 String 当作本地化 key 去查翻译；查不到就原样显示。含 % 的（数字、百分比）不查。
+    static func loc(_ s: String) -> Text {
+        s.contains("%") ? Text(verbatim: s) : Text(LocalizedStringKey(s))
     }
 }
