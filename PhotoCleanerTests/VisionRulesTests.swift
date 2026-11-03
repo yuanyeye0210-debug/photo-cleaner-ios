@@ -17,7 +17,7 @@ final class VisionRulesTests: XCTestCase {
         XCTAssertNil(VisionRules.normalized([0, 0]))
         XCTAssertEqual(VisionRules.distance(a, a), 0, accuracy: 1e-6)
         // 正交单位向量距离 = √2
-        XCTAssertEqual(VisionRules.distance(unit([1, 0]), unit([0, 1])), 2.0.squareRoot(), accuracy: 1e-5)
+        XCTAssertEqual(VisionRules.distance(unit([1, 0]), unit([0, 1])), Float(2).squareRoot(), accuracy: 1e-5)
     }
 
     func testAIGroupingUsesFeaturesWithinTimeWindow() {
