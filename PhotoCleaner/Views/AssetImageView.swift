@@ -12,14 +12,14 @@ struct AssetImageView: View {
 
     var body: some View {
         ZStack {
-            Color(.secondarySystemBackground)
+            MM.surface
             if let image {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: contentMode)
                     .transition(.opacity)
             } else {
-                ProgressView()
+                ProgressView().tint(MM.muted)
             }
         }
         .clipped()
@@ -30,12 +30,12 @@ struct AssetImageView: View {
                                                              targetSize: size,
                                                              contentMode: contentMode == .fill ? .aspectFill : .aspectFit,
                                                              allowNetwork: allowNetwork)
-            withAnimation(.easeOut(duration: 0.2)) { image = img }
+            withAnimation(.easeOut(duration: 0.25)) { image = img }
         }
     }
 }
 
-/// 网格里的一格：缩略图 + 标记
+/// 网格里的一格：缩略图 + 标记（MiniMax 风格的圆角与胶囊标签）
 struct ThumbnailCell: View {
     @EnvironmentObject var store: CleanupStore
     let item: PhotoItem
@@ -47,21 +47,33 @@ struct ThumbnailCell: View {
             ZStack(alignment: .topTrailing) {
                 AssetImageView(asset: item.asset, targetSize: geo.size)
                     .frame(width: geo.size.width, height: geo.size.height)
-                    .overlay(decision == .delete ? Color.red.opacity(0.28) : Color.clear)
+                    .scaleEffect(decision == .delete ? 1.06 : 1)
+                    .overlay(decision == .delete ? MM.danger.opacity(0.32) : Color.clear)
 
                 if decision == .delete {
-                    Image(systemName: "trash.circle.fill")
-                        .font(.title2)
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, .red)
+                    Image(systemName: "trash.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 26, height: 26)
+                        .background(LinearGradient(colors: MM.deleteGradient, startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
+                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
                         .padding(6)
                         .transition(.scale.combined(with: .opacity))
                 } else if decision == .keep {
-                    Image(systemName: "heart.circle.fill")
-                        .font(.title2)
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, .green)
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 26, height: 26)
+                        .background(MM.success, in: Circle())
+                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
                         .padding(6)
+                        .transition(.scale.combined(with: .opacity))
+                } else {
+                    Circle()
+                        .stroke(Color.white, lineWidth: 2)
+                        .background(Circle().fill(Color.black.opacity(0.12)))
+                        .frame(width: 24, height: 24)
+                        .padding(7)
                 }
 
                 VStack {
@@ -69,24 +81,24 @@ struct ThumbnailCell: View {
                     HStack(spacing: 4) {
                         if let badge {
                             Text(badge)
-                                .font(.caption2.bold())
-                                .padding(.horizontal, 6).padding(.vertical, 3)
-                                .background(.yellow, in: Capsule())
-                                .foregroundStyle(.black)
+                                .font(MM.text(10, .bold))
+                                .padding(.horizontal, 7).padding(.vertical, 3)
+                                .background(LinearGradient(colors: [MM.brand, MM.sky], startPoint: .leading, endPoint: .trailing), in: Capsule())
+                                .foregroundStyle(.white)
                         }
                         Spacer()
                         Text(item.isVideo ? "▶︎ " + Fmt.bytes(item.fileSize) : Fmt.bytes(item.fileSize))
-                            .font(.caption2.monospacedDigit())
-                            .padding(.horizontal, 5).padding(.vertical, 2)
-                            .background(.black.opacity(0.45), in: Capsule())
+                            .font(MM.display(10, .medium))
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(.black.opacity(0.4), in: Capsule())
                             .foregroundStyle(.white)
                     }
-                    .padding(5)
+                    .padding(6)
                 }
             }
         }
         .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: MM.rTile, style: .continuous))
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: decision)
     }
 }
@@ -97,7 +109,7 @@ struct PhotoDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack(alignment: .top) {
             Color.black.ignoresSafeArea()
             AssetImageView(asset: item.asset,
                            targetSize: UIScreen.main.bounds.size,
@@ -105,17 +117,22 @@ struct PhotoDetailView: View {
                            allowNetwork: true)
                 .background(Color.black)
                 .ignoresSafeArea()
-            VStack(alignment: .trailing, spacing: 6) {
+            HStack {
+                Text("\(Fmt.date(item.creationDate)) · \(Fmt.bytes(item.fileSize))")
+                    .font(MM.text(13, .medium))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14).padding(.vertical, 9)
+                    .background(.ultraThinMaterial, in: Capsule())
+                Spacer()
                 Button { dismiss() } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.largeTitle)
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, .white.opacity(0.25))
+                    Image(systemName: "xmark")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 40, height: 40)
+                        .background(.ultraThinMaterial, in: Circle())
                 }
-                Text("\(Fmt.date(item.creationDate)) · \(Fmt.bytes(item.fileSize)) · \(item.pixelWidth)×\(item.pixelHeight)")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.8))
             }
+            .environment(\.colorScheme, .dark)
             .padding()
         }
         .onTapGesture { dismiss() }

@@ -6,7 +6,7 @@ struct ReviewDeleteView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var deleting = false
 
-    private let columns = [GridItem(.adaptive(minimum: 96), spacing: 6)]
+    private let columns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
 
     private var sortedIDs: [String] {
         store.toDelete.sorted { (store.item($0)?.fileSize ?? 0) > (store.item($1)?.fileSize ?? 0) }
@@ -14,49 +14,67 @@ struct ReviewDeleteView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                VStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Chip(text: "共 \(store.toDelete.count) 项", fg: .white, bg: Color.white.opacity(0.22))
                     Text("可释放空间")
-                        .font(.subheadline)
-                        .opacity(0.85)
+                        .font(MM.text(14, .medium))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .padding(.top, 8)
                     Text(Fmt.bytes(store.toDeleteBytes))
-                        .font(.system(size: 46, weight: .heavy, design: .rounded))
-                    Text("共 \(store.toDelete.count) 项")
-                        .font(.subheadline.weight(.medium))
+                        .font(MM.display(50, .semibold))
+                        .foregroundStyle(.white)
+                        .contentTransition(.numericText())
+                        .animation(Motion.smooth, value: store.toDeleteBytes)
                 }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 26)
-                .background(LinearGradient(colors: [.red, .pink, .orange], startPoint: .topLeading, endPoint: .bottomTrailing),
-                            in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(22)
+                .background(
+                    ZStack {
+                        LinearGradient(colors: MM.deleteGradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                        DriftingBlobs(colors: [MM.pink])
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: MM.rCard, style: .continuous))
+                )
+                .shadow(color: MM.danger.opacity(0.3), radius: 20, y: 10)
+                .staggerIn(0)
 
-                Label("点击下方按钮后，iPhone 会弹出系统确认框。删除的照片会进入「最近删除」，30 天内可以恢复。点一下缩略图可从清单中移除。", systemImage: "info.circle")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "info.circle.fill").foregroundStyle(MM.brand)
+                    Text("点下方按钮后，iPhone 会弹出系统确认框。删除的照片进入「最近删除」，30 天内可恢复。点缩略图可从清单移除。")
+                        .font(MM.text(13))
+                        .foregroundStyle(MM.ink2)
+                }
+                .padding(14)
+                .mmCard(radius: 16, shadow: .none, fill: MM.surface)
 
-                LazyVGrid(columns: columns, spacing: 6) {
+                SectionHeader(title: "待删除清单", trailing: "按大小排序")
+
+                LazyVGrid(columns: columns, spacing: 8) {
                     ForEach(sortedIDs, id: \.self) { id in
                         if let item = store.item(id) {
                             ThumbnailCell(item: item)
                                 .onTapGesture {
                                     Haptics.light()
-                                    withAnimation { store.set(id, nil) }
+                                    withAnimation(Motion.snappy) { store.set(id, nil) }
                                 }
+                                .transition(.scale(scale: 0.6).combined(with: .opacity))
                         }
                     }
                 }
             }
-            .padding(16)
+            .padding(18)
             .padding(.bottom, 100)
         }
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .background(MM.canvas.ignoresSafeArea())
         .navigationTitle("确认删除")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("清空清单") {
-                    withAnimation { store.markAll(Array(store.toDelete), nil) }
+                    withAnimation(Motion.snappy) { store.markAll(Array(store.toDelete), nil) }
                 }
+                .font(MM.text(14, .medium))
                 .disabled(store.toDelete.isEmpty)
             }
         }
@@ -70,16 +88,16 @@ struct ReviewDeleteView: View {
                     if ok { dismiss() }
                 }
             } label: {
-                HStack {
+                HStack(spacing: 8) {
                     if deleting { ProgressView().tint(.white) }
                     Image(systemName: "trash.fill")
                     Text("删除 \(store.toDelete.count) 项，释放 \(Fmt.bytes(store.toDeleteBytes))")
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(PrimaryButtonStyle(colors: [.red, .pink]))
+            .buttonStyle(PrimaryButtonStyle(colors: MM.deleteGradient))
             .disabled(store.toDelete.isEmpty || deleting)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 18)
             .padding(.bottom, 6)
         }
     }

@@ -8,13 +8,13 @@ struct SettingsView: View {
         Form {
             Section {
                 VStack(alignment: .leading) {
-                    Text("模糊判定阈值：\(Int(store.blurThreshold))")
+                    Text("模糊判定阈值：\(Int(store.blurThreshold))").font(MM.text(15, .medium))
                     Slider(value: $store.blurThreshold, in: 10...300, step: 5)
                     Text("数值越大，越多照片会被判为模糊。默认 60。")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 VStack(alignment: .leading) {
-                    Text("大文件标准：≥ \(Int(store.largeFileMB)) MB")
+                    Text("大文件标准：≥ \(Int(store.largeFileMB)) MB").font(MM.text(15, .medium))
                     Slider(value: $store.largeFileMB, in: 2...50, step: 1)
                 }
                 Stepper("最多分析最近 \(store.analyzeLimit) 张", value: $store.analyzeLimit, in: 500...20000, step: 500)
@@ -41,6 +41,10 @@ struct SettingsView: View {
             }
             .font(.subheadline)
         }
+        .font(MM.text(15))
+        .tint(MM.brand)
+        .scrollContentBackground(.hidden)
+        .background(MM.surface.ignoresSafeArea())
         .navigationTitle("设置")
         .confirmationDialog("确定清除保留记录？", isPresented: $confirmReset, titleVisibility: .visible) {
             Button("清除", role: .destructive) { store.resetKept() }

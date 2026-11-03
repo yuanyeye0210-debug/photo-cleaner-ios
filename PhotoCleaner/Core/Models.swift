@@ -55,14 +55,15 @@ enum CleanCategory: String, CaseIterable, Identifiable, Hashable {
         }
     }
 
+    /// MiniMax 风格的产品卡渐变（蓝 / 紫 / 粉橙 / 品红 / 天蓝 / 炭黑）
     var colors: [Color] {
         switch self {
-        case .similar: return [Color(red: 0.38, green: 0.42, blue: 1.0), Color(red: 0.62, green: 0.36, blue: 0.98)]
-        case .screenshots: return [Color(red: 0.13, green: 0.73, blue: 0.95), Color(red: 0.18, green: 0.48, blue: 0.98)]
-        case .blurry: return [Color(red: 1.0, green: 0.62, blue: 0.25), Color(red: 1.0, green: 0.40, blue: 0.38)]
-        case .large: return [Color(red: 0.98, green: 0.36, blue: 0.55), Color(red: 0.86, green: 0.25, blue: 0.80)]
-        case .videos: return [Color(red: 0.16, green: 0.80, blue: 0.56), Color(red: 0.08, green: 0.62, blue: 0.62)]
-        case .poorLight: return [Color(red: 0.45, green: 0.47, blue: 0.56), Color(red: 0.25, green: 0.27, blue: 0.36)]
+        case .similar: return [Color(hex: 0x1456F0), Color(hex: 0x3DAEFF)]
+        case .screenshots: return [Color(hex: 0x6D4AFF), Color(hex: 0xB07CFF)]
+        case .blurry: return [Color(hex: 0xF0498F), Color(hex: 0xFF9F45)]
+        case .large: return [Color(hex: 0xEA5EC1), Color(hex: 0x7C5CFF)]
+        case .videos: return [Color(hex: 0x0EA5E9), Color(hex: 0x6366F1)]
+        case .poorLight: return [Color(hex: 0x181E25), Color(hex: 0x5B6878)]
         }
     }
 }

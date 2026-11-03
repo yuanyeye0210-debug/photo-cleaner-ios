@@ -4,6 +4,10 @@ import SwiftUI
 struct PhotoCleanerApp: App {
     @StateObject private var store = CleanupStore()
 
+    init() {
+        FontRegistry.registerAll()
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -25,7 +29,8 @@ struct RootView: View {
                 PermissionView()
             }
         }
-        .tint(Color(red: 0.38, green: 0.42, blue: 1.0))
+        .tint(MM.brand)
+        .preferredColorScheme(.light)
         .onAppear {
             if store.hasAccess && store.phase == .idle { store.startScan() }
         }

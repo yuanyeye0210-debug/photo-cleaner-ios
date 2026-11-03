@@ -6,41 +6,44 @@ struct GridSelectView: View {
     let ids: [String]
     @State private var preview: PhotoItem?
 
-    private let columns = [GridItem(.adaptive(minimum: 104), spacing: 6)]
+    private let columns = [GridItem(.adaptive(minimum: 104), spacing: 8)]
 
     var body: some View {
         ScrollView {
             HStack(spacing: 10) {
                 Button {
                     Haptics.medium()
-                    withAnimation { store.markAll(ids.filter { store.decision(for: $0) != .keep }, .delete) }
+                    withAnimation(Motion.snappy) { store.markAll(ids.filter { store.decision(for: $0) != .keep }, .delete) }
                 } label: {
-                    Label("全选删除", systemImage: "checkmark.circle")
+                    Label("全选删除", systemImage: "checkmark.circle.fill")
+                        .font(MM.text(14, .bold))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 10).padding(.horizontal, 16)
+                        .background(MM.inkDark, in: Capsule())
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
+                .buttonStyle(PressableStyle())
 
                 Button {
                     Haptics.light()
-                    withAnimation { store.markAll(ids.filter { store.toDelete.contains($0) }, nil) }
+                    withAnimation(Motion.snappy) { store.markAll(ids.filter { store.toDelete.contains($0) }, nil) }
                 } label: {
-                    Label("全部取消", systemImage: "xmark.circle")
+                    Label("全部取消", systemImage: "xmark")
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(SecondaryButtonStyle())
                 Spacer()
             }
-            .font(.subheadline)
-            .padding(.horizontal, 12)
-            .padding(.top, 4)
+            .padding(.horizontal, 16)
+            .padding(.top, 2)
 
             Text("点一下标记删除，长按查看大图。标记了「保留」的照片不会被全选。")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(MM.text(12))
+                .foregroundStyle(MM.muted)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 16)
+                .padding(.top, 4)
 
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(ids, id: \.self) { id in
+            LazyVGrid(columns: columns, spacing: 8) {
+                ForEach(Array(ids.enumerated()), id: \.element) { idx, id in
                     if let item = store.item(id) {
                         ThumbnailCell(item: item)
                             .onTapGesture {
@@ -51,10 +54,11 @@ struct GridSelectView: View {
                                 Haptics.medium()
                                 preview = item
                             }
+                            .staggerIn(min(idx, 12))
                     }
                 }
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 14)
             .padding(.bottom, 100)
         }
         .fullScreenCover(item: $preview) { PhotoDetailView(item: $0) }
