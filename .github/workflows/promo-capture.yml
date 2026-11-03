@@ -33,8 +33,13 @@ jobs:
           import sys,json
           d=json.load(sys.stdin)['devices']
           c=[x for k,v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone')]
-          pref=[x for x in c if 'Pro' in x['name'] and 'Max' not in x['name']]
-          print((pref or c)[0]['udid'])")
+          import re
+          num=lambda x:int((re.findall(r'\d+',x['name']) or ['0'])[0])
+          pm=sorted([x for x in c if 'Pro Max' in x['name']],key=num)
+          pick=(pm or sorted(c,key=num))[-1]
+          print(pick['name'],file=sys.stderr)
+          print(pick['udid'])")
+          xcrun simctl list devices | grep "$UDID" | tee "$RUNNER_TEMP/device.txt"
           echo "UDID=$UDID" >> $GITHUB_ENV
           xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
@@ -53,7 +58,7 @@ jobs:
       - name: 截图与录屏
         run: |
           set -x
-          S="$RUNNER_TEMP/shots"; mkdir -p "$S"
+          S="$RUNNER_TEMP/shots"; mkdir -p "$S"; cp "$RUNNER_TEMP/device.txt" "$S/" || true
           xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3 || true
           xcrun simctl ui "$UDID" appearance dark || true
           xcrun simctl install "$UDID" "$APP"
