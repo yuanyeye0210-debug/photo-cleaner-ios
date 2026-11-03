@@ -14,6 +14,9 @@ struct SwipeReviewView: View {
     @State private var flying = false
     @State private var phase: CompletionPhase = .idle
     @State private var deletedCount = 0
+    /// 每张卡片的图片是否已显示（没显示出来不允许标记删除，防止误删）
+    @State private var loadedIDs: Set<String> = []
+    @State private var showNotLoaded = false
 
     private let threshold: CGFloat = 110
 
@@ -31,6 +34,18 @@ struct SwipeReviewView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .top) {
+                    if showNotLoaded {
+                        Text("图片还没加载出来，先别删")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Theme.text)
+                            .padding(.horizontal, 16).padding(.vertical, 10)
+                            .glassSurface(Capsule())
+                            .padding(.top, 14)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                }
+                .animation(Theme.spring, value: showNotLoaded)
                 .padding(.horizontal, Theme.pagePadding)
                 .padding(.top, 6)
             }
@@ -41,7 +56,9 @@ struct SwipeReviewView: View {
             guard !loaded else { return }
             queue = store.undecided(ids).filter { store.item($0) != nil }
             loaded = true
+            prefetch()
         }
+        .onChange(of: pos) { _ in prefetch() }
         .fullScreenCover(item: $preview) { PhotoDetailView(item: $0) }
     }
 
@@ -80,7 +97,10 @@ struct SwipeReviewView: View {
 
         GeometryReader { geo in
             ZStack(alignment: .bottomLeading) {
-                AssetImageView(asset: item.asset, targetSize: geo.size, contentMode: .fill)
+                AssetImageView(asset: item.asset, targetSize: geo.size, contentMode: .fill,
+                               showsLoading: true,
+                               loaded: Binding(get: { loadedIDs.contains(item.id) },
+                                               set: { if $0 { loadedIDs.insert(item.id) } }))
                     .frame(width: geo.size.width, height: geo.size.height)
 
                 LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .center, endPoint: .bottom)
@@ -261,8 +281,16 @@ struct SwipeReviewView: View {
 
     private func swipe(_ decision: Decision) {
         guard pos < queue.count, !flying else { return }
-        flying = true
         let id = queue[pos]
+        // 图片还没显示出来时不允许标记删除，弹回并提示
+        if decision == .delete && !loadedIDs.contains(id) {
+            Haptics.warning()
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { offset = .zero }
+            showNotLoaded = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { showNotLoaded = false }
+            return
+        }
+        flying = true
         if decision == .delete { Haptics.medium() } else { Haptics.light() }
         withAnimation(.easeIn(duration: 0.22)) {
             offset = CGSize(width: decision == .delete ? 700 : -700, height: offset.height + 30)
@@ -273,6 +301,16 @@ struct SwipeReviewView: View {
             offset = .zero
             pos += 1
             flying = false
+        }
+    }
+
+    /// 提前加载后面几张，划到时图片已经准备好
+    private func prefetch() {
+        let next = queue.dropFirst(pos).prefix(8).compactMap { store.item($0) }
+        for item in next {
+            Task { _ = await PhotoLibraryService.shared.image(for: item.asset,
+                                                               targetSize: CGSize(width: 900, height: 1400),
+                                                               allowNetwork: true) }
         }
     }
 

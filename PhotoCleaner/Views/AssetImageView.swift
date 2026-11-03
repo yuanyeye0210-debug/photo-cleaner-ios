@@ -2,13 +2,18 @@ import SwiftUI
 import Photos
 
 /// 异步加载 PHAsset 缩略图 / 大图
+/// 先显示缓存或低清图，再换高清；iCloud 照片会联网下载；加载中显示转圈，失败显示提示
 struct AssetImageView: View {
     let asset: PHAsset
     var targetSize: CGSize = CGSize(width: 300, height: 300)
     var contentMode: ContentMode = .fill
     var allowNetwork: Bool = false
+    var showsLoading: Bool = false
+    /// 图片是否已经显示出来（给滑动卡片用：没出来不允许删除）
+    var loaded: Binding<Bool>? = nil
 
     @State private var image: UIImage?
+    @State private var failed = false
 
     var body: some View {
         // 没加载完时先用内存里已有的图（比如网格/卡片里的缩略图），避免出现空白
@@ -20,17 +25,40 @@ struct AssetImageView: View {
                     .resizable()
                     .aspectRatio(contentMode: contentMode)
                     .transition(.opacity)
+            } else if showsLoading {
+                VStack(spacing: 10) {
+                    if failed {
+                        Image(systemName: "exclamationmark.icloud")
+                            .font(.system(size: 30, weight: .medium))
+                        Text("图片加载失败").font(Theme.caption)
+                    } else {
+                        ProgressView().tint(Theme.text2).controlSize(.large)
+                        Text("正在加载图片…").font(Theme.caption)
+                    }
+                }
+                .foregroundStyle(Theme.text2)
             }
         }
         .clipped()
+        .onAppear { if shown != nil { loaded?.wrappedValue = true } }
         .task(id: asset.localIdentifier) {
+            failed = false
             let scale = UIScreen.main.scale
             let size = CGSize(width: targetSize.width * scale, height: targetSize.height * scale)
-            let img = await PhotoLibraryService.shared.image(for: asset,
-                                                             targetSize: size,
-                                                             contentMode: contentMode == .fill ? .aspectFill : .aspectFit,
-                                                             allowNetwork: allowNetwork)
-            withAnimation(.easeOut(duration: 0.2)) { image = img }
+            let mode: PHImageContentMode = contentMode == .fill ? .aspectFill : .aspectFit
+            if showsLoading || allowNetwork {
+                // 渐进：先给本地低清图，再给高清（必要时从 iCloud 下载）
+                for await (img, _) in PhotoLibraryService.shared.progressiveImages(for: asset, targetSize: size, contentMode: mode) {
+                    withAnimation(.easeOut(duration: 0.15)) { image = img }
+                    loaded?.wrappedValue = true
+                }
+            } else {
+                let img = await PhotoLibraryService.shared.image(for: asset, targetSize: size,
+                                                                 contentMode: mode, allowNetwork: false)
+                withAnimation(.easeOut(duration: 0.2)) { image = img }
+                if img != nil { loaded?.wrappedValue = true }
+            }
+            if image == nil && shown == nil { failed = true }
         }
     }
 }
