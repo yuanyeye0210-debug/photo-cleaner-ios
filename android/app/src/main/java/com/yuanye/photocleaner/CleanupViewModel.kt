@@ -25,7 +25,9 @@ import com.yuanye.photocleaner.core.Decision
 import com.yuanye.photocleaner.core.DeleteCheck
 import com.yuanye.photocleaner.core.ExactDuplicates
 import com.yuanye.photocleaner.core.Fmt
+import com.yuanye.photocleaner.core.GroupingParams
 import com.yuanye.photocleaner.core.HashEntry
+import com.yuanye.photocleaner.core.PairKey
 import com.yuanye.photocleaner.core.PhotoItem
 import com.yuanye.photocleaner.core.QuickBatches
 import com.yuanye.photocleaner.core.SimilarityGrouper
@@ -100,6 +102,7 @@ class CleanupViewModel(app: Application) : AndroidViewModel(app) {
     var kept by mutableStateOf(initialMarks.kept); private set
     var later by mutableStateOf(initialMarks.later); private set
     var cleanedMonths by mutableStateOf(initialMarks.cleanedMonths); private set
+    var notSimilar by mutableStateOf(initialMarks.notSimilar); private set
     var stats by mutableStateOf(statsStore.load()); private set
 
     var blurThreshold by mutableDoubleStateOf(runCatching { prefs.getFloat(K_BLUR, 60f) }.getOrDefault(60f).toDouble()); private set
@@ -250,10 +253,12 @@ class CleanupViewModel(app: Application) : AndroidViewModel(app) {
         val entries = items.mapNotNull { item ->
             val a = item.analysis ?: return@mapNotNull null
             if (item.isScreenshot || item.isFavorite || item.id in dupExtra) return@mapNotNull null
-            HashEntry(item.id, a.dHash, item.dateMillis?.let { it / 1000.0 }, a.feature)
+            HashEntry(item.id, a.dHash, item.dateMillis?.let { it / 1000.0 }, a.feature,
+                aspect = HashEntry.aspect(item.width, item.height), labels = a.labels, faces = a.faceCount)
         }
+        val excluded = notSimilar
         val groups = withContext(Dispatchers.Default) {
-            SimilarityGrouper.groups(entries, featureNear = FEATURE_NEAR, featureDup = FEATURE_DUP)
+            SimilarityGrouper.groups(entries, GroupingParams(featureNear = FEATURE_NEAR, featureDup = FEATURE_DUP), excluded)
         }
         similarGroups = groups
         rebuildCategories()
@@ -369,6 +374,7 @@ class CleanupViewModel(app: Application) : AndroidViewModel(app) {
         toDelete = toDelete.filter { index.containsKey(it) }.toSet()
         kept = kept.filter { index.containsKey(it) }.toSet()
         later = later.filter { index.containsKey(it) }.toSet()
+        notSimilar = notSimilar.filter { k -> PairKey.ids(k)?.let { index.containsKey(it.first) && index.containsKey(it.second) } == true }.toSet()
         persist()
     }
 
@@ -454,6 +460,17 @@ class CleanupViewModel(app: Application) : AndroidViewModel(app) {
         persist()
     }
 
+    /** 「不是相似」：把这张从相似组里拿出来，并记住（重新扫描也不会再分进来） */
+    fun markNotSimilar(id: String, group: List<String>) {
+        notSimilar = notSimilar + group.filter { it != id }.map { PairKey.make(id, it) }
+        val g = group.toSet()
+        similarGroups = similarGroups.mapNotNull { grp ->
+            if (grp.toSet() != g) grp else grp.filter { it != id }.takeIf { it.size > 1 }
+        }
+        rebuildCategories()
+        persist()
+    }
+
     fun toggleDelete(id: String) = set(id, if (id in toDelete) null else Decision.DELETE)
 
     fun markAll(ids: Collection<String>, d: Decision?) {
@@ -496,7 +513,7 @@ class CleanupViewModel(app: Application) : AndroidViewModel(app) {
 
     /** 防抖写文件（连续滑动时不会每张都写一次） */
     private fun persist() {
-        val snap = MarksStore.Marks(toDelete, kept, later, cleanedMonths)
+        val snap = MarksStore.Marks(toDelete, kept, later, cleanedMonths, notSimilar)
         saveMarksJob?.cancel()
         saveMarksJob = viewModelScope.launch {
             delay(300)
@@ -623,7 +640,8 @@ class CleanupViewModel(app: Application) : AndroidViewModel(app) {
         private const val K_TRASH = "useTrash"
         private const val WORKERS = 4
         /** MobileNetV3 特征向量（已归一化）的距离阈值：比苹果的特征稍宽一点 */
-        const val FEATURE_NEAR = 0.5f
+        /** 安卓 MobileNetV3 特征：同一次连拍 ≤ 0.35（原来 0.5 太松），重复图 ≤ 0.3 */
+        const val FEATURE_NEAR = 0.35f
         const val FEATURE_DUP = 0.3f
     }
 }

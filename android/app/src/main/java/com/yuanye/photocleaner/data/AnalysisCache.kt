@@ -11,7 +11,7 @@ import java.io.File
 
 /** 分析结果缓存：下次打开不用重新分析（照片修改过会重新分析） */
 class AnalysisCache(context: Context) {
-    private val file = File(context.filesDir, "analysis_v2.bin")
+    private val file = File(context.filesDir, "analysis_v3.bin")
 
     data class Entry(val dateModified: Long, val result: AnalysisResult)
 
@@ -40,9 +40,12 @@ class AnalysisCache(context: Context) {
                 val fq = s.readFloat()
                 val fc = s.readBoolean()
                 val motion = s.readLong()
+                val nLabels = s.readInt()
+                val labels = if (nLabels >= 0) List(nLabels) { s.readUTF() } else null
+                val faces = s.readInt().takeIf { it >= 0 }
                 out[id] = Entry(mod, AnalysisResult(
                     dHash, sharp, bright, contrast, feature, if (q.isNaN()) null else q, tags, textChecked, lines, chars,
-                    code, if (fq.isNaN()) null else fq, fc, motion,
+                    code, if (fq.isNaN()) null else fq, fc, motion, labels, faces,
                 ))
             }
             out
@@ -74,13 +77,20 @@ class AnalysisCache(context: Context) {
                     s.writeFloat(r.faceQuality ?: Float.NaN)
                     s.writeBoolean(r.faceChecked)
                     s.writeLong(r.motionBytes)
+                    val l = r.labels
+                    if (l == null) s.writeInt(-1) else { s.writeInt(l.size); l.forEach { s.writeUTF(it) } }
+                    s.writeInt(r.faceCount ?: -1)
                 }
             }
             tmp.renameTo(file)
         }
     }
 
-    fun clear() { file.delete(); File(file.parentFile, "analysis_v1.bin").delete() }
+    fun clear() {
+        file.delete()
+        File(file.parentFile, "analysis_v1.bin").delete()
+        File(file.parentFile, "analysis_v2.bin").delete()
+    }
 
-    private companion object { const val MAGIC = 0x50430003 }
+    private companion object { const val MAGIC = 0x50430004   // 4：分类阈值提高 + 主体标签和人脸数（全部重新分析） }
 }

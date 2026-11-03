@@ -67,15 +67,17 @@ class ImageMathTest {
             HashEntry("d", base xor 0xFF00, 9_000_000.0),   // 距离 8 但时间很远
             HashEntry("e", base.inv(), 1001.0),             // 完全不同
         )
+        // a–b 重复、a–c 连拍，但 b–c 不相似 → 完全连接下 c 不能进 {a, b}
         val g = SimilarityGrouper.groups(entries)
         assertEquals(1, g.size)
-        assertEquals(setOf("a", "b", "c"), g[0].toSet())
+        assertEquals(setOf("a", "b"), g[0].toSet())
     }
 
-    @Test fun groupingChainsDuplicates() {
+    @Test fun groupingDoesNotChainThroughDuplicate() {
+        // c–d 重复、a–c 连拍，但 a–d 既不近也不像 → 不会经过 c 把 a、d 串成一组
         val base = 0x123456789ABCDEF0L
         val entries = listOf(HashEntry("a", base, 0.0), HashEntry("c", base xor 0xFF, 30.0), HashEntry("d", base xor 0xFF, 99_999.0))
-        assertEquals(setOf("a", "c", "d"), SimilarityGrouper.groups(entries).first().toSet())
+        assertEquals(listOf(listOf("c", "d")), SimilarityGrouper.groups(entries))
     }
 
     @Test fun bestIndex() {

@@ -194,6 +194,8 @@
     <string name="mark_only_note">This only marks them. You still confirm on the Clean tab before anything is deleted.</string>
     <string name="keep_best_delete_rest">Keep best, delete other %d</string>
     <string name="keep_all">Keep all</string>
+    <string name="not_similar">Not similar</string>
+    <string name="a11y_not_similar">Remove this photo from the group and never group it here again</string>
     <string name="delete_whole_group">Delete whole group</string>
     <string name="whole_group_title">Mark all %d in this group for deletion, keeping none?</string>
     <string name="compress_entry">Compress to HEVC</string>

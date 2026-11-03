@@ -50,6 +50,13 @@ class Analyzer(context: Context, private val repo: MediaRepository) {
             .setMinFaceSize(0.08f)
             .build()
     )
+    /** 只数人脸（快速模式，不做睁眼/微笑分类） */
+    private val faceCounter = FaceDetection.getClient(
+        FaceDetectorOptions.Builder()
+            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+            .setMinFaceSize(0.1f)
+            .build()
+    )
     private val embedder: ImageEmbedder? = runCatching {
         ImageEmbedder.createFromOptions(
             context,
@@ -79,13 +86,16 @@ class Analyzer(context: Context, private val repo: MediaRepository) {
         val input = InputImage.fromBitmap(bmp, 0)
         val labelTask = labeler.process(input)
         val qrTask = barcode.process(input)
+        val faceTask = faceCounter.process(input)
         val (feature, motion) = coroutineScope {
             val f = async(Dispatchers.Default) { embed(bmp) }
             val m = async(Dispatchers.IO) { motionBytes(item) }
             f.await() to m.await()
         }
         val labels = runCatching { labelTask.await().map { it.text to it.confidence } }.getOrDefault(emptyList())
-        val hasQR = runCatching { qrTask.await().isNotEmpty() }.getOrDefault(false)
+        // 只有真正读出内容的二维码才算（避免花纹、栅栏被误认）
+        val hasQR = runCatching { qrTask.await().any { !it.rawValue.isNullOrEmpty() } }.getOrDefault(false)
+        val faceCount = runCatching { faceTask.await().size }.getOrNull()
         val tags = VisionRules.tags(labels, hasQR)
 
         var r = AnalysisResult(
@@ -97,6 +107,8 @@ class Analyzer(context: Context, private val repo: MediaRepository) {
             quality = QualityScore.score(sharp, bright, contrast),
             tags = tags,
             motionBytes = motion,
+            labels = VisionRules.subjectLabels(labels),
+            faceCount = faceCount,
         )
         val w = if (item.width > 0) item.width else bmp.width
         val h = if (item.height > 0) item.height else bmp.height
@@ -114,6 +126,8 @@ class Analyzer(context: Context, private val repo: MediaRepository) {
                     textChars = lines.sumOf { it.count { ch -> !ch.isWhitespace() } },
                     verificationCode = VisionRules.verificationCode(lines),
                 )
+                // 文字很多时，文档 / 票据门槛放宽到 0.5
+                if (r.textHeavy) r = r.copy(tags = VisionRules.tags(labels, hasQR, textHeavy = true))
             }
         }
         return r

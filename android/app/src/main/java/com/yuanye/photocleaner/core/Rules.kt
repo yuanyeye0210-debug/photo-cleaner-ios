@@ -36,27 +36,52 @@ object VisionRules {
         "whiteboard", "blackboard", "comics",
     )
 
-    const val DOCUMENT_CONFIDENCE = 0.5f
-    const val FOOD_CONFIDENCE = 0.6f
-    const val PET_CONFIDENCE = 0.6f
-    const val SCENERY_CONFIDENCE = 0.6f
+    /** 文档 / 票据：>= 0.6；文字很多时放宽到 0.5 */
+    const val DOCUMENT_CONFIDENCE = 0.6f
+    const val DOCUMENT_TEXT_CONFIDENCE = 0.5f
+    /** 美食 / 宠物 / 风景：>= 0.7，并且必须是最主要的标签（跳过 genericLabels 这类大类后排第一） */
+    const val FOOD_CONFIDENCE = 0.7f
+    const val PET_CONFIDENCE = 0.7f
+    const val SCENERY_CONFIDENCE = 0.7f
     const val SCREENSHOT_CONFIDENCE = 0.5f
     const val PEOPLE_CONFIDENCE = 0.5f
+    /** 相似分组用的主体标签：前 5 个、置信度 >= 0.3 */
+    const val SUBJECT_LABEL_COUNT = 5
+    const val SUBJECT_LABEL_CONFIDENCE = 0.3f
+    /** ML Kit 里很泛、几乎什么图都会有的标签，判断「主要标签」时跳过 */
+    val genericLabels = setOf(
+        "fun", "event", "cool", "pattern", "leisure", "vacation", "sitting", "standing", "room", "flora", "plant",
+        "sky", "cloud", "water", "nail", "hand", "pet",
+    )
 
-    fun tags(labels: List<Pair<String, Float>>, hasQR: Boolean): Set<ContentTag> {
+    private fun sortedLabels(labels: List<Pair<String, Float>>) =
+        labels.map { it.first.lowercase() to it.second }.sortedWith(compareByDescending<Pair<String, Float>> { it.second }.thenBy { it.first })
+
+    /** 按置信度排序后，跳过大类，第一个具体标签（小写） */
+    fun topSpecificLabel(labels: List<Pair<String, Float>>): String? =
+        sortedLabels(labels).firstOrNull { it.first !in genericLabels }?.first
+
+    /** 相似分组用：前 5 个置信度 >= 0.3 的标签（小写） */
+    fun subjectLabels(labels: List<Pair<String, Float>>): List<String> =
+        sortedLabels(labels).filter { it.second >= SUBJECT_LABEL_CONFIDENCE }.take(SUBJECT_LABEL_COUNT).map { it.first }
+
+    /** 二维码只看真正读出内容的条码（hasQR），不看分类标签 */
+    fun tags(labels: List<Pair<String, Float>>, hasQR: Boolean, textHeavy: Boolean = false): Set<ContentTag> {
         val conf = HashMap<String, Float>()
         for ((id, c) in labels) {
             val k = id.lowercase()
             conf[k] = max(conf[k] ?: 0f, c)
         }
         fun maxConf(set: Set<String>): Float = set.fold(0f) { acc, s -> max(acc, conf[s] ?: 0f) }
+        val top = topSpecificLabel(labels)
+        fun isTop(set: Set<String>) = top != null && top in set
         val out = mutableSetOf<ContentTag>()
         if (hasQR) out += ContentTag.QR_CODE
-        if (maxConf(documentLabels) >= DOCUMENT_CONFIDENCE) out += ContentTag.DOCUMENT
-        if (maxConf(foodLabels) >= FOOD_CONFIDENCE) out += ContentTag.FOOD
-        if (maxConf(petLabels) >= PET_CONFIDENCE) out += ContentTag.PET
+        if (maxConf(documentLabels) >= (if (textHeavy) DOCUMENT_TEXT_CONFIDENCE else DOCUMENT_CONFIDENCE)) out += ContentTag.DOCUMENT
+        if (maxConf(foodLabels) >= FOOD_CONFIDENCE && isTop(foodLabels)) out += ContentTag.FOOD
+        if (maxConf(petLabels) >= PET_CONFIDENCE && isTop(petLabels)) out += ContentTag.PET
         val hasPeople = maxConf(peopleLabels) >= PEOPLE_CONFIDENCE
-        if (!hasPeople && maxConf(sceneryLabels) >= SCENERY_CONFIDENCE) out += ContentTag.SCENERY
+        if (!hasPeople && maxConf(sceneryLabels) >= SCENERY_CONFIDENCE && isTop(sceneryLabels)) out += ContentTag.SCENERY
         if (maxConf(screenshotLabels) >= SCREENSHOT_CONFIDENCE) out += ContentTag.SCREENSHOT_LIKE
         return out
     }
@@ -187,7 +212,49 @@ object QualityScore {
     private fun ln10(x: Double) = kotlin.math.log10(x)
 }
 
-class HashEntry(val id: String, val hash: Long, val time: Double?, val feature: ByteArray? = null)
+class HashEntry(
+    val id: String, val hash: Long, val time: Double?, val feature: ByteArray? = null,
+    /** 长边/短边（>= 1）；null = 不知道 */
+    val aspect: Double? = null,
+    /** 识别标签（前 5 个，置信度 >= 0.3）；null 或空 = 不知道 */
+    val labels: List<String>? = null,
+    /** 人脸数；null = 不知道 */
+    val faces: Int? = null,
+) {
+    companion object {
+        fun aspect(width: Int, height: Int): Double? =
+            if (width <= 0 || height <= 0) null else max(width, height).toDouble() / min(width, height)
+    }
+}
+
+/** 「不是相似」的照片对：两个 id 排序后用 | 连起来 */
+object PairKey {
+    fun make(a: String, b: String): String = if (a < b) "$a|$b" else "$b|$a"
+    fun ids(key: String): Pair<String, String>? {
+        val i = key.indexOf('|')
+        return if (i <= 0 || i == key.length - 1) null else key.substring(0, i) to key.substring(i + 1)
+    }
+}
+
+/**
+ * 相似分组的阈值（和 iOS 版 GroupingParams 一致；特征距离按安卓的 MobileNetV3 特征单独标定）
+ *  - strict：dHash ≤ 4 直接算重复
+ *  - 同一次连拍：时间相差 ≤ 90 秒 且 特征距离 ≤ near，并且主体一致（dHash ≤ 16 或 标签 Jaccard ≥ 0.25）、
+ *    人数相差 ≤ 1、长宽比相差 ≤ 1.4 倍
+ *  - 重复图（裁剪/压缩/存了两次）：特征距离 ≤ dup，不看时间和比例
+ */
+data class GroupingParams(
+    val strict: Int = 4,
+    val loose: Int = 10,
+    val timeWindow: Double = 90.0,
+    val featureNear: Float = 0.35f,
+    val featureDup: Float = 0.25f,
+    val dupPrefilter: Int = 20,
+    val subjectHash: Int = 16,
+    val labelJaccard: Double = 0.25,
+    val aspectRatioMax: Double = 1.4,
+    val maxFaceDiff: Int = 1,
+)
 
 data class BestCandidate(
     val faceQuality: Float? = null,
@@ -197,12 +264,12 @@ data class BestCandidate(
 )
 
 /**
- * 相似照片分组（并查集），规则与 iOS 版一致。
+ * 相似照片分组（完全连接：组里任意两张都相似），规则与 iOS 版一致。
  * 快速版：不再两两比较全部照片（n² 次），只比较
  *  1) 按拍摄时间排序后、时间窗口内的照片；
  *  2) dHash 分 8 段、任一段完全相同的照片（汉明距离 ≤ 7 一定会碰上）；
  *  3) AI 特征的随机投影桶（LSH）相同的照片（找时间相隔很久的重复图）。
- * 判定规则和暴力版 [groupsBruteForce] 完全相同。
+ * 候选配对再用 [link] 判定、[merge] 合并，结果和暴力版 [groupsBruteForce] 相同。
  */
 object SimilarityGrouper {
     private const val BANDS = 8
@@ -213,65 +280,58 @@ object SimilarityGrouper {
     private const val BIG_BUCKET = 400
     private const val BIG_BUCKET_NEIGHBORS = 40
 
-    private class Rules(
-        val strict: Int, val loose: Int, val window: Double, val near: Float, val dup: Float, val prefilter: Int,
-    ) {
-        fun similar(a: HashEntry, b: HashEntry): Boolean {
-            val d = ImageMath.hamming(a.hash, b.hash)
-            if (d <= strict) return true
-            val ta = a.time
-            val tb = b.time
-            val close = ta != null && tb != null && abs(ta - tb) <= window
-            val fa = a.feature
-            val fb = b.feature
-            return if (fa != null && fb != null) {
-                if (!(close || d <= prefilter)) false
-                else {
-                    val f = VisionRules.distance(fa, fb)
-                    (close && f <= near) || f <= dup
-                }
-            } else close && d <= loose
-        }
+    fun jaccard(a: List<String>, b: List<String>): Double {
+        val x = a.toSet(); val y = b.toSet()
+        val u = (x + y).size
+        return if (u == 0) 0.0 else (x intersect y).size.toDouble() / u
     }
 
-    private class UnionFind(n: Int) {
-        val parent = IntArray(n) { it }
-        fun find(i: Int): Int {
-            var r = i
-            while (parent[r] != r) r = parent[r]
-            var c = i
-            while (parent[c] != r) { val next = parent[c]; parent[c] = r; c = next }
-            return r
+    /** 两张照片能不能放进同一组；null = 不能，否则是「距离」（越小越像，决定合并顺序） */
+    fun link(a: HashEntry, b: HashEntry, p: GroupingParams = GroupingParams()): Float? {
+        val d = ImageMath.hamming(a.hash, b.hash)
+        if (d <= p.strict) return d / 64f
+        val ta = a.time; val tb = b.time
+        val close = ta != null && tb != null && abs(ta - tb) <= p.timeWindow
+        val xa = a.aspect; val xb = b.aspect
+        val aspectOK = xa == null || xb == null || max(xa, xb) / max(min(xa, xb), 0.0001) <= p.aspectRatioMax
+        val fa = a.feature; val fb = b.feature
+        if (fa != null && fb != null) {
+            if (!(close || d <= p.dupPrefilter)) return null
+            val f = VisionRules.distance(fa, fb)
+            if (f <= p.featureDup) return f                       // 重复图
+            if (!close || !aspectOK || f > p.featureNear) return null
+            val na = a.faces; val nb = b.faces
+            if (na != null && nb != null && abs(na - nb) > p.maxFaceDiff) return null
+            var subject = d <= p.subjectHash
+            val la = a.labels; val lb = b.labels
+            if (!subject && !la.isNullOrEmpty() && !lb.isNullOrEmpty()) subject = jaccard(la, lb) >= p.labelJaccard
+            return if (subject) f else null
         }
-        fun union(a: Int, b: Int) {
-            val ra = find(a); val rb = find(b)
-            if (ra != rb) parent[rb] = ra
-        }
+        return if (close && aspectOK && d <= p.loose) d / 64f else null
     }
 
     fun groups(
         entries: List<HashEntry>,
-        strictThreshold: Int = 4,
-        looseThreshold: Int = 10,
-        timeWindow: Double = 180.0,
-        featureNear: Float = 0.45f,
-        featureDup: Float = 0.25f,
-        dupPrefilter: Int = 20,
+        p: GroupingParams = GroupingParams(),
+        excluded: Set<String> = emptySet(),
     ): List<List<String>> {
         val n = entries.size
         if (n < 2) return emptyList()
-        val rules = Rules(strictThreshold, looseThreshold, timeWindow, featureNear, featureDup, dupPrefilter)
-        val uf = UnionFind(n)
-        fun check(i: Int, j: Int) {
-            if (i == j || uf.find(i) == uf.find(j)) return
-            if (rules.similar(entries[i], entries[j])) uf.union(i, j)
+        val seen = HashSet<Long>()
+        val edges = ArrayList<Edge>()
+        fun check(i0: Int, j0: Int) {
+            if (i0 == j0) return
+            val i = min(i0, j0); val j = max(i0, j0)
+            if (!seen.add(i.toLong() shl 32 or j.toLong())) return
+            if (excluded.isNotEmpty() && PairKey.make(entries[i].id, entries[j].id) in excluded) return
+            link(entries[i], entries[j], p)?.let { edges += Edge(it, i, j) }
         }
         val byTime = (0 until n).filter { entries[it].time != null }.sortedBy { entries[it].time!! }
         // 1) 时间窗口
         for (a in byTime.indices) {
             val ta = entries[byTime[a]].time!!
             var b = a + 1
-            while (b < byTime.size && entries[byTime[b]].time!! - ta <= timeWindow) {
+            while (b < byTime.size && entries[byTime[b]].time!! - ta <= p.timeWindow) {
                 check(byTime[a], byTime[b]); b++
             }
         }
@@ -310,7 +370,38 @@ object SimilarityGrouper {
                 buckets.values.forEach { compareBucket(it) }
             }
         }
-        return collect(entries, uf)
+        return merge(entries, edges, p, excluded)
+    }
+
+    private class Edge(val w: Float, val i: Int, val j: Int)
+
+    /**
+     * 完全连接合并：按距离从小到大处理配对，两组只有在「所有跨组配对都相似」时才合并。
+     * 所以每组里任意两张都彼此相似，不会 A 像 B、B 像 C 就把 A 和 C 串到一组。
+     */
+    private fun merge(entries: List<HashEntry>, edges: List<Edge>, p: GroupingParams, excluded: Set<String>): List<List<String>> {
+        val sorted = edges.sortedWith(compareBy<Edge> { it.w }.thenBy { it.i }.thenBy { it.j })
+        val cluster = IntArray(entries.size) { it }
+        val members = HashMap<Int, MutableList<Int>>()
+        fun ok(i: Int, j: Int): Boolean {
+            if (excluded.isNotEmpty() && PairKey.make(entries[i].id, entries[j].id) in excluded) return false
+            return link(entries[i], entries[j], p) != null
+        }
+        for (e in sorted) {
+            val ci = cluster[e.i]; val cj = cluster[e.j]
+            if (ci == cj) continue
+            val a = members[ci] ?: listOf(ci)
+            val b = members[cj] ?: listOf(cj)
+            val all = a.all { x -> b.all { y -> ok(x, y) } }
+            if (!all) continue
+            val (keep, drop) = if (a.size >= b.size) ci to cj else cj to ci
+            val moved = members.remove(drop) ?: mutableListOf(drop)
+            for (m in moved) cluster[m] = keep
+            members.getOrPut(keep) { mutableListOf(keep) }.addAll(moved)
+        }
+        return members.values.filter { it.size > 1 }
+            .map { g -> g.map { entries[it].id }.sorted() }
+            .sortedWith(compareByDescending<List<String>> { it.size }.thenBy { it[0] })
     }
 
     /** 稀疏随机超平面（固定种子，每次结果一样） */
@@ -348,31 +439,20 @@ object SimilarityGrouper {
         }
     }
 
-    private fun collect(entries: List<HashEntry>, uf: UnionFind): List<List<String>> {
-        val buckets = LinkedHashMap<Int, MutableList<String>>()
-        for (i in entries.indices) buckets.getOrPut(uf.find(i)) { mutableListOf() }.add(entries[i].id)
-        return buckets.values.filter { it.size > 1 }
-            .sortedWith(compareByDescending<List<String>> { it.size }.thenBy { it[0] })
-    }
-
     /** 暴力版（两两比较），只用于单元测试对照 */
     fun groupsBruteForce(
         entries: List<HashEntry>,
-        strictThreshold: Int = 4,
-        looseThreshold: Int = 10,
-        timeWindow: Double = 180.0,
-        featureNear: Float = 0.45f,
-        featureDup: Float = 0.25f,
-        dupPrefilter: Int = 20,
+        p: GroupingParams = GroupingParams(),
+        excluded: Set<String> = emptySet(),
     ): List<List<String>> {
         val n = entries.size
         if (n < 2) return emptyList()
-        val rules = Rules(strictThreshold, looseThreshold, timeWindow, featureNear, featureDup, dupPrefilter)
-        val uf = UnionFind(n)
+        val edges = ArrayList<Edge>()
         for (i in 0 until n - 1) for (j in i + 1 until n) {
-            if (rules.similar(entries[i], entries[j])) uf.union(i, j)
+            if (excluded.isNotEmpty() && PairKey.make(entries[i].id, entries[j].id) in excluded) continue
+            link(entries[i], entries[j], p)?.let { edges += Edge(it, i, j) }
         }
-        return collect(entries, uf)
+        return merge(entries, edges, p, excluded)
     }
 
     fun bestIndex(sharpness: List<Double>, pixels: List<Int>): Int =

@@ -194,6 +194,8 @@
     <string name="mark_only_note">只是标记，不会立刻删除。最后还要在「清理」页再确认一次。</string>
     <string name="keep_best_delete_rest">保留推荐，删其余 %d 张</string>
     <string name="keep_all">全部保留</string>
+    <string name="not_similar">不是相似</string>
+    <string name="a11y_not_similar">把这张移出这一组，以后也不再分进来</string>
     <string name="delete_whole_group">整组全部删除</string>
     <string name="whole_group_title">这组 %d 张全部标记删除，不保留？</string>
     <string name="compress_entry">压缩成 HEVC</string>

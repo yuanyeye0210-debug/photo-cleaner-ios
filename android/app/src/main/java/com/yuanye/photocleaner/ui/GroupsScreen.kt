@@ -1,6 +1,10 @@
 package com.yuanye.photocleaner.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -76,14 +80,27 @@ fun GroupsScreen(vm: CleanupViewModel, c: CleanCategory) {
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             row.forEach { id ->
                                 val item = vm.item(id)
-                                if (item != null) ThumbnailCell(
-                                    item, marked = id in vm.toDelete, kept = id in vm.kept, isBest = id == best,
-                                    modifier = Modifier.weight(1f).combinedClickable(
-                                        onClickLabel = s(R.string.a11y_toggle_delete), onLongClickLabel = s(R.string.a11y_preview),
-                                        onClick = { Haptics.light(view); vm.toggleDelete(id) },
-                                        onLongClick = { Haptics.medium(view); a.preview(item) },
-                                    ),
-                                ) else Spacer(Modifier.weight(1f))
+                                if (item != null) Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally) {
+                                    ThumbnailCell(
+                                        item, marked = id in vm.toDelete, kept = id in vm.kept, isBest = id == best,
+                                        modifier = Modifier.fillMaxWidth().combinedClickable(
+                                            onClickLabel = s(R.string.a11y_toggle_delete), onLongClickLabel = s(R.string.a11y_preview),
+                                            onClick = { Haptics.light(view); vm.toggleDelete(id) },
+                                            onLongClick = { Haptics.medium(view); a.preview(item) },
+                                        ),
+                                    )
+                                    // 分错了：把这张从组里拿出来，并记住（重新扫描也不会再分进来）
+                                    if (c == CleanCategory.SIMILAR) {
+                                        val label = s(R.string.a11y_not_similar)
+                                        Text(
+                                            s(R.string.not_similar), color = T.text2, fontSize = T.caption,
+                                            modifier = Modifier.clip(RoundedCornerShape(50)).background(T.fill)
+                                                .clickable(onClickLabel = label) { Haptics.light(view); vm.markNotSimilar(id, g) }
+                                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                                        )
+                                    }
+                                } else Spacer(Modifier.weight(1f))
                             }
                             repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                         }

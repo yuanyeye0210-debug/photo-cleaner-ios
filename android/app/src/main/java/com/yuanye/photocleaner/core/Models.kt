@@ -23,6 +23,10 @@ data class AnalysisResult(
     val faceChecked: Boolean = false,
     /** 动态照片（三星 / Google / 小米）里内嵌视频的字节数；0 = 不是动态照片 */
     val motionBytes: Long = 0,
+    /** 主体标签：前 5 个、置信度 >= 0.3（相似分组看主体是否一致） */
+    val labels: List<String>? = null,
+    /** 人脸数（相似分组：人数相差超过 1 不算相似） */
+    val faceCount: Int? = null,
 ) {
     val textHeavy: Boolean get() = VisionRules.isTextHeavy(textLines, textChars)
 

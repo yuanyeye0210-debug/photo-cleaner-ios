@@ -23,6 +23,8 @@ class MarksStore(context: Context) {
         val kept: Set<String> = emptySet(),
         val later: Set<String> = emptySet(),
         val cleanedMonths: Set<String> = emptySet(),
+        /** 「不是相似」的照片对（PairKey），重新扫描也不会再分到一组 */
+        val notSimilar: Set<String> = emptySet(),
     )
 
     fun load(): Marks = runCatching { loadUnsafe() }.getOrDefault(Marks())
@@ -40,12 +42,13 @@ class MarksStore(context: Context) {
         }
         return runCatching {
             val d = HashSet<String>(); val k = HashSet<String>(); val l = HashSet<String>(); val mo = HashSet<String>()
+            val ns = HashSet<String>()
             file.forEachLine { line ->
                 if (line.length < 3 || line[1] != ' ') return@forEachLine
                 val v = line.substring(2)
-                when (line[0]) { 'D' -> d += v; 'K' -> k += v; 'L' -> l += v; 'M' -> mo += v }
+                when (line[0]) { 'D' -> d += v; 'K' -> k += v; 'L' -> l += v; 'M' -> mo += v; 'N' -> ns += v }
             }
-            Marks(d, k, l, mo)
+            Marks(d, k, l, mo, ns)
         }.getOrDefault(Marks())
     }
 
@@ -55,6 +58,7 @@ class MarksStore(context: Context) {
         m.kept.forEach { sb.append("K ").append(it).append('\n') }
         m.later.forEach { sb.append("L ").append(it).append('\n') }
         m.cleanedMonths.forEach { sb.append("M ").append(it).append('\n') }
+        m.notSimilar.forEach { sb.append("N ").append(it).append('\n') }
         atomicWrite(file, sb.toString())
     }
 }
