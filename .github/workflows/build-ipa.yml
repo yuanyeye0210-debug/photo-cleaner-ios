@@ -9,6 +9,8 @@ on:
     paths-ignore:
       - 'android/**'
       - '.github/workflows/build-apk.yml'
+      - '.github/workflows/promo-capture.yml'
+      - '.github/promo/**'
 
 # 连续推送时只保留最新的一次构建
 concurrency:
