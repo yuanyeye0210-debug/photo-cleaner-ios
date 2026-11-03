@@ -5,6 +5,7 @@ struct CategoryView: View {
     @EnvironmentObject var store: CleanupStore
     let title: String
     let ids: [String]
+    var tint: Color = Theme.green
 
     enum Mode: String, CaseIterable, Identifiable {
         case swipe = "滑动筛选"
@@ -13,24 +14,16 @@ struct CategoryView: View {
     }
     @State private var mode: Mode = .swipe
 
-    private var markedCount: Int { ids.filter { store.toDelete.contains($0) }.count }
-
     var body: some View {
+        let marked = ids.filter { store.toDelete.contains($0) }
+        let done = ids.filter { store.decision(for: $0) != nil }.count
         VStack(spacing: 0) {
             VStack(spacing: 10) {
+                // 02 勾选联动：标记任何一张，进度环 / 数字 / 底色同时变化
+                LinkedProgressHeader(done: done, total: ids.count,
+                                     marked: marked.count, markedBytes: store.bytes(of: marked),
+                                     tint: tint)
                 Segmented(options: Mode.allCases, selection: $mode, label: { $0.rawValue })
-                HStack {
-                    Text("\(ids.count) 项 · \(Fmt.bytes(store.bytes(of: ids)))")
-                        .foregroundStyle(Theme.text3)
-                    Spacer()
-                    if markedCount > 0 {
-                        Text("已选删除 \(markedCount)")
-                            .foregroundStyle(Theme.danger)
-                            .contentTransition(.numericText())
-                    }
-                }
-                .font(Theme.caption)
-                .animation(Theme.spring, value: markedCount)
             }
             .padding(.horizontal, Theme.pagePadding)
             .padding(.top, 4)
@@ -58,11 +51,12 @@ struct EmptyStateView: View {
     let icon: String
     let title: String
     let message: String
+    var tint: Color = Theme.green
 
     var body: some View {
         VStack(spacing: 12) {
             Spacer()
-            IconBadge(icon: icon, size: 56)
+            IconBadge(icon: icon, tint: tint, size: 60)
             Text(title).font(Theme.title).foregroundStyle(Theme.text)
                 .padding(.top, 4)
             Text(message)

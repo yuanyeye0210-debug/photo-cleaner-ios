@@ -45,12 +45,12 @@ struct ThumbnailCell: View {
             ZStack(alignment: .topTrailing) {
                 AssetImageView(asset: item.asset, targetSize: geo.size)
                     .frame(width: geo.size.width, height: geo.size.height)
-                    .overlay(Color.white.opacity(decision == .delete ? 0.35 : 0))
+                    .overlay(Color.black.opacity(decision == .delete ? 0.45 : 0))
 
                 // 右上角选择圈：删除 = 柔和红勾，保留 = 绿色勾，未定 = 空心圈
                 ZStack {
                     Circle()
-                        .fill(decision == .delete ? Theme.danger : (decision == .keep ? Theme.accent : Color.black.opacity(0.15)))
+                        .fill(decision == .delete ? Theme.danger : (decision == .keep ? Theme.green : Color.black.opacity(0.25)))
                     Circle().stroke(Color.white, lineWidth: 1.5)
                     if decision != nil {
                         Image(systemName: decision == .delete ? "trash" : "checkmark")
@@ -69,7 +69,7 @@ struct ThumbnailCell: View {
                             Text("推荐保留")
                                 .font(.system(size: 10, weight: .semibold))
                                 .padding(.horizontal, 6).padding(.vertical, 2)
-                                .background(Theme.accent, in: Capsule())
+                                .background(Theme.purple, in: Capsule())
                                 .foregroundStyle(.white)
                         }
                         Spacer()
@@ -86,7 +86,7 @@ struct ThumbnailCell: View {
         .clipShape(RoundedRectangle(cornerRadius: Theme.rTile, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: Theme.rTile, style: .continuous)
-                .stroke(isBest ? Theme.accent : (decision == .delete ? Theme.danger.opacity(0.6) : Color.clear), lineWidth: 2)
+                .stroke(isBest ? Theme.purple : (decision == .delete ? Theme.danger.opacity(0.6) : Color.clear), lineWidth: 2)
         )
         .scaleEffect(decision == .delete ? 0.95 : 1)
         .animation(Theme.spring, value: decision)
@@ -116,8 +116,8 @@ struct PhotoDetailView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.white)
-                        .frame(width: 36, height: 36)
-                        .background(Color.white.opacity(0.15), in: Circle())
+                        .frame(width: 40, height: 40)
+                        .glassSurface(Circle(), interactive: true)
                 }
             }
             .padding()

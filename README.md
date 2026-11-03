@@ -25,17 +25,40 @@
 
 ## 界面设计
 
-主题：**简约清新**（参考 Apple 照片 / Things 3 / Notion 的克制风格）
+主题：**深色健康卡片风**（近黑底 + 深灰圆角卡片），叠加 iOS 26 **液态玻璃**
 
-- 只有一个强调色：薄荷绿 `#2AA876`（按钮、图标、进度条、选中状态）
-- 背景浅灰 `#F7F8FA`，内容放在白色卡片里（1px 细边框 + 很淡的阴影）
-- 文字三级灰：`#1F2328` / `#5F6670` / `#9AA1AA`
-- 红色 `#D9534F` 只用于删除
-- 系统字体（SF），细线 SF Symbols 图标，没有渐变、没有光斑
-- 动效只保留轻量的：滑动卡片弹簧、卡片堆叠、数字滚动、淡入
-- 所有颜色、字号、圆角、动画都在 `PhotoCleaner/Theme/Theme.swift` 一个文件里，改主题只改这里
+- 底色 `#000`，卡片 `#1C1C1E`（圆角 24、1px 淡边），白色粗标题、灰色次要文字，强制深色模式
+- 卡片标题：左侧小圆形着色图标 + 标题，右侧胶囊徽章（橙色描边「可清理」、蓝色「去确认 >」）
+- 首页：按时间问候「夜深了，叶原野」（名字可在设置里改）+ 头像；分段圆环（紫色弧 + 橙色大数字）+ 2×2 指标；大数字 + 小单位；细进度条
+- 克制的分类点缀色：紫 / 橙 / 粉 / 蓝 / 绿，不用渐变；红色只用于删除
+- 悬浮玻璃页签栏（首页 / 分类 / 清理）+ 独立圆形操作按钮（刷新）
+- 所有颜色、字号、圆角在 `PhotoCleaner/Theme/Theme.swift`
+
+### 液态玻璃（Liquid Glass）
+
+`PhotoCleaner/Theme/Glass.swift`：
+
+- iOS 26：`.glassEffect(.regular.interactive())`、`GlassEffectContainer`、`glassEffectID` 形变、`.buttonStyle(.glass / .glassProminent)`
+- iOS 16–25：自动退回 `.ultraThinMaterial` + 高光描边 + 柔和投影
+- 用在：页签栏和圆形按钮（进入「清理」页时圆形按钮融进页签栏）、删除底栏、滑动筛选的三个圆形按钮、拖动时的「删除/保留」提示、顶部圆形按钮、设置弹层
+- 参考：Apple 官方 Figma「iOS and iPadOS 26」UI Kit、Figma Community「iOS 26 UI Kit — Liquid Glass Components」
+
+### 6 个精致交互
+
+`PhotoCleaner/Theme/Motion.swift`（参考抖音「西瓜同学」的 6 个交互）：
+
+| # | 交互 | 用在哪里 |
+|---|---|---|
+| 01 | 完成反馈按钮：按钮 → 圆 → 勾 → 粒子迸开 | 「清理」页的删除按钮 |
+| 02 | 勾选联动：进度环 + 数字滚动 + 顶部底色一起变 | 分类详情页顶部；首页「待删除」卡 |
+| 03 | 叠卡展开：依次摊开，原路叠回 | 「分类」页的分类卡；相似照片的每一组 |
+| 04 | 吸附卡 + 画线：松手吸到最近一张，停稳后时间线画出 | 「分类」页 › 时间线（按月份） |
+| 05 | 惯性滚轮：甩动减速、吸到刻度、轻微回弹 | 设置里的模糊阈值 / 大文件 / 分析张数 |
+| 06 | 圆形扩散转场：从指尖处扩散铺满，返回时原路缩回 | 底部页签切换 |
 
 预览图：`preview/mockups.png`（由 `preview/mockup.html` 生成）
+
+> 编译需要 Xcode 26（iOS 26 SDK）。GitHub Actions 已改为 `macos-26` + `maxim-lobanov/setup-xcode`（latest-stable），App 仍支持 iOS 16 以上的手机。
 
 ## 没有 Mac，怎么装到 iPhone 上？
 

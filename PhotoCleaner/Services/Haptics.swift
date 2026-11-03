@@ -7,3 +7,8 @@ enum Haptics {
     static func success() { UINotificationFeedbackGenerator().notificationOccurred(.success) }
     static func warning() { UINotificationFeedbackGenerator().notificationOccurred(.warning) }
 }
+
+extension Haptics {
+    /// 滚轮每过一个刻度的轻触感
+    static func selection() { UISelectionFeedbackGenerator().selectionChanged() }
+}

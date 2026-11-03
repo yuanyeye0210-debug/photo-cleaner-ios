@@ -13,7 +13,9 @@
 		348EE27937A6DAAD6863FCB5 /* CategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008DE9241B4C1A24B0B10BFF /* CategoryView.swift */; };
 		3526ED67D85664224D176737 /* PhotoLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A11F0033B8AB4D2F3B6C0EA /* PhotoLibraryService.swift */; };
 		3694FEE0A8CA7CB27974368F /* SimilarGroupsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29F6641A6BAEF88A70ACADD /* SimilarGroupsView.swift */; };
+		36980D9AB65C8205C46241B3 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C5C9253CE5CBB8FCFDB9FA /* LibraryView.swift */; };
 		3C7FA49C885174EFA9A6D6C8 /* SwipeReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B6EDE8B4A6EF4077026BDE /* SwipeReviewView.swift */; };
+		4262FA0C3987EACC859DDAA8 /* Motion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28EEEC4A05AFD374234017BA /* Motion.swift */; };
 		4296ADFA18FFA607DA477852 /* ImageMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A2F9814876745341432556 /* ImageMathTests.swift */; };
 		450C642B1BAF6CBA279138D7 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A911EF90FB9462660D5741 /* Haptics.swift */; };
 		4BC1B4932ADF9B6533458233 /* GridSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D56C491B109C73DFE81B539 /* GridSelectView.swift */; };
@@ -25,6 +27,7 @@
 		9F5476CBD250614C606D520A /* ImageMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 705DD935640FD3835C39E1C4 /* ImageMath.swift */; };
 		A4638A7AABC443A6AE222AC1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 798D567E0472B0922D78C9DA /* Assets.xcassets */; };
 		BA3F442C4F755E957BE3D2BD /* ReviewDeleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1ECF4D47723E7D170975A89 /* ReviewDeleteView.swift */; };
+		C76D1ECB56F5453684FF39DE /* Glass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BC7ECB8F3252DB9FE728CED /* Glass.swift */; };
 		CC62B1AA03304B4B16146164 /* PermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BBAB2B78B7179E9B92CEAF /* PermissionView.swift */; };
 		F56F325B74F486A915D0121D /* ImageAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8EC05F48FEA69EF33997E6 /* ImageAnalyzer.swift */; };
 /* End PBXBuildFile section */
@@ -41,8 +44,10 @@
 
 /* Begin PBXFileReference section */
 		008DE9241B4C1A24B0B10BFF /* CategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryView.swift; sourceTree = "<group>"; };
+		0BC7ECB8F3252DB9FE728CED /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
 		1A11F0033B8AB4D2F3B6C0EA /* PhotoLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryService.swift; sourceTree = "<group>"; };
 		1A8EC05F48FEA69EF33997E6 /* ImageAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageAnalyzer.swift; sourceTree = "<group>"; };
+		28EEEC4A05AFD374234017BA /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
 		30F6E9DF505AC19D5F7303F3 /* CleanupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupStore.swift; sourceTree = "<group>"; };
 		3C1464BE7A0F9B6FA493996F /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		43B6EDE8B4A6EF4077026BDE /* SwipeReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeReviewView.swift; sourceTree = "<group>"; };
@@ -61,6 +66,7 @@
 		EFCF8E93D57C7FB870437D24 /* SimilarityGrouper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarityGrouper.swift; sourceTree = "<group>"; };
 		F1ECF4D47723E7D170975A89 /* ReviewDeleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewDeleteView.swift; sourceTree = "<group>"; };
 		F29F6641A6BAEF88A70ACADD /* SimilarGroupsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarGroupsView.swift; sourceTree = "<group>"; };
+		F2C5C9253CE5CBB8FCFDB9FA /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		F9A2F9814876745341432556 /* ImageMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMathTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -104,6 +110,8 @@
 		637239E1292A0B86FB9CD015 /* Theme */ = {
 			isa = PBXGroup;
 			children = (
+				0BC7ECB8F3252DB9FE728CED /* Glass.swift */,
+				28EEEC4A05AFD374234017BA /* Motion.swift */,
 				3C1464BE7A0F9B6FA493996F /* Theme.swift */,
 			);
 			path = Theme;
@@ -156,6 +164,7 @@
 				008DE9241B4C1A24B0B10BFF /* CategoryView.swift */,
 				E7DC27DA405218544EC5B041 /* DashboardView.swift */,
 				7D56C491B109C73DFE81B539 /* GridSelectView.swift */,
+				F2C5C9253CE5CBB8FCFDB9FA /* LibraryView.swift */,
 				D3BBAB2B78B7179E9B92CEAF /* PermissionView.swift */,
 				F1ECF4D47723E7D170975A89 /* ReviewDeleteView.swift */,
 				C22BCBEF1583A00B5C55BD8C /* SettingsView.swift */,
@@ -258,11 +267,14 @@
 				348EE27937A6DAAD6863FCB5 /* CategoryView.swift in Sources */,
 				2C697F6DD0DBA05C3CCD6034 /* CleanupStore.swift in Sources */,
 				9F384E1C0487AB041DB035FF /* DashboardView.swift in Sources */,
+				C76D1ECB56F5453684FF39DE /* Glass.swift in Sources */,
 				4BC1B4932ADF9B6533458233 /* GridSelectView.swift in Sources */,
 				450C642B1BAF6CBA279138D7 /* Haptics.swift in Sources */,
 				F56F325B74F486A915D0121D /* ImageAnalyzer.swift in Sources */,
 				9F5476CBD250614C606D520A /* ImageMath.swift in Sources */,
+				36980D9AB65C8205C46241B3 /* LibraryView.swift in Sources */,
 				7CECF3B464B22E13DFDE5824 /* Models.swift in Sources */,
+				4262FA0C3987EACC859DDAA8 /* Motion.swift in Sources */,
 				CC62B1AA03304B4B16146164 /* PermissionView.swift in Sources */,
 				1117D1B5FBDB8E548213B4FA /* PhotoCleanerApp.swift in Sources */,
 				3526ED67D85664224D176737 /* PhotoLibraryService.swift in Sources */,

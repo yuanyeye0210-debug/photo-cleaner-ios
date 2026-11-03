@@ -1,163 +1,254 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
-<title>相册清理 · 简约清新主题预览</title>
+<title>相册清理 · 深色卡片 + 液态玻璃 + 6 个交互</title>
 <style>
-:root{--accent:#2AA876;--accentSoft:rgba(42,168,118,.10);--danger:#D9534F;--dangerSoft:rgba(217,83,79,.09);
---bg:#F7F8FA;--card:#fff;--fill:#F1F3F5;--line:#E9ECEF;--t1:#1F2328;--t2:#5F6670;--t3:#9AA1AA}
+:root{--bg:#000;--card:#1C1C1E;--fill:#2C2C2E;--hi:#3A3A3C;--line:rgba(255,255,255,.07);--t1:#fff;--t2:#8E8E93;--t3:#5E5E63;
+--purple:#8E7CF6;--orange:#F2A23C;--pink:#F0567A;--blue:#4C8DF6;--green:#3CC47C;--red:#FF5A4F}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,"Noto Sans CJK SC",sans-serif;color:var(--t1);background:#EEF0F3;width:1800px;height:1000px;overflow:hidden;-webkit-font-smoothing:antialiased}
-.top{display:flex;align-items:center;gap:14px;padding:26px 56px 0}
-.top h1{font-size:22px;font-weight:600;letter-spacing:-.2px}
-.sw{display:flex;gap:6px;margin-left:8px}.sw i{width:14px;height:14px;border-radius:4px;display:block;border:1px solid rgba(0,0,0,.06)}
-.top span{color:var(--t2);font-size:14px}
-.row{display:flex;gap:40px;justify-content:center;padding-top:24px}
-.phone{width:390px;height:844px;border-radius:54px;background:#1b1d20;padding:10px;box-shadow:0 24px 50px rgba(20,24,30,.16)}
-.scr{width:100%;height:100%;border-radius:45px;background:var(--bg);overflow:hidden;position:relative;display:flex;flex-direction:column}
-.status{height:48px;display:flex;justify-content:space-between;align-items:center;padding:0 32px;font-weight:600;font-size:15px;flex:none}
-.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:118px;height:34px;background:#000;border-radius:20px}
-.p{padding:0 20px}
-.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 6px rgba(0,0,0,.035)}
+body{font-family:Inter,"Noto Sans CJK SC",sans-serif;color:var(--t1);background:#111113;width:1500px;-webkit-font-smoothing:antialiased}
+.head{padding:34px 60px 0;display:flex;align-items:flex-end;gap:18px}
+.head h1{font-size:26px;font-weight:700}.head p{color:var(--t2);font-size:14px;padding-bottom:4px}
+.sw{display:flex;gap:6px;padding-bottom:6px}.sw i{width:14px;height:14px;border-radius:50%;display:block}
+.grid{display:grid;grid-template-columns:repeat(3,390px);gap:44px 60px;justify-content:center;padding:28px 0 40px}
+.cap{margin-top:14px;text-align:center}.cap b{font-size:13px;color:var(--orange);letter-spacing:.5px;margin-right:6px}.cap span{font-size:14px;color:#c7c7cc}
+.phone{width:390px;height:844px;border-radius:56px;background:#2a2a2d;padding:9px;box-shadow:0 0 0 1px #3a3a3e,0 30px 60px rgba(0,0,0,.5)}
+.scr{width:100%;height:100%;border-radius:48px;background:var(--bg);overflow:hidden;position:relative}
+.status{height:50px;display:flex;justify-content:space-between;align-items:center;padding:0 34px;font-weight:600;font-size:16px}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:35px;background:#000;border-radius:20px;z-index:9;box-shadow:0 0 0 1px #111}
+.pg{padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px}
 .num{font-variant-numeric:tabular-nums}
-svg{display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.badge{width:34px;height:34px;border-radius:10px;background:var(--accentSoft);color:var(--accent);display:grid;place-items:center}
-.badge svg{width:17px;height:17px}
-.sh{font-size:13px;font-weight:600;color:var(--t3);display:flex;justify-content:space-between;padding:0 4px;margin:18px 0 10px}
-.sh span{font-weight:400;font-size:12px}
-.bar4{height:4px;border-radius:4px;background:var(--fill);overflow:hidden}.bar4 i{display:block;height:100%;background:var(--accent);border-radius:4px}
-.nav{height:44px;display:flex;align-items:center;justify-content:center;position:relative;font-size:17px;font-weight:600;flex:none}
-.nav .l{position:absolute;left:12px;color:var(--accent);display:flex;align-items:center;font-weight:400;font-size:17px}
-.nav .r{position:absolute;right:20px;color:var(--accent);font-weight:400;font-size:16px}
-.seg{display:flex;background:var(--fill);border-radius:11px;padding:3px}
-.seg div{flex:1;text-align:center;font-size:14px;color:var(--t2);padding:7px 0;border-radius:8px}
-.seg .on{background:#fff;color:var(--t1);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+svg{display:block}
+.ib{border-radius:50%;display:grid;place-items:center;flex:none}
+.ib svg{width:50%;height:50%}
+.ch{display:flex;align-items:center;gap:12px}.ch h3{font-size:19px;font-weight:700;flex:1}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;padding:5px 10px;border-radius:99px;white-space:nowrap}
+.pill.o{color:var(--orange);background:rgba(242,162,60,.12);border:1px solid rgba(242,162,60,.45)}
+.pill.b{color:var(--blue);background:rgba(76,141,246,.16)}
+.pill.r{color:var(--red);background:rgba(255,90,79,.12);border:1px solid rgba(255,90,79,.45)}
+.lbl{font-size:14px;color:var(--t2)}
+.glass{background:rgba(58,58,62,.42);-webkit-backdrop-filter:blur(18px) saturate(170%);backdrop-filter:blur(18px) saturate(170%);
+ border:1px solid rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.32),inset 0 -1px 0 rgba(255,255,255,.06),inset 1px 0 0 rgba(255,255,255,.08),0 12px 30px rgba(0,0,0,.55)}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,0) 38%)}
+.tabbar{position:absolute;left:16px;right:16px;bottom:26px;display:flex;gap:12px;z-index:5}
+.tabs{position:relative;flex:1;border-radius:99px;padding:5px;display:flex}
+.tab{flex:1;height:54px;border-radius:99px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600}
+.tab svg{width:21px;height:21px}
+.tab.on{background:rgba(255,255,255,.13);color:var(--blue)}
+.act{position:relative;width:64px;height:64px;border-radius:50%;display:grid;place-items:center}
+.bar5{height:5px;border-radius:5px;background:var(--fill);overflow:hidden}.bar5 i{display:block;height:100%;border-radius:5px}
+.nav{height:44px;display:flex;align-items:center;justify-content:center;position:relative;font-size:17px;font-weight:600}
+.nav .bk{position:absolute;left:14px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:3px}
+.seg div{flex:1;text-align:center;font-size:14px;color:var(--t2);padding:8px 0;border-radius:99px}
+.seg .on{background:var(--hi);color:#fff;font-weight:600}
 img{display:block;object-fit:cover;width:100%;height:100%}
-.th{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1}
-.th .sel{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1.5px solid #fff;background:rgba(0,0,0,.15);display:grid;place-items:center;color:#fff}
-.th .sel svg{width:11px;height:11px;stroke-width:2.6}
-.th.del .sel{background:var(--danger)}.th.keep .sel{background:var(--accent)}
-.th.del img{opacity:.68}.th.del{outline:2px solid rgba(217,83,79,.6);outline-offset:-2px;transform:scale(.95)}
-.th.best{outline:2px solid var(--accent);outline-offset:-2px}
-.th .sz{position:absolute;right:6px;bottom:5px;color:#fff;font-size:10px;font-weight:500;text-shadow:0 0 3px rgba(0,0,0,.6)}
-.th .rec{position:absolute;left:6px;bottom:6px;background:var(--accent);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:99px}
-.sbtn{display:inline-block;background:var(--fill);border-radius:10px;padding:8px 13px;font-size:14px;font-weight:500}
-.pbtn{background:var(--accent);color:#fff;border-radius:14px;text-align:center;padding:14px;font-size:16px;font-weight:600}
-.lbl{text-align:center;font-size:14px;color:var(--t2);margin-top:14px}
+.th{position:relative;border-radius:12px;overflow:hidden}
+.th .sel{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1.5px solid #fff;background:rgba(0,0,0,.25);display:grid;place-items:center}
+.th .sel svg{width:11px;height:11px}
+.th.del img{filter:brightness(.55)}.th.del .sel{background:var(--red)}.th.del{outline:2px solid rgba(255,90,79,.6);outline-offset:-2px}
+.th.best{outline:2px solid var(--purple);outline-offset:-2px}
+.th .rec{position:absolute;left:6px;bottom:6px;background:var(--purple);font-size:10px;font-weight:600;padding:2px 6px;border-radius:99px}
+.th .sz{position:absolute;right:6px;bottom:5px;font-size:10px;font-weight:500;text-shadow:0 0 3px #000}
+.sbtn{display:inline-block;background:var(--fill);border-radius:99px;padding:8px 14px;font-size:14px;font-weight:500}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
-<symbol id="sq" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
-<symbol id="ph" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></symbol>
-<symbol id="ap" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.3 3.3 8.6 13M20.7 9.6l-11.3.2M18.3 19 12.6 9.3M9.7 20.7l5.7-9.8M3.3 14.4l11.3-.2M5.7 5l5.7 9.7"/></symbol>
-<symbol id="hd" viewBox="0 0 24 24"><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M5.5 13 8 5h8l2.5 8M7 16.5h.01M10 16.5h.01"/></symbol>
-<symbol id="vd" viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m15.5 10 6-3.5v11l-6-3.5"/></symbol>
-<symbol id="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
-<symbol id="tr" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5.5 7l1 12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
-<symbol id="ck" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
-<symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
-<symbol id="un" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
-<symbol id="rf" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.5M20 3.5v5h-5"/></symbol>
-<symbol id="gr" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
-<symbol id="cv" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
-<symbol id="cl" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
-<symbol id="sp" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+<symbol id="gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13l3.5-4"/></symbol>
+<symbol id="photo" viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm2.5 4a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zM5 18h14l-4.5-6-3.5 4.5-2.5-3z"/></symbol>
+<symbol id="video" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="6" width="13" height="12" rx="2.5"/><path d="M16 10.5 22 7v10l-6-3.5z"/></symbol>
+<symbol id="drive" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4h10l3.5 9H3.5zM3 14.5h18v4a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></symbol>
+<symbol id="spark" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2l2 6.2L19 10l-6 1.8L11 18l-2-6.2L3 10l6-1.8zM18.5 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/></symbol>
+<symbol id="trash" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6l1 2h4v2H4V5h4zM5.5 8.5h13l-1 11.5a2 2 0 0 1-2 1.8h-7a2 2 0 0 1-2-1.8z"/></symbol>
+<symbol id="house" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2.5 11h2.5v9.5h5v-6h4v6h5V11h2.5z"/></symbol>
+<symbol id="gridf" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></symbol>
+<symbol id="refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.5M20 3.5v5h-5"/></symbol>
+<symbol id="excl" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm-1.2 5v6.5h2.4V7zm1.2 8.3a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z"/></symbol>
+<symbol id="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></symbol>
+<symbol id="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+<symbol id="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+<symbol id="undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+<symbol id="sq" viewBox="0 0 24 24" fill="currentColor"><rect x="8" y="8" width="13" height="13" rx="2.5"/><path d="M5.5 3h9A2.5 2.5 0 0 1 17 5.5V6H8a2 2 0 0 0-2 2v9h-.5A2.5 2.5 0 0 1 3 14.5v-9A2.5 2.5 0 0 1 5.5 3z"/></symbol>
+<symbol id="phone" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2h8a2.5 2.5 0 0 1 2.5 2.5v15A2.5 2.5 0 0 1 16 22H8a2.5 2.5 0 0 1-2.5-2.5v-15A2.5 2.5 0 0 1 8 2zm2 17h4v-1.4h-4z"/></symbol>
+<symbol id="ap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M14.3 3.3 8.6 13M20.7 9.6l-11.3.2M18.3 19 12.6 9.3M9.7 20.7l5.7-9.8M3.3 14.4l11.3-.2M5.7 5l5.7 9.7"/></symbol>
+<symbol id="sun" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4.5"/><path d="M11 1.5h2v3h-2zM11 19.5h2v3h-2zM1.5 11h3v2h-3zM19.5 11h3v2h-3zM4.2 5.6l1.4-1.4 2.1 2.1-1.4 1.4zM16.3 17.7l1.4-1.4 2.1 2.1-1.4 1.4zM4.2 18.4l2.1-2.1 1.4 1.4-2.1 2.1zM16.3 6.3l2.1-2.1 1.4 1.4-2.1 2.1z" /></symbol>
+<symbol id="slider" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></symbol>
+<symbol id="person" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.5"/><path d="M3.5 21a8.5 7 0 0 1 17 0z"/></symbol>
 </defs></svg>
 
-<div class="top"><h1>相册清理 · 简约清新</h1>
-<div class="sw"><i style="background:#2AA876"></i><i style="background:#F7F8FA"></i><i style="background:#fff"></i><i style="background:#1F2328"></i><i style="background:#D9534F"></i></div>
-<span>薄荷绿单一强调色 · 浅灰底白卡片 · 系统字体 · 细线图标 · 红色只用于删除</span></div>
-<div class="row">
+<div class="head"><h1>相册清理 · 深色卡片 + 液态玻璃</h1>
+<div class="sw"><i style="background:#000;border:1px solid #333"></i><i style="background:#1C1C1E;border:1px solid #333"></i><i style="background:#8E7CF6"></i><i style="background:#F2A23C"></i><i style="background:#F0567A"></i><i style="background:#4C8DF6"></i><i style="background:#3CC47C"></i></div>
+<p>近黑底 · 深灰圆角卡片 · 白色粗标题 · 每类一个点缀色 · 悬浮玻璃页签栏 · 6 个精致交互</p></div>
+
+<div class="grid">
 
 <!-- 1 首页 -->
 <div><div class="phone"><div class="scr"><div class="island"></div>
-<div class="status"><span>9:41</span><span>100%</span></div>
-<div class="p" style="display:flex;justify-content:flex-end;gap:18px;color:var(--accent);height:30px;align-items:center"><svg width="20" height="20"><use href="#rf"/></svg><svg width="20" height="20"><use href="#gr"/></svg></div>
-<div class="p" style="font-size:30px;font-weight:700;letter-spacing:-.4px;margin:2px 0 14px">相册清理</div>
-<div class="p"><div class="card" style="padding:18px">
- <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--t2)"><span>相册占用</span><span class="num" style="font-size:13px;color:var(--t3)">8,652 项</span></div>
- <div class="num" style="font-size:36px;font-weight:700;letter-spacing:-.6px;margin:6px 0 14px">48.6 GB</div>
- <div class="bar4"><i style="width:22%"></i></div>
- <div style="font-size:12px;color:var(--t2);margin-top:8px;display:flex;align-items:center;gap:6px"><i style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:block"></i>约 10.7 GB 可清理 · 1,284 张</div>
-</div></div>
-<div class="p"><div class="sh">分类</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
- <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#sq"/></svg></div><span style="font-size:12px;color:var(--t3)">412 待看</span></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">436</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">相似照片<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">3.1 GB</span></div></div>
- <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#ph"/></svg></div><span style="font-size:12px;color:var(--t3)">590 待看</span></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">612</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">截图<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">1.4 GB</span></div></div>
- <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#ap"/></svg></div></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">97</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">模糊照片<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">402 MB</span></div></div>
- <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#hd"/></svg></div><span style="font-size:12px;color:var(--t3)">41 待看</span></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">58</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">大文件<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">9.8 GB</span></div></div>
- <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#vd"/></svg></div></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">214</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">视频<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">21.3 GB</span></div></div>
- <div class="card" style="padding:14px;height:128px;display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between"><div class="badge"><svg><use href="#sun"/></svg></div></div><div style="flex:1"></div><div class="num" style="font-size:26px;font-weight:600">33</div><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">过暗/过曝<span class="num" style="font-size:12px;font-weight:400;color:var(--t3)">96 MB</span></div></div>
-</div></div>
-<div class="card" style="position:absolute;left:20px;right:20px;bottom:28px;padding:12px;display:flex;align-items:center;gap:12px;box-shadow:0 6px 16px rgba(0,0,0,.08)">
- <div class="badge" style="width:38px;height:38px;background:var(--dangerSoft);color:var(--danger)"><svg><use href="#tr"/></svg></div>
- <div><div style="font-size:16px;font-weight:600">待删除 126 项</div><div style="font-size:12px;color:var(--t2)">可释放 1.9 GB</div></div>
- <div style="margin-left:auto;color:var(--accent);font-size:14px;font-weight:600">查看</div><svg width="14" height="14" style="color:var(--t3);stroke-width:2.2"><use href="#cv"/></svg></div>
-</div></div><div class="lbl">① 首页</div></div>
+<div class="status"><span>01:17</span><span>100%</span></div>
+<div class="pg" style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 16px">
+ <div style="font-size:24px;font-weight:700">夜深了，叶原野</div>
+ <div class="glass" style="position:relative;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:18px;color:var(--purple);background:rgba(142,124,246,.22)">叶</div></div>
+<div class="pg"><div class="card" style="padding:18px">
+ <div class="ch"><div class="ib" style="width:36px;height:36px;background:rgba(242,162,60,.16);color:var(--orange);border:1px solid rgba(242,162,60,.28)"><svg><use href="#gauge"/></svg></div><h3>相册状态</h3><span class="pill o"><svg width="12" height="12"><use href="#excl"/></svg>可清理</span></div>
+ <div style="display:flex;gap:16px;margin-top:18px;align-items:center">
+  <div style="position:relative;width:148px;height:148px;flex:none">
+   <svg width="148" height="148" viewBox="0 0 148 148" style="transform:rotate(-90deg)" fill="none" stroke-linecap="round" stroke-width="13">
+    <g stroke="#0B0B0C"><circle cx="74" cy="74" r="61" pathLength="100" stroke-dasharray="21.5 78.5" stroke-dashoffset="-1.75"/><circle cx="74" cy="74" r="61" pathLength="100" stroke-dasharray="21.5 78.5" stroke-dashoffset="-26.75"/><circle cx="74" cy="74" r="61" pathLength="100" stroke-dasharray="21.5 78.5" stroke-dashoffset="-51.75"/><circle cx="74" cy="74" r="61" pathLength="100" stroke-dasharray="21.5 78.5" stroke-dashoffset="-76.75"/></g>
+    <circle cx="74" cy="74" r="61" pathLength="100" stroke="#8E7CF6" stroke-dasharray="20.25 79.75" stroke-dashoffset="-1.75"/>
+   </svg>
+   <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div class="num" style="font-size:42px;font-weight:700;color:var(--orange);line-height:1">22</div><div style="font-size:12px;color:var(--t2);margin-top:2px">可清理 %</div></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 6px;flex:1;min-width:0">
+   <div><div class="ib" style="width:30px;height:30px;background:rgba(142,124,246,.16);color:var(--purple);border:1px solid rgba(142,124,246,.28)"><svg><use href="#photo"/></svg></div><div class="lbl" style="font-size:13px;margin-top:6px">照片</div><div class="num" style="font-size:16px;font-weight:600;margin-top:3px;white-space:nowrap">8,438</div></div>
+   <div><div class="ib" style="width:30px;height:30px;background:rgba(240,86,122,.16);color:var(--pink);border:1px solid rgba(240,86,122,.28)"><svg><use href="#video"/></svg></div><div class="lbl" style="font-size:13px;margin-top:6px">视频</div><div class="num" style="font-size:16px;font-weight:600;margin-top:3px;white-space:nowrap">214</div></div>
+   <div><div class="ib" style="width:30px;height:30px;background:rgba(242,162,60,.16);color:var(--orange);border:1px solid rgba(242,162,60,.28)"><svg><use href="#drive"/></svg></div><div class="lbl" style="font-size:13px;margin-top:6px">占用</div><div class="num" style="font-size:16px;font-weight:600;margin-top:3px;white-space:nowrap">48.6 GB</div></div>
+   <div><div class="ib" style="width:30px;height:30px;background:rgba(76,141,246,.16);color:var(--blue);border:1px solid rgba(76,141,246,.28)"><svg><use href="#spark"/></svg></div><div class="lbl" style="font-size:13px;margin-top:6px">可清理</div><div class="num" style="font-size:16px;font-weight:600;margin-top:3px;white-space:nowrap">10.7 GB</div></div>
+  </div></div></div>
+ <div class="card" style="padding:18px;margin-top:14px">
+  <div class="ch"><div class="ib" style="width:36px;height:36px;background:rgba(255,90,79,.16);color:var(--red);border:1px solid rgba(255,90,79,.28)"><svg><use href="#trash"/></svg></div><h3>待删除</h3><span class="pill b">去确认<svg width="11" height="11"><use href="#chev"/></svg></span></div>
+  <div style="display:flex;margin-top:14px"><div style="flex:1"><div class="lbl">已选</div><div style="display:flex;align-items:baseline;gap:4px"><span class="num" style="font-size:46px;font-weight:700">126</span><span style="font-size:18px;font-weight:600;color:var(--t2)">项</span></div></div>
+   <div style="width:130px"><div class="lbl">可释放</div><div class="num" style="font-size:17px;font-weight:600">1.9 GB</div><div class="lbl" style="margin-top:10px">已保留</div><div class="num" style="font-size:17px;font-weight:600">342</div></div></div>
+  <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--t2);margin:14px 0 8px"><span>可清理共 10.7 GB</span><span class="num" style="color:var(--orange);font-weight:600;font-size:14px">18%</span></div>
+  <div class="bar5"><i style="width:18%;background:var(--orange)"></i></div></div>
+ <div style="font-size:20px;font-weight:700;margin:20px 4px 10px">分类</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+  <div class="card" style="padding:14px;border-radius:22px"><div style="display:flex;align-items:center;gap:8px"><div class="ib" style="width:30px;height:30px;background:rgba(142,124,246,.16);color:var(--purple)"><svg><use href="#sq"/></svg></div><b style="font-size:15px">相似照片</b></div><div style="margin-top:10px"><span class="num" style="font-size:32px;font-weight:700">436</span></div></div>
+  <div class="card" style="padding:14px;border-radius:22px"><div style="display:flex;align-items:center;gap:8px"><div class="ib" style="width:30px;height:30px;background:rgba(76,141,246,.16);color:var(--blue)"><svg><use href="#phone"/></svg></div><b style="font-size:15px">截图</b></div><div style="margin-top:10px"><span class="num" style="font-size:32px;font-weight:700">612</span></div></div>
+ </div></div>
+<div class="tabbar"><div class="tabs glass"><div class="tab on"><svg><use href="#house"/></svg>首页</div><div class="tab"><svg><use href="#gridf"/></svg>分类</div><div class="tab"><svg><use href="#trash"/></svg>清理</div></div><div class="act glass"><svg width="22" height="22"><use href="#refresh"/></svg></div></div>
+</div></div><div class="cap"><span>首页 · 问候 + 分段圆环 + 2×2 指标 · 玻璃页签栏</span></div></div>
 
-<!-- 2 滑动 -->
+<!-- 2 勾选联动 + 滑动 -->
 <div><div class="phone"><div class="scr"><div class="island"></div>
-<div class="status"><span>9:41</span><span>100%</span></div>
-<div class="nav"><span class="l"><svg width="22" height="22" style="stroke-width:2"><use href="#cl"/></svg>返回</span>模糊照片</div>
-<div class="p" style="margin-top:4px"><div class="seg"><div class="on">滑动筛选</div><div>网格多选</div></div>
-<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:10px"><span style="color:var(--t3)">97 项 · 402 MB</span><span style="color:var(--danger)">已选删除 12</span></div>
-<div style="display:flex;justify-content:space-between;margin-top:14px;font-size:12px;color:var(--t3)"><span class="num" style="font-size:13px;color:var(--t2);font-weight:500">13 / 97</span><span>左滑删除 · 右滑保留</span></div>
-<div class="bar4" style="margin-top:8px"><i style="width:13%"></i></div></div>
-<div style="position:relative;flex:1;margin:20px 20px 0">
- <div style="position:absolute;inset:0;border-radius:20px;overflow:hidden;transform:translateY(20px) scale(.92);box-shadow:0 2px 6px rgba(0,0,0,.04)"><img src="https://picsum.photos/id/1043/500/700"></div>
- <div style="position:absolute;inset:0;border-radius:20px;overflow:hidden;transform:translateY(7px) scale(.97);box-shadow:0 2px 6px rgba(0,0,0,.04)"><img src="https://picsum.photos/id/1036/500/700"></div>
- <div style="position:absolute;inset:0;border-radius:20px;overflow:hidden;transform:translateX(-38px) rotate(-4deg);box-shadow:0 6px 14px rgba(0,0,0,.1)"><img src="https://picsum.photos/id/1025/500/700?blur=2">
-  <div style="position:absolute;inset:0;background:linear-gradient(transparent 50%,rgba(0,0,0,.45))"></div>
-  <div style="position:absolute;left:16px;bottom:16px;color:#fff"><span style="font-size:11px;font-weight:500;background:rgba(255,255,255,.22);padding:3px 8px;border-radius:99px">模糊</span><div style="font-size:16px;font-weight:600;margin-top:6px">2026年8月14日 19:32</div><div class="num" style="font-size:12px;opacity:.85">3.4 MB · 4032×3024</div></div>
-  <div style="position:absolute;top:16px;right:16px;background:#fff;color:var(--danger);font-weight:600;font-size:15px;padding:8px 14px;border-radius:99px;display:flex;gap:5px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.12)"><svg width="16" height="16"><use href="#tr"/></svg>删除</div></div>
+<div class="status"><span>01:17</span><span>100%</span></div>
+<div class="nav"><div class="bk glass" style="position:absolute"><svg width="18" height="18"><use href="#back"/></svg></div>模糊照片</div>
+<div class="pg" style="margin-top:8px">
+ <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(rgba(60,196,124,.15),rgba(60,196,124,.15)),#1C1C1E">
+  <div style="position:relative;width:46px;height:46px"><svg width="46" height="46" viewBox="0 0 46 46" style="transform:rotate(-90deg)" fill="none" stroke-width="5"><circle cx="23" cy="23" r="20" stroke="#0B0B0C"/><circle cx="23" cy="23" r="20" stroke="#3CC47C" stroke-linecap="round" pathLength="100" stroke-dasharray="75 100"/></svg><div class="num" style="position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--t2)">75%</div></div>
+  <div style="flex:1"><div><span class="num" style="font-size:26px;font-weight:700">73</span><span class="num" style="font-size:15px;font-weight:600;color:var(--t2)"> / 97</span></div><div style="font-size:12px;color:var(--t2)">已处理</div></div>
+  <div style="text-align:right"><div class="num" style="font-size:15px;font-weight:600;color:var(--red)">删除 41</div><div style="font-size:12px;color:var(--t2)">212 MB</div></div></div>
+ <div class="seg" style="margin-top:10px"><div class="on">滑动筛选</div><div>网格多选</div></div>
 </div>
-<div style="display:flex;justify-content:center;align-items:center;gap:32px;padding:22px 0 30px">
- <div style="width:60px;height:60px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--danger);box-shadow:0 3px 8px rgba(0,0,0,.06)"><svg width="22" height="22" style="stroke-width:2"><use href="#x"/></svg></div>
- <div style="width:46px;height:46px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--t2);box-shadow:0 3px 8px rgba(0,0,0,.06)"><svg width="17" height="17" style="stroke-width:2"><use href="#un"/></svg></div>
- <div style="width:60px;height:60px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--accent);box-shadow:0 3px 8px rgba(0,0,0,.06)"><svg width="22" height="22" style="stroke-width:2"><use href="#ck"/></svg></div></div>
-</div></div><div class="lbl">② 滑动筛选</div></div>
+<div style="position:relative;height:446px;margin:16px 16px 0">
+ <div style="position:absolute;inset:0;border-radius:20px;overflow:hidden;transform:translateY(20px) scale(.92);opacity:.6"><img src="https://picsum.photos/id/1043/500/700"></div>
+ <div style="position:absolute;inset:0;border-radius:20px;overflow:hidden;transform:translateY(8px) scale(.96)"><img src="https://picsum.photos/id/1036/500/700"></div>
+ <div style="position:absolute;inset:0;border-radius:20px;overflow:hidden;transform:translateX(-30px) rotate(-3.5deg);box-shadow:0 14px 30px rgba(0,0,0,.6)"><img src="https://picsum.photos/id/1025/500/700?blur=2">
+  <div style="position:absolute;inset:0;background:linear-gradient(transparent 55%,rgba(0,0,0,.55))"></div>
+  <div style="position:absolute;left:16px;bottom:16px"><span style="font-size:11px;font-weight:500;background:rgba(255,255,255,.22);padding:3px 8px;border-radius:99px">模糊</span><div style="font-size:16px;font-weight:600;margin-top:6px">2026年8月14日 19:32</div><div class="num" style="font-size:12px;opacity:.85">3.4 MB · 4032×3024</div></div>
+  <div class="glass" style="position:absolute;top:16px;right:16px;color:var(--red);font-weight:600;font-size:15px;padding:8px 14px;border-radius:99px;display:flex;gap:5px;align-items:center"><svg width="15" height="15"><use href="#trash"/></svg>删除</div></div></div>
+<div style="display:flex;justify-content:center;align-items:center;gap:32px;padding-top:28px">
+ <div class="glass" style="position:relative;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;color:var(--red)"><svg width="21" height="21"><use href="#x"/></svg></div>
+ <div class="glass" style="position:relative;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:var(--t2)"><svg width="17" height="17"><use href="#undo"/></svg></div>
+ <div class="glass" style="position:relative;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;color:var(--green)"><svg width="22" height="22"><use href="#ck"/></svg></div></div>
+</div></div><div class="cap"><b>02</b><span>勾选联动 · 进度环 + 数字滚动 + 顶部染色</span></div></div>
 
-<!-- 3 相似 -->
+<!-- 3 叠卡展开 -->
 <div><div class="phone"><div class="scr"><div class="island"></div>
-<div class="status"><span>9:41</span><span>100%</span></div>
-<div class="nav"><span class="l"><svg width="22" height="22" style="stroke-width:2"><use href="#cl"/></svg>返回</span>相似照片</div>
-<div class="p" style="margin-top:4px"><div class="card" style="padding:18px">
- <div style="display:flex;justify-content:space-between"><div><div style="font-size:14px;color:var(--t2)">每组留最清晰的一张</div><div class="num" style="font-size:26px;font-weight:700;margin-top:4px;letter-spacing:-.4px">可释放 2.7 GB</div></div><div class="badge"><svg><use href="#sp"/></svg></div></div>
- <div class="pbtn" style="margin-top:14px">一键处理全部 308 张</div></div>
-<div class="sh">128 组<span>点照片切换选择 · 长按看大图</span></div>
-<div class="card" style="padding:14px">
- <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:16px;font-weight:600">4 张相似</span><span style="font-size:12px;color:var(--t3)">2026年10月2日 17:05</span><span class="num" style="margin-left:auto;font-size:12px;color:var(--t3)">18.2 MB</span></div>
- <div style="display:flex;gap:6px;margin:12px 0">
-  <div class="th best" style="width:104px;flex:none"><img src="https://picsum.photos/id/1018/300/300"><div class="sel keep" style="background:var(--accent)"><svg><use href="#ck"/></svg></div><div class="rec">推荐保留</div></div>
-  <div class="th del" style="width:104px;flex:none"><img src="https://picsum.photos/id/1018/300/300?blur=1"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">4.5 MB</div></div>
-  <div class="th del" style="width:104px;flex:none"><img src="https://picsum.photos/id/1018/320/320?blur=2"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">4.4 MB</div></div></div>
- <div style="display:flex"><span class="sbtn" style="color:var(--accent)">保留推荐，删其余 3 张</span><span class="sbtn" style="margin-left:auto;color:var(--t2)">全部保留</span></div></div>
-<div class="card" style="padding:14px;margin-top:12px">
- <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:16px;font-weight:600">3 张相似</span><span style="font-size:12px;color:var(--t3)">2026年9月21日 08:44</span><span class="num" style="margin-left:auto;font-size:12px;color:var(--t3)">11.0 MB</span></div>
- <div style="display:flex;gap:6px;margin:12px 0">
-  <div class="th" style="width:104px;flex:none"><img src="https://picsum.photos/id/1039/300/300"><div class="sel"></div><div class="sz">3.8 MB</div></div>
-  <div class="th best" style="width:104px;flex:none"><img src="https://picsum.photos/id/1039/310/310"><div class="sel"></div><div class="rec">推荐保留</div></div>
-  <div class="th" style="width:104px;flex:none"><img src="https://picsum.photos/id/1039/290/290?blur=1"><div class="sel"></div><div class="sz">3.5 MB</div></div></div>
- <div style="display:flex"><span class="sbtn" style="color:var(--accent)">保留推荐，删其余 2 张</span><span class="sbtn" style="margin-left:auto;color:var(--t2)">全部保留</span></div></div>
-</div></div></div><div class="lbl">③ 相似照片</div></div>
+<div class="status"><span>01:17</span><span>100%</span></div>
+<div class="nav"><div class="bk glass" style="position:absolute"><svg width="18" height="18"><use href="#back"/></svg></div>相似照片</div>
+<div class="pg" style="margin-top:8px">
+ <div class="card" style="padding:18px">
+  <div class="ch"><div style="flex:1"><div class="lbl">每组留最清晰的一张</div><div class="num" style="font-size:26px;font-weight:700;margin-top:4px">可释放 2.7 GB</div></div><div class="ib" style="width:34px;height:34px;background:rgba(142,124,246,.16);color:var(--purple);border:1px solid rgba(142,124,246,.28)"><svg><use href="#spark"/></svg></div></div>
+  <div style="margin-top:14px;background:var(--orange);color:#000;border-radius:18px;text-align:center;padding:14px;font-size:16px;font-weight:600">一键处理全部 308 张</div></div>
+ <div style="display:flex;justify-content:space-between;align-items:baseline;margin:18px 4px 10px"><span style="font-size:20px;font-weight:700">128 组</span><span style="font-size:12px;color:var(--t2)">点叠卡展开 · 长按看大图</span></div>
+ <div class="card" style="padding:14px">
+  <div style="display:flex;align-items:center;gap:8px"><b style="font-size:17px">4 张相似</b><span style="font-size:12px;color:var(--t3)">10月2日 17:05</span><span class="pill b" style="margin-left:auto">收起</span></div>
+  <div style="display:flex;gap:6px;margin:12px 0">
+   <div class="th best" style="width:104px;height:104px;flex:none"><img src="https://picsum.photos/id/1018/300/300"><div class="sel" style="background:var(--green)"><svg style="color:#fff"><use href="#ck"/></svg></div><div class="rec">推荐保留</div></div>
+   <div class="th del" style="width:104px;height:104px;flex:none"><img src="https://picsum.photos/id/1018/300/300?blur=1"><div class="sel"><svg style="color:#fff"><use href="#trash"/></svg></div><div class="sz">4.5 MB</div></div>
+   <div class="th del" style="width:104px;height:104px;flex:none;transform:translateX(-18px) rotate(2deg);opacity:.9"><img src="https://picsum.photos/id/1018/320/320?blur=2"><div class="sel"><svg style="color:#fff"><use href="#trash"/></svg></div></div></div>
+  <div style="display:flex"><span class="sbtn" style="color:var(--orange)">保留推荐，删其余 3 张</span><span class="sbtn" style="margin-left:auto;color:var(--t2)">全部保留</span></div></div>
+ <div class="card" style="padding:14px;margin-top:12px">
+  <div style="display:flex;align-items:center;gap:8px"><b style="font-size:17px">3 张相似</b><span style="font-size:12px;color:var(--t3)">9月21日 08:44</span><span class="pill b" style="margin-left:auto">11.0 MB</span></div>
+  <div style="position:relative;height:118px;margin:12px 0 4px">
+   <div class="th" style="position:absolute;left:18px;top:6px;width:104px;height:104px;transform:rotate(6deg) scale(.9);opacity:.75"><img src="https://picsum.photos/id/1039/290/290?blur=1"></div>
+   <div class="th" style="position:absolute;left:9px;top:3px;width:104px;height:104px;transform:rotate(3deg) scale(.95)"><img src="https://picsum.photos/id/1039/310/310"></div>
+   <div class="th best" style="position:absolute;left:0;top:0;width:104px;height:104px;box-shadow:0 8px 20px rgba(0,0,0,.6)"><img src="https://picsum.photos/id/1039/300/300"><div class="rec">推荐保留</div></div>
+   <div style="position:absolute;left:150px;top:40px;font-size:13px;color:var(--t2)">点一下 · 依次展开</div></div></div>
+</div></div></div><div class="cap"><b>03</b><span>叠卡展开 · 依次摊开，原路叠回</span></div></div>
 
-<!-- 4 确认 -->
+<!-- 4 吸附卡 + 画线 + 圆形扩散 -->
 <div><div class="phone"><div class="scr"><div class="island"></div>
-<div class="status"><span>9:41</span><span>100%</span></div>
-<div class="nav"><span class="l"><svg width="22" height="22" style="stroke-width:2"><use href="#cl"/></svg>返回</span>确认删除<span class="r">清空</span></div>
-<div class="p" style="margin-top:4px"><div class="card" style="padding:18px">
- <div style="font-size:14px;color:var(--t2)">可释放空间</div><div class="num" style="font-size:36px;font-weight:700;letter-spacing:-.6px;margin:4px 0 6px">1.9 GB</div>
- <div style="font-size:12px;color:var(--t3)">共 126 项 · 删除后进入「最近删除」，30 天内可恢复</div></div>
-<div class="sh">待删除<span>点缩略图可移出</span></div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
- <div class="th del"><img src="https://picsum.photos/id/1050/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">▶︎ 212 MB</div></div>
- <div class="th del"><img src="https://picsum.photos/id/1067/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">▶︎ 96 MB</div></div>
- <div class="th del"><img src="https://picsum.photos/id/1074/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">14 MB</div></div>
- <div class="th del"><img src="https://picsum.photos/id/1080/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">9.1 MB</div></div>
- <div class="th del"><img src="https://picsum.photos/id/1062/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">8.7 MB</div></div>
- <div class="th del"><img src="https://picsum.photos/id/1084/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">6.2 MB</div></div>
- <div class="th del"><img src="https://picsum.photos/id/1015/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">5.9 MB</div></div>
- <div class="th del"><img src="https://picsum.photos/id/1016/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">5.2 MB</div></div>
- <div class="th del"><img src="https://picsum.photos/id/1019/240/240"><div class="sel"><svg><use href="#tr"/></svg></div><div class="sz">4.8 MB</div></div>
-</div></div>
-<div style="position:absolute;left:20px;right:20px;bottom:28px;background:var(--danger);color:#fff;border-radius:14px;text-align:center;padding:15px;font-size:16px;font-weight:600">删除 126 项</div>
-</div></div><div class="lbl">④ 确认删除</div></div>
+ <!-- 底层：首页（正在被覆盖） -->
+ <div style="position:absolute;inset:0;background:#000">
+  <div class="status"><span>01:17</span><span>100%</span></div>
+  <div class="pg" style="margin:10px 0 16px;font-size:24px;font-weight:700">夜深了，叶原野</div>
+  <div class="pg"><div class="card" style="height:250px"></div></div></div>
+ <!-- 上层：分类页，从「分类」页签处圆形扩散 -->
+ <div style="position:absolute;inset:0;background:#000;clip-path:circle(640px at 50% 790px)">
+  <div class="status"><span>01:17</span><span>100%</span></div>
+  <div class="pg"><div style="font-size:28px;font-weight:700;margin:8px 0 14px">分类</div>
+   <div class="seg"><div>分类</div><div class="on">时间线</div></div></div>
+  <div style="position:relative;height:600px;overflow:hidden;margin-top:6px">
+   <div class="pg" style="position:absolute;left:0;right:0;top:-130px;display:flex;gap:12px;opacity:.35;transform:scale(.95)">
+    <div style="width:18px;display:flex;flex-direction:column;align-items:center"><div style="width:11px;height:11px;border-radius:50%;border:1.5px solid var(--t3);margin-top:22px"></div></div>
+    <div class="card" style="flex:1;height:200px;padding:16px"><div><span class="num" style="font-size:40px;font-weight:700">11</span> <span style="color:var(--t2);font-weight:600">月</span></div></div></div>
+   <div class="pg" style="position:absolute;left:0;right:0;top:88px;display:flex;gap:12px">
+    <div style="width:18px;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:11px;height:11px;border-radius:50%;background:var(--orange);margin-top:22px"></div><div style="width:2px;height:150px;border-radius:2px;background:linear-gradient(var(--orange) 0 78%,transparent 78%)"></div></div>
+    <div class="card" style="flex:1;height:200px;padding:16px;border-color:rgba(242,162,60,.35)">
+     <div style="display:flex;align-items:baseline;gap:4px"><span class="num" style="font-size:40px;font-weight:700;color:var(--orange)">10</span><span style="font-weight:600;color:var(--t2)">月</span><span style="font-size:12px;color:var(--t3);margin-left:2px">2026</span><span class="pill r" style="margin-left:auto">删除 18</span></div>
+     <div style="display:flex;gap:6px;margin:12px 0"><div class="th" style="flex:1;height:64px"><img src="https://picsum.photos/id/1050/160/160"></div><div class="th" style="flex:1;height:64px"><img src="https://picsum.photos/id/1067/160/160"></div><div class="th" style="flex:1;height:64px"><img src="https://picsum.photos/id/1074/160/160"></div><div class="th" style="flex:1;height:64px"><img src="https://picsum.photos/id/1080/160/160"></div></div>
+     <div style="display:flex;align-items:center"><span style="font-size:12px;color:var(--t2)">642 项 · 3.8 GB</span><span class="pill b" style="margin-left:auto">整理<svg width="11" height="11"><use href="#chev"/></svg></span></div></div></div>
+   <div class="pg" style="position:absolute;left:0;right:0;top:306px;display:flex;gap:12px;opacity:.65;transform:scale(.95)">
+    <div style="width:18px;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:11px;height:11px;border-radius:50%;border:1.5px solid var(--t3);margin-top:22px"></div><div style="width:2px;height:150px;border-left:2px dotted #2C2C2E"></div></div>
+    <div class="card" style="flex:1;height:200px;padding:16px"><div style="display:flex;align-items:baseline;gap:4px"><span class="num" style="font-size:40px;font-weight:700">9</span><span style="font-weight:600;color:var(--t2)">月</span></div>
+     <div style="display:flex;gap:6px;margin:12px 0"><div class="th" style="flex:1;height:64px"><img src="https://picsum.photos/id/1062/160/160"></div><div class="th" style="flex:1;height:64px"><img src="https://picsum.photos/id/1084/160/160"></div><div class="th" style="flex:1;height:64px"><img src="https://picsum.photos/id/1015/160/160"></div><div class="th" style="flex:1;height:64px"><img src="https://picsum.photos/id/1016/160/160"></div></div></div></div>
+  </div>
+  <div class="tabbar"><div class="tabs glass"><div class="tab"><svg><use href="#house"/></svg>首页</div><div class="tab on"><svg><use href="#gridf"/></svg>分类</div><div class="tab"><svg><use href="#trash"/></svg>清理</div></div><div class="act glass"><svg width="22" height="22"><use href="#refresh"/></svg></div></div>
+ </div>
+ <div style="position:absolute;left:50%;top:790px;width:1280px;height:1280px;margin:-640px 0 0 -640px;border-radius:50%;border:1.5px solid rgba(255,255,255,.18);pointer-events:none"></div>
+</div></div><div class="cap"><b>04</b><span>吸附卡 + 画线</span>　<b>06</b><span>从页签处圆形扩散</span></div></div>
 
-</div></body></html>
+<!-- 5 惯性滚轮（玻璃弹层） -->
+<div><div class="phone"><div class="scr"><div class="island"></div>
+ <div style="position:absolute;inset:0;filter:brightness(.55)">
+  <div class="status"><span>01:17</span><span>100%</span></div>
+  <div class="pg" style="margin:10px 0 16px;font-size:24px;font-weight:700">夜深了，叶原野</div>
+  <div class="pg"><div class="card" style="height:230px;padding:18px"><div class="ch"><div class="ib" style="width:36px;height:36px;background:rgba(242,162,60,.16)"></div><h3>相册状态</h3></div></div></div></div>
+ <div class="glass" style="position:absolute;left:0;right:0;bottom:0;top:250px;border-radius:38px 38px 0 0;background:rgba(36,36,40,.72)">
+  <div style="width:36px;height:5px;border-radius:3px;background:rgba(255,255,255,.3);margin:8px auto 0"></div>
+  <div style="display:flex;justify-content:center;align-items:center;position:relative;height:44px;font-weight:600;font-size:17px">设置<span style="position:absolute;right:20px;color:var(--orange);font-weight:600">完成</span></div>
+  <div class="pg" style="margin-top:6px">
+   <div class="card" style="padding:16px;background:rgba(28,28,30,.85)"><div class="ch"><div class="ib" style="width:36px;height:36px;background:rgba(142,124,246,.16);color:var(--purple);border:1px solid rgba(142,124,246,.28)"><svg><use href="#person"/></svg></div><h3>称呼</h3></div>
+    <div style="background:var(--fill);border-radius:14px;padding:12px 14px;margin-top:12px;font-weight:600;font-size:17px">叶原野</div></div>
+   <div class="card" style="padding:16px;margin-top:12px;background:rgba(28,28,30,.85)"><div class="ch"><div class="ib" style="width:36px;height:36px;background:rgba(242,162,60,.16);color:var(--orange);border:1px solid rgba(242,162,60,.28)"><svg><use href="#slider"/></svg></div><h3>识别设置</h3><span class="pill o">上下甩动</span></div>
+    <div style="display:flex;gap:8px;margin-top:12px" id="wheels"></div></div>
+  </div></div>
+</div></div><div class="cap"><b>05</b><span>惯性滚轮 · 吸到刻度轻微回弹 · 玻璃弹层</span></div></div>
+
+<!-- 6 完成反馈按钮 -->
+<div><div class="phone"><div class="scr"><div class="island"></div>
+<div class="status"><span>01:17</span><span>100%</span></div>
+<div class="pg"><div style="font-size:28px;font-weight:700;margin:8px 0 14px">清理</div>
+ <div class="card" style="padding:18px">
+  <div class="ch"><div class="ib" style="width:36px;height:36px;background:rgba(255,90,79,.16);color:var(--red);border:1px solid rgba(255,90,79,.28)"><svg><use href="#trash"/></svg></div><h3>可释放空间</h3><span class="pill o">126 项</span></div>
+  <div style="display:flex;align-items:baseline;gap:4px;margin-top:14px"><span class="num" style="font-size:44px;font-weight:700">126</span><span style="font-size:17px;font-weight:600;color:var(--t2)">项已删除</span></div>
+  <div style="font-size:12px;color:var(--t2);margin-top:6px">删除后进入「最近删除」，30 天内可恢复</div></div>
+ <div style="font-size:20px;font-weight:700;margin:20px 4px 10px">待删除</div>
+ <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+  <div class="th del" style="aspect-ratio:1"><img src="https://picsum.photos/id/1050/240/240"><div class="sel"><svg style="color:#fff"><use href="#trash"/></svg></div></div>
+  <div class="th del" style="aspect-ratio:1"><img src="https://picsum.photos/id/1067/240/240"><div class="sel"><svg style="color:#fff"><use href="#trash"/></svg></div></div>
+  <div class="th del" style="aspect-ratio:1"><img src="https://picsum.photos/id/1074/240/240"><div class="sel"><svg style="color:#fff"><use href="#trash"/></svg></div></div>
+  <div class="th del" style="aspect-ratio:1"><img src="https://picsum.photos/id/1080/240/240"><div class="sel"><svg style="color:#fff"><use href="#trash"/></svg></div></div>
+  <div class="th del" style="aspect-ratio:1"><img src="https://picsum.photos/id/1062/240/240"><div class="sel"><svg style="color:#fff"><use href="#trash"/></svg></div></div>
+  <div class="th del" style="aspect-ratio:1"><img src="https://picsum.photos/id/1084/240/240"><div class="sel"><svg style="color:#fff"><use href="#trash"/></svg></div></div>
+ </div></div>
+<div class="glass" style="position:absolute;left:16px;right:16px;bottom:114px;height:76px;border-radius:28px;display:grid;place-items:center">
+ <div style="position:relative;width:56px;height:56px" id="burst"><div style="position:absolute;inset:0;border-radius:50%;background:var(--green);display:grid;place-items:center;box-shadow:0 0 0 6px rgba(60,196,124,.15)"><svg width="24" height="24" style="color:#fff"><use href="#ck"/></svg></div></div></div>
+<div class="tabbar"><div class="tabs glass" style="flex:1"><div class="tab"><svg><use href="#house"/></svg>首页</div><div class="tab"><svg><use href="#gridf"/></svg>分类</div><div class="tab on"><svg><use href="#trash"/></svg>清理</div></div></div>
+</div></div><div class="cap"><b>01</b><span>完成反馈按钮 · 圆 → 勾 → 粒子迸开</span></div></div>
+
+</div>
+<script>
+// 粒子
+const b=document.getElementById('burst');
+for(let i=0;i<14;i++){const a=i/14*Math.PI*2,r=i%2?40:52,s=i%2?4:6;const d=document.createElement('i');
+d.style.cssText=`position:absolute;width:${s}px;height:${s}px;border-radius:50%;left:${28+Math.cos(a)*r-s/2}px;top:${28+Math.sin(a)*r-s/2}px;background:${i%3==0?'#fff':'#3CC47C'};opacity:${i%2?.55:.9}`;b.appendChild(d)}
+// 滚轮
+const W=document.getElementById('wheels');
+[['模糊阈值',[50,55,60,65,70],'#3CC47C'],['大文件 MB',[8,9,10,11,12],'#F2A23C'],['分析张数',[2000,2500,3000,3500,4000],'#4C8DF6']].forEach(([t,v,c])=>{
+ let h=`<div style="flex:1;background:#0B0B0C;border-radius:16px;padding:8px 0;text-align:center"><div style="font-size:12px;color:#8E8E93;margin-bottom:6px">${t}</div><div style="position:relative;height:170px">`;
+ h+=`<div style="position:absolute;left:6px;right:6px;top:68px;height:34px;border-radius:10px;background:${c}24"></div>`;
+ v.forEach((x,i)=>{const d=Math.abs(i-2);h+=`<div class="num" style="position:absolute;left:0;right:0;top:${i*34}px;height:34px;line-height:34px;font-size:${d?17:21}px;font-weight:${d?400:700};color:${d?'#8E8E93':c};opacity:${1-d*.28};transform:perspective(200px) rotateX(${(2-i)*16}deg) scale(${1-d*.07})">${x.toLocaleString('en')}</div>`});
+ W.innerHTML+=h+'</div></div>'});
+</script>
+</body></html>

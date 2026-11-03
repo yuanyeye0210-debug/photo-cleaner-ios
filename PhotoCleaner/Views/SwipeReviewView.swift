@@ -63,7 +63,7 @@ struct SwipeReviewView: View {
                     .font(Theme.caption)
                     .foregroundStyle(Theme.text3)
             }
-            ThinProgress(value: Double(pos) / Double(max(1, queue.count)))
+            ThinProgress(value: Double(pos) / Double(max(1, queue.count)), tint: Theme.green)
         }
         .padding(.horizontal, Theme.pagePadding)
         .animation(Theme.spring, value: pos)
@@ -105,7 +105,7 @@ struct SwipeReviewView: View {
                     .scaleEffect(CGFloat(0.85 + min(1, deleteAmount) * 0.15))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .padding(16)
-                hint(icon: "checkmark", text: "保留", color: Theme.accent)
+                hint(icon: "checkmark", text: "保留", color: Theme.green)
                     .opacity(keepAmount)
                     .scaleEffect(CGFloat(0.85 + min(1, keepAmount) * 0.15))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -163,18 +163,21 @@ struct SwipeReviewView: View {
         .font(.system(size: 15, weight: .semibold))
         .foregroundStyle(color)
         .padding(.horizontal, 14).padding(.vertical, 8)
-        .background(Color.white, in: Capsule())
-        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
+        .glassSurface(Capsule())
     }
 
     private var controls: some View {
+        GlassGroup(spacing: 24) { controlRow }
+    }
+
+    private var controlRow: some View {
         HStack(spacing: 32) {
             CircleButton(icon: "xmark", color: Theme.danger, size: 60) { swipe(.delete) }
                 .disabled(pos >= queue.count)
             CircleButton(icon: "arrow.uturn.backward", color: Theme.text2, size: 46) { undo() }
                 .disabled(history.isEmpty)
                 .opacity(history.isEmpty ? 0.4 : 1)
-            CircleButton(icon: "checkmark", color: Theme.accent, size: 60) { swipe(.keep) }
+            CircleButton(icon: "checkmark", color: Theme.green, size: 60) { swipe(.keep) }
                 .disabled(pos >= queue.count)
         }
         .padding(.top, 4)
@@ -187,7 +190,7 @@ struct SwipeReviewView: View {
     private var finishedView: some View {
         VStack(spacing: 10) {
             Spacer()
-            IconBadge(icon: "checkmark", size: 56)
+            IconBadge(icon: "checkmark", tint: Theme.green, size: 56)
             Text("这一类看完了").font(Theme.title).foregroundStyle(Theme.text)
                 .padding(.top, 4)
             Text("本轮选了 \(markedInQueue.count) 项删除，可释放 \(Fmt.bytes(store.bytes(of: markedInQueue)))")
@@ -241,7 +244,7 @@ struct Tag: View {
     }
 }
 
-/// 白色圆形按钮 + 细线图标
+/// 玻璃圆形按钮（iOS 26 液态玻璃，可按压变形）
 struct CircleButton: View {
     let icon: String
     let color: Color
@@ -249,15 +252,6 @@ struct CircleButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: size * 0.34, weight: .medium))
-                .foregroundStyle(color)
-                .frame(width: size, height: size)
-                .background(Color.white, in: Circle())
-                .overlay(Circle().stroke(Theme.hairline, lineWidth: 1))
-                .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
-        }
-        .buttonStyle(PressableStyle())
+        GlassCircleButton(icon: icon, tint: color, size: size, action: action)
     }
 }

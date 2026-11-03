@@ -7,117 +7,22 @@ enum Route: Hashable {
     case settings
 }
 
-/// 首页：总览 + 分类 + 按月份
-struct DashboardView: View {
+struct RouteDestination: View {
     @EnvironmentObject var store: CleanupStore
-    private let columns = [GridItem(.flexible(), spacing: Theme.gap), GridItem(.flexible(), spacing: Theme.gap)]
+    let route: Route
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                SummaryCard()
-                    .fadeIn(0)
-
-                if store.authStatus == .limited {
-                    HStack(alignment: .top, spacing: 10) {
-                        Image(systemName: "info.circle").foregroundStyle(Theme.accent)
-                        Text("你只授权了部分照片，只能清理这些照片。可到「设置 › 隐私 › 照片」改为「完全访问」。")
-                            .font(Theme.caption)
-                            .foregroundStyle(Theme.text2)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .card(padding: 14)
-                }
-
-                SectionHeader(title: "分类")
-                LazyVGrid(columns: columns, spacing: Theme.gap) {
-                    ForEach(Array(CleanCategory.allCases.enumerated()), id: \.element) { idx, cat in
-                        NavigationLink(value: Route.category(cat)) {
-                            CategoryCard(category: cat)
-                        }
-                        .buttonStyle(PressableStyle())
-                        .fadeIn(idx + 1)
-                    }
-                }
-
-                if !store.months.isEmpty {
-                    SectionHeader(title: "按月份", trailing: "\(store.months.count) 个月")
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: Theme.gap) {
-                            ForEach(store.months.prefix(24)) { m in
-                                NavigationLink(value: Route.month(m.id)) {
-                                    MonthCard(month: m)
-                                }
-                                .buttonStyle(PressableStyle())
-                            }
-                        }
-                        .padding(.horizontal, Theme.pagePadding)
-                        .padding(.vertical, 2)
-                    }
-                    .padding(.horizontal, -Theme.pagePadding)
-                }
-
-                Spacer(minLength: 96)
-            }
-            .padding(.horizontal, Theme.pagePadding)
-            .padding(.top, 4)
-        }
-        .background(Theme.bg.ignoresSafeArea())
-        .navigationTitle("相册清理")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                HStack(spacing: 16) {
-                    Button {
-                        Haptics.light()
-                        store.startScan()
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    .disabled(store.phase == .loading || store.phase == .analyzing)
-                    NavigationLink(value: Route.settings) {
-                        Image(systemName: "gearshape")
-                    }
-                }
-                .font(.system(size: 16, weight: .regular))
-            }
-        }
-        .safeAreaInset(edge: .bottom) {
-            if !store.toDelete.isEmpty {
-                NavigationLink(value: Route.review) {
-                    PendingBar()
-                }
-                .buttonStyle(PressableStyle())
-                .padding(.horizontal, Theme.pagePadding)
-                .padding(.bottom, 4)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
-        .animation(Theme.spring, value: store.toDelete.isEmpty)
-        .navigationDestination(for: Route.self) { route in
-            destination(for: route)
-        }
-        .alert("完成", isPresented: Binding(get: { store.lastDeleteMessage != nil },
-                                           set: { if !$0 { store.lastDeleteMessage = nil } })) {
-            Button("好的", role: .cancel) {}
-        } message: {
-            Text(store.lastDeleteMessage ?? "")
-        }
-    }
-}
-
-extension DashboardView {
-    @ViewBuilder
-    func destination(for route: Route) -> some View {
         switch route {
         case .category(let c):
             if c == .similar {
                 SimilarGroupsView()
             } else {
-                CategoryView(title: c.title, ids: store.ids(in: c))
+                CategoryView(title: c.title, ids: store.ids(in: c), tint: c.tint)
             }
         case .month(let key):
             CategoryView(title: store.months.first(where: { $0.id == key })?.title ?? key,
-                         ids: store.months.first(where: { $0.id == key })?.ids ?? [])
+                         ids: store.months.first(where: { $0.id == key })?.ids ?? [],
+                         tint: Theme.orange)
         case .review:
             ReviewDeleteView()
         case .settings:
@@ -126,97 +31,179 @@ extension DashboardView {
     }
 }
 
-/// 底部「待删除」条
-private struct PendingBar: View {
+/// 首页：问候 + 相册状态（分段圆环 + 2×2 指标）+ 待删除 + 分类
+struct DashboardView: View {
     @EnvironmentObject var store: CleanupStore
+    @AppStorage("userName") private var userName = "叶原野"
+    var openSettings: () -> Void = {}
+
+    private let columns = [GridItem(.flexible(), spacing: Theme.gap), GridItem(.flexible(), spacing: Theme.gap)]
+
     var body: some View {
-        HStack(spacing: 12) {
-            IconBadge(icon: "trash", tint: Theme.danger, size: 38)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("待删除 \(store.toDelete.count) 项")
-                    .font(Theme.headline)
-                    .foregroundStyle(Theme.text)
-                    .contentTransition(.numericText())
-                    .animation(Theme.spring, value: store.toDelete.count)
-                Text("可释放 \(Fmt.bytes(store.toDeleteBytes))")
-                    .font(Theme.caption)
-                    .foregroundStyle(Theme.text2)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                greeting
+                    .padding(.bottom, 4)
+
+                StatusCard()
+                    .fadeIn(0)
+
+                if store.authStatus == .limited {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "info.circle.fill").foregroundStyle(Theme.blue)
+                        Text("你只授权了部分照片，只能清理这些照片。可到「设置 › 隐私 › 照片」改为「完全访问」。")
+                            .font(Theme.caption)
+                            .foregroundStyle(Theme.text2)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .card(padding: 14)
+                }
+
+                NavigationLink(value: Route.review) {
+                    PendingCard()
+                }
+                .buttonStyle(PressableStyle())
+                .fadeIn(1)
+
+                SectionHeader(title: "分类", trailing: store.phase == .done ? "分析完成" : store.progressText)
+                LazyVGrid(columns: columns, spacing: Theme.gap) {
+                    ForEach(Array(CleanCategory.allCases.enumerated()), id: \.element) { idx, cat in
+                        NavigationLink(value: Route.category(cat)) {
+                            CategoryCard(category: cat)
+                        }
+                        .buttonStyle(PressableStyle())
+                        .fadeIn(idx + 2)
+                    }
+                }
+
+                Spacer(minLength: 110)
             }
-            Spacer()
-            Text("查看")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Theme.accent)
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Theme.text3)
+            .padding(.horizontal, Theme.pagePadding)
         }
-        .padding(12)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.rCard, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: Theme.rCard, style: .continuous).stroke(Theme.hairline, lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 16, y: 6)
+        .background(Theme.bg.ignoresSafeArea())
+        .toolbar(.hidden, for: .navigationBar)
+        .alert("完成", isPresented: Binding(get: { store.lastDeleteMessage != nil },
+                                           set: { if !$0 { store.lastDeleteMessage = nil } })) {
+            Button("好的", role: .cancel) {}
+        } message: {
+            Text(store.lastDeleteMessage ?? "")
+        }
+    }
+
+    /// 「夜深了，叶原野」+ 右侧头像（点开设置弹层）
+    private var greeting: some View {
+        HStack {
+            Text("\(Theme.greeting())，\(userName)")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundStyle(Theme.text)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Spacer()
+            Button(action: openSettings) {
+                Text(String(userName.prefix(1)))
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Theme.purple)
+                    .frame(width: 46, height: 46)
+                    .background(Theme.purple.opacity(0.2), in: Circle())
+                    .glassSurface(Circle(), interactive: true)
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel("设置")
+        }
+        .padding(.top, 8)
     }
 }
 
-/// 总览卡：总占用 + 扫描进度 / 可清理提示
-struct SummaryCard: View {
+/// 相册状态：分段圆环（紫色弧 + 橙色大数字）+ 2×2 指标
+struct StatusCard: View {
     @EnvironmentObject var store: CleanupStore
-
-    private var cleanableIDs: [String] {
-        Array(Set(CleanCategory.allCases
-            .filter { $0 != .videos && $0 != .large }
-            .flatMap { store.ids(in: $0) }))
-    }
 
     private var scanning: Bool { store.phase == .loading || store.phase == .analyzing }
 
     var body: some View {
-        let cleanable = cleanableIDs
+        let cleanable = store.cleanableIDs
         let cleanableBytes = store.bytes(of: cleanable)
         let ratio = store.totalBytes > 0 ? Double(cleanableBytes) / Double(store.totalBytes) : 0
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("相册占用")
-                    .font(Theme.callout)
-                    .foregroundStyle(Theme.text2)
-                Spacer()
-                Text("\(store.items.count) 项")
-                    .font(Theme.number(13, .regular))
-                    .foregroundStyle(Theme.text3)
+        let videos = store.items.filter { $0.isVideo }.count
+        VStack(alignment: .leading, spacing: 18) {
+            CardHeader(icon: "gauge.with.dots.needle.33percent", tint: Theme.orange, title: "相册状态") {
+                if scanning {
+                    PillBadge(text: "扫描中", icon: "clock.fill")
+                } else {
+                    PillBadge(text: "可清理", icon: "exclamationmark.circle.fill")
+                }
             }
-            Text(Fmt.bytes(store.totalBytes))
-                .font(Theme.number(36, .bold))
-                .foregroundStyle(Theme.text)
-                .contentTransition(.numericText())
-                .animation(Theme.springSoft, value: store.totalBytes)
-
-            if scanning {
-                VStack(alignment: .leading, spacing: 8) {
-                    ThinProgress(value: store.progress)
-                    Text(store.progressText)
-                        .font(Theme.caption)
-                        .foregroundStyle(Theme.text3)
+            HStack(spacing: 18) {
+                SegmentedRingGauge(value: scanning ? store.progress : ratio,
+                                   center: "\(Int(((scanning ? store.progress : ratio) * 100).rounded()))",
+                                   caption: scanning ? "扫描 %" : "可清理 %")
+                    .frame(width: 148, height: 148)
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], alignment: .leading, spacing: 16) {
+                    Metric(icon: "photo.fill", tint: Theme.purple, label: "照片", value: "\(store.items.count - videos)")
+                    Metric(icon: "video.fill", tint: Theme.pink, label: "视频", value: "\(videos)")
+                    Metric(icon: "externaldrive.fill", tint: Theme.orange, label: "占用", value: Fmt.bytes(store.totalBytes))
+                    Metric(icon: "sparkles", tint: Theme.blue, label: "可清理", value: Fmt.bytes(cleanableBytes))
                 }
-            } else if store.phase == .done {
-                VStack(alignment: .leading, spacing: 8) {
-                    ThinProgress(value: ratio)
-                    HStack(spacing: 4) {
-                        Circle().fill(Theme.accent).frame(width: 6, height: 6)
-                        Text("约 \(Fmt.bytes(cleanableBytes)) 可清理 · \(cleanable.count) 张")
-                            .font(Theme.caption)
-                            .foregroundStyle(Theme.text2)
-                    }
-                }
-            } else {
-                Text("点右上角刷新开始扫描")
-                    .font(Theme.caption)
-                    .foregroundStyle(Theme.text3)
             }
         }
         .card(padding: 18)
     }
 }
 
-/// 分类卡：白底 + 小图标 + 数字 + 名称
+/// 待删除：大数字 + 小单位 + 细进度条（勾选联动：选中照片时这里同步变化）
+struct PendingCard: View {
+    @EnvironmentObject var store: CleanupStore
+
+    var body: some View {
+        let cleanableBytes = max(store.bytes(of: store.cleanableIDs), 1)
+        let ratio = min(1, Double(store.toDeleteBytes) / Double(cleanableBytes))
+        VStack(alignment: .leading, spacing: 14) {
+            CardHeader(icon: "trash.fill", tint: Theme.danger, title: "待删除") {
+                if store.toDelete.isEmpty {
+                    PillBadge(text: "未选择", tint: Theme.orange)
+                } else {
+                    PillBadge(text: "去确认", tint: Theme.blue, style: .soft, chevron: true)
+                }
+            }
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("已选").font(.system(size: 14)).foregroundStyle(Theme.text2)
+                    BigNumber(value: "\(store.toDelete.count)", unit: "项")
+                }
+                Spacer()
+                VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("可释放").font(.system(size: 14)).foregroundStyle(Theme.text2)
+                        Text(store.toDelete.isEmpty ? "--" : Fmt.bytes(store.toDeleteBytes))
+                            .font(Theme.number(17, .semibold)).foregroundStyle(Theme.text)
+                    }
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("已保留").font(.system(size: 14)).foregroundStyle(Theme.text2)
+                        Text("\(store.kept.count)")
+                            .font(Theme.number(17, .semibold)).foregroundStyle(Theme.text)
+                            .contentTransition(.numericText())
+                    }
+                }
+                .frame(width: 130, alignment: .leading)
+            }
+            VStack(spacing: 8) {
+                HStack {
+                    Text("可清理共 \(Fmt.bytes(store.bytes(of: store.cleanableIDs)))")
+                        .font(.system(size: 13)).foregroundStyle(Theme.text2)
+                    Spacer()
+                    Text("\(Int((ratio * 100).rounded()))%")
+                        .font(Theme.number(14, .semibold)).foregroundStyle(Theme.orange)
+                        .contentTransition(.numericText())
+                }
+                ThinProgress(value: ratio, tint: Theme.orange)
+            }
+        }
+        .card(padding: 18)
+        .animation(Theme.spring, value: store.toDelete.count)
+    }
+}
+
+/// 分类卡：圆徽章 + 标题 + 大数字 + 单位
 struct CategoryCard: View {
     @EnvironmentObject var store: CleanupStore
     let category: CleanCategory
@@ -225,61 +212,35 @@ struct CategoryCard: View {
         let ids = store.ids(in: category)
         let pending = store.undecided(ids).count
         let analyzing = store.phase != .done && (category == .similar || category == .blurry || category == .poorLight)
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top) {
-                IconBadge(icon: category.icon)
-                Spacer()
-                if analyzing {
-                    ProgressView().scaleEffect(0.7)
-                } else if pending > 0 && pending < ids.count {
-                    Text("\(pending) 待看")
-                        .font(Theme.caption)
-                        .foregroundStyle(Theme.text3)
-                }
-            }
-            Spacer(minLength: 14)
-            Text("\(ids.count)")
-                .font(Theme.number(26, .semibold))
-                .foregroundStyle(Theme.text)
-                .contentTransition(.numericText())
-                .animation(Theme.spring, value: ids.count)
-            HStack(alignment: .firstTextBaseline) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                IconBadge(icon: category.icon, tint: category.tint, size: 30)
                 Text(category.title)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Theme.text)
-                Spacer(minLength: 4)
-                Text(Fmt.bytes(store.bytes(of: ids)))
-                    .font(Theme.number(12, .regular))
-                    .foregroundStyle(Theme.text3)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                if analyzing { ProgressView().scaleEffect(0.7) }
             }
-            .padding(.top, 2)
+            BigNumber(value: "\(ids.count)", unit: "项", size: 32)
+            HStack {
+                Text(Fmt.bytes(store.bytes(of: ids)))
+                Spacer()
+                if pending > 0 && pending < ids.count { Text("\(pending) 待看") }
+            }
+            .font(Theme.caption)
+            .foregroundStyle(Theme.text2)
         }
-        .frame(maxWidth: .infinity, minHeight: 128, alignment: .leading)
-        .card(padding: 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card(radius: 22, padding: 14)
     }
 }
 
-struct MonthCard: View {
-    @EnvironmentObject var store: CleanupStore
-    let month: MonthGroup
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let first = month.ids.first, let item = store.item(first) {
-                AssetImageView(asset: item.asset, targetSize: CGSize(width: 128, height: 96))
-                    .frame(width: 128, height: 96)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.rTile, style: .continuous))
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(month.title)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Theme.text)
-                Text("\(month.ids.count) 项")
-                    .font(Theme.caption)
-                    .foregroundStyle(Theme.text3)
-            }
-            .padding(.horizontal, 2)
-        }
-        .card(radius: 14, padding: 8)
+extension CleanupStore {
+    /// 可清理（不含视频和大文件这种「看情况」的类别）
+    var cleanableIDs: [String] {
+        Array(Set(CleanCategory.allCases
+            .filter { $0 != .videos && $0 != .large }
+            .flatMap { ids(in: $0) }))
     }
 }

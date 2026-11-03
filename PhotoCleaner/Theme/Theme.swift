@@ -1,44 +1,78 @@
 import SwiftUI
 
-/// 唯一的设计来源：简约清新主题（薄荷绿单一强调色 · 浅灰底 · 白卡片 · 系统字体）
-/// 所有界面只从这里取颜色、字体、圆角、间距和动画。
+/// 唯一的设计变量来源：深色「健康卡片」主题
+/// 近黑底 + 深灰圆角卡片 + 白色粗标题 + 灰色次要文字；每类一个克制的点缀色，不用渐变
 enum Theme {
     // MARK: 颜色
-    static let accent = Color(hex: 0x2AA876)            // 薄荷绿：唯一强调色
-    static let accentSoft = Color(hex: 0x2AA876, alpha: 0.10)
-    static let danger = Color(hex: 0xD9534F)            // 柔和红：只用于删除
-    static let dangerSoft = Color(hex: 0xD9534F, alpha: 0.09)
+    static let bg = Color(hex: 0x000000)                // 页面底色（近黑）
+    static let bgElevated = Color(hex: 0x0B0B0C)        // 圆环轨道 / 凹陷区域
+    static let card = Color(hex: 0x1C1C1E)              // 卡片
+    static let fill = Color(hex: 0x2C2C2E)              // 次级填充（进度轨道、次按钮）
+    static let fillHigh = Color(hex: 0x3A3A3C)          // 选中滑块
+    static let hairline = Color.white.opacity(0.07)     // 卡片细边
 
-    static let bg = Color(hex: 0xF7F8FA)                // 页面底色
-    static let card = Color.white                       // 卡片
-    static let fill = Color(hex: 0xF1F3F5)              // 次级填充（分段控件、次按钮、占位）
-    static let hairline = Color(hex: 0xE9ECEF)          // 1px 细线
+    static let text = Color.white                       // 主文字
+    static let text2 = Color(hex: 0x8E8E93)             // 次文字
+    static let text3 = Color(hex: 0x5E5E63)             // 弱文字
 
-    static let text = Color(hex: 0x1F2328)              // 主文字
-    static let text2 = Color(hex: 0x5F6670)             // 次文字
-    static let text3 = Color(hex: 0x9AA1AA)             // 弱文字
+    // 点缀色（每类一个，克制使用）
+    static let purple = Color(hex: 0x8E7CF6)
+    static let orange = Color(hex: 0xF2A23C)
+    static let pink = Color(hex: 0xF0567A)
+    static let blue = Color(hex: 0x4C8DF6)
+    static let green = Color(hex: 0x3CC47C)
 
-    // MARK: 圆角 / 间距
-    static let rCard: CGFloat = 16
-    static let rTile: CGFloat = 10
-    static let rButton: CGFloat = 14
-    static let pagePadding: CGFloat = 20
+    static let accent = orange                          // 主操作、关键数字
+    static let accentSoft = orange.opacity(0.14)
+    static let danger = Color(hex: 0xFF5A4F)            // 只用于删除
+    static let dangerSoft = Color(hex: 0xFF5A4F, alpha: 0.14)
+
+    // MARK: 尺寸
+    static let rCard: CGFloat = 24
+    static let rTile: CGFloat = 12
+    static let rButton: CGFloat = 18
+    static let pagePadding: CGFloat = 16
     static let gap: CGFloat = 12
 
-    // MARK: 字体（全部系统字体）
-    static let largeTitle = Font.system(size: 30, weight: .bold)
-    static let title = Font.system(size: 20, weight: .semibold)
-    static let headline = Font.system(size: 16, weight: .semibold)
+    // MARK: 字体（系统 SF）
+    static let largeTitle = Font.system(size: 28, weight: .bold)
+    static let title = Font.system(size: 20, weight: .bold)
+    static let headline = Font.system(size: 17, weight: .semibold)
     static let body = Font.system(size: 15)
     static let callout = Font.system(size: 14)
     static let caption = Font.system(size: 12)
-    static func number(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
-        .system(size: size, weight: weight).monospacedDigit()
+    static func number(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
+        Font.system(size: size, weight: weight).monospacedDigit()
     }
 
     // MARK: 动画
     static let spring = Animation.spring(response: 0.35, dampingFraction: 0.82)
     static let springSoft = Animation.spring(response: 0.5, dampingFraction: 0.88)
+
+    /// 按时间问候：夜深了 / 早上好 / 中午好 / 下午好 / 晚上好
+    static func greeting(_ date: Date = Date()) -> String {
+        switch Calendar.current.component(.hour, from: date) {
+        case 5..<11: return "早上好"
+        case 11..<14: return "中午好"
+        case 14..<18: return "下午好"
+        case 18..<23: return "晚上好"
+        default: return "夜深了"
+        }
+    }
+}
+
+extension CleanCategory {
+    /// 分类点缀色
+    var tint: Color {
+        switch self {
+        case .similar: return Theme.purple
+        case .screenshots: return Theme.blue
+        case .blurry: return Theme.green
+        case .large: return Theme.orange
+        case .videos: return Theme.pink
+        case .poorLight: return Theme.orange
+        }
+    }
 }
 
 extension Color {
@@ -62,7 +96,6 @@ struct CardModifier: ViewModifier {
             .padding(padding ?? 0)
             .background(Theme.card, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).stroke(Theme.hairline, lineWidth: 1))
-            .shadow(color: Color.black.opacity(0.035), radius: 6, x: 0, y: 2)
     }
 }
 
@@ -91,7 +124,7 @@ struct FadeIn: ViewModifier {
 
 // MARK: - 按钮
 
-/// 主按钮：实心强调色（destructive 时为柔和红）
+/// 主按钮：实心橙色（destructive 时为红色）
 struct PrimaryButtonStyle: ButtonStyle {
     var destructive = false
     @Environment(\.isEnabled) private var isEnabled
@@ -99,7 +132,7 @@ struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 16, weight: .semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(destructive ? Color.white : Color.black)
             .padding(.vertical, 15)
             .padding(.horizontal, 20)
             .background(destructive ? Theme.danger : Theme.accent,
@@ -110,7 +143,7 @@ struct PrimaryButtonStyle: ButtonStyle {
     }
 }
 
-/// 次按钮：浅灰底，文字为强调色或灰色
+/// 次按钮：深灰底
 struct SecondaryButtonStyle: ButtonStyle {
     var tint: Color = Theme.text
     func makeBody(configuration: Configuration) -> some View {
@@ -119,7 +152,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .foregroundStyle(tint)
             .padding(.vertical, 9)
             .padding(.horizontal, 14)
-            .background(Theme.fill, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .background(Theme.fill, in: Capsule())
             .opacity(configuration.isPressed ? 0.7 : 1)
             .animation(Theme.spring, value: configuration.isPressed)
     }
@@ -136,17 +169,148 @@ struct PressableStyle: ButtonStyle {
 
 // MARK: - 小组件
 
-/// 圆形浅色图标底 + 细线 SF Symbol
+/// 圆形着色图标底（参考图卡片标题左侧的小圆徽章）
 struct IconBadge: View {
     let icon: String
     var tint: Color = Theme.accent
     var size: CGFloat = 34
     var body: some View {
         Image(systemName: icon)
-            .font(.system(size: size * 0.44, weight: .regular))
+            .font(.system(size: size * 0.44, weight: .semibold))
             .foregroundStyle(tint)
             .frame(width: size, height: size)
-            .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: size * 0.3, style: .continuous))
+            .background(tint.opacity(0.16), in: Circle())
+            .overlay(Circle().stroke(tint.opacity(0.28), lineWidth: 1))
+    }
+}
+
+/// 右侧胶囊徽章：outline = 橙色描边「参考分」，soft = 蓝色「趋势 >」
+struct PillBadge: View {
+    enum Style { case outline, soft }
+    let text: String
+    var icon: String? = nil
+    var tint: Color = Theme.orange
+    var style: Style = .outline
+    var chevron = false
+
+    var body: some View {
+        HStack(spacing: 4) {
+            if let icon { Image(systemName: icon).font(.system(size: 12, weight: .bold)) }
+            Text(text).font(.system(size: 13, weight: .semibold))
+            if chevron { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)) }
+        }
+        .foregroundStyle(tint)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(tint.opacity(style == .outline ? 0.12 : 0.16), in: Capsule())
+        .overlay(Capsule().stroke(tint.opacity(style == .outline ? 0.45 : 0), lineWidth: 1))
+    }
+}
+
+/// 卡片标题行：小圆徽章 + 白色标题 + 右侧胶囊
+struct CardHeader<Trailing: View>: View {
+    var icon: String? = nil
+    var tint: Color = Theme.accent
+    let title: String
+    @ViewBuilder var trailing: () -> Trailing
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let icon { IconBadge(icon: icon, tint: tint, size: 36) }
+            Text(title).font(.system(size: 19, weight: .bold)).foregroundStyle(Theme.text)
+            Spacer(minLength: 8)
+            trailing()
+        }
+    }
+}
+
+extension CardHeader where Trailing == EmptyView {
+    init(icon: String? = nil, tint: Color = Theme.accent, title: String) {
+        self.init(icon: icon, tint: tint, title: title, trailing: { EmptyView() })
+    }
+}
+
+/// 大号粗数字 + 小单位（「29 步」）
+struct BigNumber: View {
+    let value: String
+    var unit: String? = nil
+    var size: CGFloat = 46
+    var tint: Color = Theme.text
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            Text(value)
+                .font(Theme.number(size, .bold))
+                .foregroundStyle(tint)
+                .contentTransition(.numericText())
+            if let unit {
+                Text(unit).font(.system(size: size * 0.4, weight: .semibold)).foregroundStyle(Theme.text2)
+            }
+        }
+        .animation(Theme.springSoft, value: value)
+    }
+}
+
+/// 2×2 指标格中的一项：着色小图标 + 灰色标签 + 白色数值
+struct Metric: View {
+    let icon: String
+    let tint: Color
+    let label: String
+    let value: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            IconBadge(icon: icon, tint: tint, size: 30)
+            Text(label).font(.system(size: 13)).foregroundStyle(Theme.text2)
+            Text(value)
+                .font(Theme.number(17, .semibold))
+                .foregroundStyle(Theme.text)
+                .contentTransition(.numericText())
+                .animation(Theme.spring, value: value)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// 分段圆环：黑色轨道分 4 段，紫色弧表示进度，中间大号橙色数字
+struct SegmentedRingGauge: View {
+    let value: Double
+    let center: String
+    var caption: String? = nil
+    var segments = 4
+    var tint: Color = Theme.purple
+    var centerTint: Color = Theme.orange
+    var lineWidth: CGFloat = 13
+
+    var body: some View {
+        let seg = 1.0 / Double(segments)
+        let gap = 0.035
+        let v = min(max(value, 0), 1)
+        ZStack {
+            ForEach(0..<segments, id: \.self) { i in
+                let a = Double(i) * seg + gap / 2
+                let b = Double(i + 1) * seg - gap / 2
+                Circle()
+                    .trim(from: CGFloat(a), to: CGFloat(b))
+                    .stroke(Theme.bgElevated, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                Circle()
+                    .trim(from: CGFloat(a), to: CGFloat(min(b, max(a, v))))
+                    .stroke(tint, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    .opacity(v > a ? 1 : 0)
+            }
+            .rotationEffect(.degrees(-90))
+            VStack(spacing: 0) {
+                Text(center)
+                    .font(Theme.number(40, .bold))
+                    .foregroundStyle(centerTint)
+                    .contentTransition(.numericText())
+                if let caption {
+                    Text(caption).font(Theme.caption).foregroundStyle(Theme.text2)
+                }
+            }
+        }
+        .padding(lineWidth / 2)
+        .animation(Theme.springSoft, value: value)
     }
 }
 
@@ -171,9 +335,8 @@ struct Segmented<T: Hashable & Identifiable>: View {
                         .padding(.vertical, 8)
                         .background {
                             if opt == selection {
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Color.white)
-                                    .shadow(color: .black.opacity(0.06), radius: 3, y: 1)
+                                Capsule()
+                                    .fill(Theme.fillHigh)
                                     .matchedGeometryEffect(id: "seg", in: ns)
                             }
                         }
@@ -182,7 +345,8 @@ struct Segmented<T: Hashable & Identifiable>: View {
             }
         }
         .padding(3)
-        .background(Theme.fill, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .background(Theme.card, in: Capsule())
+        .overlay(Capsule().stroke(Theme.hairline, lineWidth: 1))
     }
 }
 
@@ -195,10 +359,10 @@ struct ThinProgress: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(Theme.fill)
                 Capsule().fill(tint)
-                    .frame(width: geo.size.width * CGFloat(min(max(value, 0), 1)))
+                    .frame(width: max(value > 0 ? 4 : 0, geo.size.width * CGFloat(min(max(value, 0), 1))))
             }
         }
-        .frame(height: 4)
+        .frame(height: 5)
         .animation(Theme.springSoft, value: value)
     }
 }
@@ -208,14 +372,13 @@ struct SectionHeader: View {
     var trailing: String? = nil
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text3)
-                .textCase(.uppercase)
+            Text(title).font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.text)
             Spacer()
             if let trailing {
-                Text(trailing).font(Theme.caption).foregroundStyle(Theme.text3)
+                Text(trailing).font(Theme.caption).foregroundStyle(Theme.text2)
             }
         }
         .padding(.horizontal, 4)
-        .padding(.top, 8)
+        .padding(.top, 10)
     }
 }

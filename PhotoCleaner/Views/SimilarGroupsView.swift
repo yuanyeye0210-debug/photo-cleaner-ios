@@ -76,7 +76,7 @@ struct SimilarGroupsView: View {
                         .foregroundStyle(Theme.text)
                 }
                 Spacer()
-                IconBadge(icon: "sparkles")
+                IconBadge(icon: "sparkles", tint: Theme.purple)
             }
             Button {
                 Haptics.medium()
@@ -95,6 +95,7 @@ private struct GroupCard: View {
     @EnvironmentObject var store: CleanupStore
     let group: [String]
     @Binding var preview: PhotoItem?
+    @State private var expanded = false
 
     var body: some View {
         let best = store.bestID(in: group)
@@ -109,28 +110,36 @@ private struct GroupCard: View {
                         .foregroundStyle(Theme.text3)
                 }
                 Spacer()
-                Text(Fmt.bytes(store.bytes(of: group)))
-                    .font(Theme.number(12, .regular))
-                    .foregroundStyle(Theme.text3)
+                Button {
+                    Haptics.light()
+                    expanded.toggle()
+                } label: {
+                    PillBadge(text: expanded ? "收起" : Fmt.bytes(store.bytes(of: group)),
+                              tint: Theme.blue, style: .soft)
+                }
+                .buttonStyle(PressableStyle())
             }
+            // 03 叠卡展开：一组照片先叠在一起，点一下依次摊开，收起时原路叠回
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
-                    ForEach(group, id: \.self) { id in
+                    ForEach(Array(group.enumerated()), id: \.element) { i, id in
                         if let item = store.item(id) {
                             ThumbnailCell(item: item, isBest: id == best)
                                 .frame(width: 104, height: 104)
                                 .onTapGesture {
                                     Haptics.light()
-                                    store.toggleDelete(id)
+                                    if expanded { store.toggleDelete(id) } else { expanded = true }
                                 }
                                 .onLongPressGesture(minimumDuration: 0.35) {
                                     preview = item
                                 }
+                                .fanOut(index: i, count: group.count, expanded: expanded, step: 110, axis: .horizontal)
                         }
                     }
                 }
                 .padding(2)
             }
+            .scrollDisabled(!expanded)
             HStack(spacing: 8) {
                 Button {
                     Haptics.medium()
