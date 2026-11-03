@@ -211,7 +211,7 @@ struct CategoryCard: View {
     var body: some View {
         let ids = store.ids(in: category)
         let pending = store.undecided(ids).count
-        let analyzing = store.phase != .done && (category == .similar || category == .blurry || category == .poorLight)
+        let analyzing = store.phase != .done && category.needsAnalysis
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 IconBadge(icon: category.icon, tint: category.tint, size: 30)
@@ -237,10 +237,10 @@ struct CategoryCard: View {
 }
 
 extension CleanupStore {
-    /// 可清理（不含视频和大文件这种「看情况」的类别）
+    /// 可清理（不含视频、大文件和美食/宠物/风景这种「看情况」的类别）
     var cleanableIDs: [String] {
         Array(Set(CleanCategory.allCases
-            .filter { $0 != .videos && $0 != .large }
+            .filter { $0 != .videos && $0 != .large && !$0.isBrowse }
             .flatMap { ids(in: $0) }))
     }
 }

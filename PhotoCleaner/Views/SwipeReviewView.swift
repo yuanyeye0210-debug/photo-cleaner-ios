@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 左滑保留、右滑标记删除（只做标记，确认后才真正删除）
+/// 左滑标记删除、右滑保留（只做标记，确认后才真正删除）
 struct SwipeReviewView: View {
     @EnvironmentObject var store: CleanupStore
     let ids: [String]
@@ -78,7 +78,7 @@ struct SwipeReviewView: View {
                     .foregroundStyle(Theme.text2)
                     .contentTransition(.numericText())
                 Spacer()
-                Text("左滑保留 · 右滑标记删除 · 不会立即删除")
+                Text("左滑标记删除 · 右滑保留 · 不会立即删除")
                     .font(Theme.caption)
                     .foregroundStyle(Theme.text3)
             }
@@ -91,8 +91,8 @@ struct SwipeReviewView: View {
     @ViewBuilder
     private func card(for item: PhotoItem, isTop: Bool, depth: Int) -> some View {
         let drag = isTop ? offset : .zero
-        let deleteAmount = Double(max(0, drag.width) / threshold)
-        let keepAmount = Double(max(0, -drag.width) / threshold)
+        let deleteAmount = Double(max(0, -drag.width) / threshold)
+        let keepAmount = Double(max(0, drag.width) / threshold)
         let d = CGFloat(depth) - (depth > 0 ? lift : 0)
 
         GeometryReader { geo in
@@ -125,12 +125,12 @@ struct SwipeReviewView: View {
                 hint(icon: "trash", text: "标记删除", color: Theme.danger)
                     .opacity(deleteAmount)
                     .scaleEffect(CGFloat(0.85 + min(1, deleteAmount) * 0.15))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                     .padding(16)
                 hint(icon: "checkmark", text: "保留", color: Theme.green)
                     .opacity(keepAmount)
                     .scaleEffect(CGFloat(0.85 + min(1, keepAmount) * 0.15))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .padding(16)
             }
         }
@@ -156,9 +156,9 @@ struct SwipeReviewView: View {
                     let dx = v.translation.width
                     // 必须明显横向拖动（横向 > 纵向的 1.5 倍）且越过阈值才算数，防止误触
                     let horizontal = abs(dx) > abs(v.translation.height) * 1.5
-                    if horizontal && dx > threshold {
+                    if horizontal && dx < -threshold {
                         swipe(.delete)
-                    } else if horizontal && dx < -threshold {
+                    } else if horizontal && dx > threshold {
                         swipe(.keep)
                     } else {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { offset = .zero }
@@ -173,11 +173,15 @@ struct SwipeReviewView: View {
         if item.isScreenshot { t.append("截图") }
         if item.isVideo { t.append("视频") }
         if let a = item.analysis {
-            if a.sharpness < store.blurThreshold { t.append("模糊") }
-            if a.brightness < 35 { t.append("过暗") }
-            if a.brightness > 240 { t.append("过曝") }
+            if let code = a.verificationCode { t.append("验证码 \(code)") }
+            if a.tags.contains(.qrCode) { t.append("二维码") }
+            if a.tags.contains(.document) { t.append("文档") }
+            if a.textHeavy && !item.isScreenshot { t.append("文字多") }
+            if store.isBlurry(item) { t.append("模糊") }
+            if store.isPoorLight(item) { t.append(a.brightness < 35 ? "过暗" : "过曝") }
+            if store.isLowQuality(item) { t.append("低质量") }
         }
-        return t
+        return Array(t.prefix(4))
     }
 
     private func hint(icon: String, text: String, color: Color) -> some View {
@@ -197,12 +201,12 @@ struct SwipeReviewView: View {
 
     private var controlRow: some View {
         HStack(spacing: 32) {
-            CircleButton(icon: "checkmark", color: Theme.green, size: 60) { swipe(.keep) }
+            CircleButton(icon: "xmark", color: Theme.danger, size: 60) { swipe(.delete) }
                 .disabled(pos >= queue.count)
             CircleButton(icon: "arrow.uturn.backward", color: Theme.text2, size: 46) { undo() }
                 .disabled(history.isEmpty)
                 .opacity(history.isEmpty ? 0.4 : 1)
-            CircleButton(icon: "xmark", color: Theme.danger, size: 60) { swipe(.delete) }
+            CircleButton(icon: "checkmark", color: Theme.green, size: 60) { swipe(.keep) }
                 .disabled(pos >= queue.count)
         }
         .padding(.top, 4)
@@ -293,7 +297,7 @@ struct SwipeReviewView: View {
         flying = true
         if decision == .delete { Haptics.medium() } else { Haptics.light() }
         withAnimation(.easeIn(duration: 0.22)) {
-            offset = CGSize(width: decision == .delete ? 700 : -700, height: offset.height + 30)
+            offset = CGSize(width: decision == .delete ? -700 : 700, height: offset.height + 30)
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
             store.set(id, decision)

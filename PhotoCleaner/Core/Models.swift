@@ -9,16 +9,24 @@ struct PhotoItem: Identifiable, @unchecked Sendable {
     let creationDate: Date?
     let isVideo: Bool
     let isScreenshot: Bool
+    var isFavorite: Bool = false   // 系统相册里收藏（❤️）过的：永远不进清理分类
     let pixelWidth: Int
     let pixelHeight: Int
     var analysis: AnalysisResult?
 
     var pixelCount: Int { pixelWidth * pixelHeight }
+    /// 长宽比（≥1）
+    var aspect: Double {
+        let a = Double(max(pixelWidth, pixelHeight)), b = Double(max(1, min(pixelWidth, pixelHeight)))
+        return a / b
+    }
 }
 
 /// 清理分类
 enum CleanCategory: String, CaseIterable, Identifiable, Hashable {
-    case similar, screenshots, blurry, large, videos, poorLight
+    // 顺序就是首页 / 分类页的显示顺序：先清理类，最后是「回顾」类（美食、宠物、风景）
+    case similar, screenshots, textImages, documents, qrCodes, lowQuality, blurry, poorLight, large, videos
+    case food, pets, scenery
 
     var id: String { rawValue }
 
@@ -30,7 +38,27 @@ enum CleanCategory: String, CaseIterable, Identifiable, Hashable {
         case .large: return "大文件"
         case .videos: return "视频"
         case .poorLight: return "过暗/过曝"
+        case .textImages: return "文字图片"
+        case .documents: return "文档/票据"
+        case .qrCodes: return "二维码"
+        case .lowQuality: return "低质量照片"
+        case .food: return "美食"
+        case .pets: return "宠物"
+        case .scenery: return "风景"
         }
+    }
+
+    /// 需要逐张 AI 分析才能得出的分类（分析中显示转圈）
+    var needsAnalysis: Bool {
+        switch self {
+        case .screenshots, .large, .videos: return false
+        default: return true
+        }
+    }
+
+    /// 「回顾」类：不算进可清理空间，只是方便按内容翻看
+    var isBrowse: Bool {
+        self == .food || self == .pets || self == .scenery
     }
 
     var subtitle: String {
@@ -41,6 +69,13 @@ enum CleanCategory: String, CaseIterable, Identifiable, Hashable {
         case .large: return "占空间最多的照片"
         case .videos: return "按大小排序的视频"
         case .poorLight: return "太黑或太亮，基本看不清"
+        case .textImages: return "聊天记录、长图、验证码"
+        case .documents: return "票据、文件、证件照片"
+        case .qrCodes: return "用过的付款码、海报二维码"
+        case .lowQuality: return "AI 评分很低的照片"
+        case .food: return "吃过的美食，留几张就够"
+        case .pets: return "猫猫狗狗，挑出拍废的"
+        case .scenery: return "风景照，挑出重复的"
         }
     }
 
@@ -52,6 +87,13 @@ enum CleanCategory: String, CaseIterable, Identifiable, Hashable {
         case .large: return "externaldrive"
         case .videos: return "video"
         case .poorLight: return "sun.max"
+        case .textImages: return "text.bubble"
+        case .documents: return "doc.text"
+        case .qrCodes: return "qrcode"
+        case .lowQuality: return "hand.thumbsdown"
+        case .food: return "fork.knife"
+        case .pets: return "pawprint"
+        case .scenery: return "mountain.2"
         }
     }
 }

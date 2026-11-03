@@ -65,6 +65,10 @@ struct SettingsView: View {
                     CardHeader(icon: "lock.fill", tint: Theme.blue, title: "关于")
                     Text("所有分析都在本机完成，不联网、不上传。删除使用系统相册接口，删除前系统会再次确认。")
                         .font(Theme.callout).foregroundStyle(Theme.text2)
+                    Text("用苹果 Vision 本机 AI 识别相似照片、内容（文档、二维码、美食、宠物、风景）、文字和人脸表情。照片质量评分需要 iOS 18 及以上。")
+                        .font(Theme.callout).foregroundStyle(Theme.text2)
+                    Text("在系统相册里收藏（❤️）过的照片不会出现在任何清理分类里，也不会被自动标记删除。")
+                        .font(Theme.callout).foregroundStyle(Theme.text2)
                     Group {
                         Link("immich-swipe（滑动清理交互）", destination: URL(string: "https://github.com/dev-nick421/immich-swipe")!)
                         Link("czkawka（相似图查找）", destination: URL(string: "https://github.com/qarmin/czkawka")!)

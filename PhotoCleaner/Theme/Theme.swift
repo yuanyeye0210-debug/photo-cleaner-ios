@@ -71,6 +71,13 @@ extension CleanCategory {
         case .large: return Theme.orange
         case .videos: return Theme.pink
         case .poorLight: return Theme.orange
+        case .textImages: return Theme.blue
+        case .documents: return Theme.green
+        case .qrCodes: return Theme.purple
+        case .lowQuality: return Theme.pink
+        case .food: return Theme.orange
+        case .pets: return Theme.pink
+        case .scenery: return Theme.green
         }
     }
 }

@@ -71,7 +71,8 @@ final class PhotoLibraryService {
     func image(for asset: PHAsset,
                targetSize: CGSize,
                contentMode: PHImageContentMode = .aspectFill,
-               allowNetwork: Bool = false) async -> UIImage? {
+               allowNetwork: Bool = false,
+               cache: Bool = true) async -> UIImage? {
         let options = PHImageRequestOptions()
         options.deliveryMode = .highQualityFormat
         options.resizeMode = .fast
@@ -85,7 +86,7 @@ final class PhotoLibraryService {
                 cont.resume(returning: image)
             }
         }
-        if let img { remember(img, for: asset.localIdentifier) }
+        if cache, let img { remember(img, for: asset.localIdentifier) }
         return img
     }
 

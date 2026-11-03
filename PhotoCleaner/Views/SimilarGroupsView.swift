@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 相似照片分组：自动推荐每组最清晰的一张
+/// 相似照片分组：自动推荐每组最好的一张
 struct SimilarGroupsView: View {
     @EnvironmentObject var store: CleanupStore
     @State private var confirmAll = false
@@ -68,7 +68,7 @@ struct SimilarGroupsView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("每组留最清晰的一张")
+                    Text("每组留最好的一张（看表情、AI 评分和清晰度）")
                         .font(Theme.callout)
                         .foregroundStyle(Theme.text2)
                     Text("可释放 \(Fmt.bytes(extraBytes))")

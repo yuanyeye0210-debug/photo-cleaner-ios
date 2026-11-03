@@ -8,8 +8,8 @@ let package = Package(
     targets: [
         .target(name: "CleanCore",
                 path: "PhotoCleaner/Core",
-                exclude: ["Models.swift", "ImageAnalyzer.swift"],
-                sources: ["ImageMath.swift", "SimilarityGrouper.swift"]),
+                exclude: ["Models.swift", "ImageAnalyzer.swift", "VisionAnalyzer.swift"],
+                sources: ["ImageMath.swift", "SimilarityGrouper.swift", "VisionRules.swift"]),
         .testTarget(name: "CleanCoreTests",
                     dependencies: ["CleanCore"],
                     path: "PhotoCleanerTests"),
