@@ -92,5 +92,8 @@ class AnalysisCache(context: Context) {
         File(file.parentFile, "analysis_v2.bin").delete()
     }
 
-    private companion object { const val MAGIC = 0x50430004   // 4：分类阈值提高 + 主体标签和人脸数（全部重新分析） }
+    private companion object {
+        // 4：分类阈值提高 + 主体标签和人脸数（全部重新分析）
+        const val MAGIC = 0x50430004
+    }
 }
