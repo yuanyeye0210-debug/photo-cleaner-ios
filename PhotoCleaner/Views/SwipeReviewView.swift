@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// 左滑标记删除、右滑保留、上滑稍后再看（只做标记，确认后才真正删除）
 struct SwipeReviewView: View {
@@ -56,6 +57,8 @@ struct SwipeReviewView: View {
             if !(loaded && pos >= queue.count) { controls }
         }
         .padding(.bottom, 12)
+        // 滑卡片时关掉「从屏幕边缘/内容区右滑返回」，免得快滑时退回上一页；左上角返回按钮照常可用
+        .background(PopGestureBlocker().frame(width: 0, height: 0))
         .onAppear {
             guard !loaded else { return }
             queue = store.undecided(ids, includeLater: includeLater).filter { store.item($0) != nil }
@@ -178,8 +181,9 @@ struct SwipeReviewView: View {
         .accessibilityAction(named: Text("保留")) { swipe(.keep) }
         .accessibilityAction(named: Text("稍后再看")) { swipe(.later) }
         .accessibilityAction(named: Text("查看大图")) { preview = item }
-        .gesture(
-            DragGesture(minimumDistance: 20)
+        // 用 highPriorityGesture：卡片上的拖动优先于外层手势
+        .highPriorityGesture(
+            DragGesture(minimumDistance: 12)
                 .onChanged { v in
                     guard !flying else { return }
                     let wasPast = abs(offset.width) > threshold || -offset.height > threshold
@@ -188,17 +192,15 @@ struct SwipeReviewView: View {
                 }
                 .onEnded { v in
                     guard !flying else { return }
-                    let dx = v.translation.width, dy = v.translation.height
-                    // 必须明显横向拖动（横向 > 纵向的 1.5 倍）且越过阈值才算数，防止误触；上滑同理
-                    let horizontal = abs(dx) > abs(dy) * 1.5
-                    let vertical = abs(dy) > abs(dx) * 1.5
-                    if horizontal && dx < -threshold {
-                        swipe(.delete)
-                    } else if horizontal && dx > threshold {
-                        swipe(.keep)
-                    } else if vertical && dy < -threshold {
-                        swipe(.later)
-                    } else {
+                    // 慢拖过 110pt，或快甩过 60pt 且按速度预测能过 110pt；方向必须明显（1.5 倍）
+                    let outcome = SwipeLogic.decide(dx: Double(v.translation.width), dy: Double(v.translation.height),
+                                                    predictedDX: Double(v.predictedEndTranslation.width),
+                                                    predictedDY: Double(v.predictedEndTranslation.height))
+                    switch outcome {
+                    case .delete: swipe(.delete)
+                    case .keep: swipe(.keep)
+                    case .later: swipe(.later)
+                    case .none:
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { offset = .zero }
                     }
                 }
@@ -391,6 +393,55 @@ struct SwipeReviewView: View {
         withAnimation(Theme.spring) {
             pos = max(0, pos - 1)
             offset = .zero
+        }
+    }
+}
+
+/// 在当前页面显示期间禁用导航栏的滑动返回（iOS 26 还有一个整屏内容区右滑返回，也要一起关），离开时恢复
+struct PopGestureBlocker: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> Controller { Controller() }
+    func updateUIViewController(_ vc: Controller, context: Context) { vc.apply() }
+    static func dismantleUIViewController(_ vc: Controller, coordinator: ()) { vc.restore() }
+
+    final class Controller: UIViewController {
+        private weak var nav: UINavigationController?
+        private var saved: (edge: Bool, content: Bool)?
+
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            view.isUserInteractionEnabled = false
+            view.backgroundColor = .clear
+        }
+        override func didMove(toParent parent: UIViewController?) {
+            super.didMove(toParent: parent)
+            if parent == nil { restore() } else { apply() }
+        }
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            apply()
+        }
+        override func viewDidDisappear(_ animated: Bool) {
+            super.viewDidDisappear(animated)
+            restore()
+        }
+
+        func apply() {
+            guard let nav = navigationController ?? nav else { return }
+            self.nav = nav
+            if saved == nil {
+                var content = true
+                if #available(iOS 26.0, *) { content = nav.interactiveContentPopGestureRecognizer?.isEnabled ?? true }
+                saved = (nav.interactivePopGestureRecognizer?.isEnabled ?? true, content)
+            }
+            nav.interactivePopGestureRecognizer?.isEnabled = false
+            if #available(iOS 26.0, *) { nav.interactiveContentPopGestureRecognizer?.isEnabled = false }
+        }
+
+        func restore() {
+            guard let nav, let saved else { return }
+            nav.interactivePopGestureRecognizer?.isEnabled = saved.edge
+            if #available(iOS 26.0, *) { nav.interactiveContentPopGestureRecognizer?.isEnabled = saved.content }
+            self.saved = nil
         }
     }
 }

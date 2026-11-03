@@ -10,7 +10,7 @@ let package = Package(
                 path: "PhotoCleaner/Core",
                 exclude: ["Models.swift", "ImageAnalyzer.swift", "VisionAnalyzer.swift"],
                 sources: ["ImageMath.swift", "SimilarityGrouper.swift", "VisionRules.swift", "AnalysisRecord.swift",
-                         "AnalysisCache.swift", "CleanLogic.swift"]),
+                         "AnalysisCache.swift", "CleanLogic.swift", "SwipeLogic.swift"]),
         .testTarget(name: "CleanCoreTests",
                     dependencies: ["CleanCore"],
                     path: "PhotoCleanerTests"),
