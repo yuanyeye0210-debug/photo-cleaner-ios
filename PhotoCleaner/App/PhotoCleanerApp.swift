@@ -62,6 +62,9 @@ struct MainTabs: View {
     @State private var origins: [AppTab: CGPoint] = [:]
     @State private var paths: [AppTab: [Route]] = [:]
     @State private var showSettings = false
+    /// 手指在页签栏上拖动时的位置（全局坐标 x）；nil 表示没在拖
+    @State private var dragX: CGFloat?
+    @State private var hoverTab: AppTab?
 
     @Namespace private var glassNS
     @Namespace private var tabNS
@@ -163,27 +166,66 @@ struct MainTabs: View {
     private var tabBar: some View {
         GlassGroup(spacing: 18) {
             HStack(spacing: 12) {
-                HStack(spacing: 0) {
-                    ForEach(AppTab.allCases) { t in
-                        VStack(spacing: 3) {
-                            Image(systemName: t.icon).font(.system(size: 19, weight: .semibold))
-                            Text(t.title).font(.system(size: 11, weight: .semibold))
+                GeometryReader { geo in
+                    let frame = geo.frame(in: .global)
+                    let count = CGFloat(AppTab.allCases.count)
+                    let segW = frame.width / count
+                    let shown = hoverTab ?? tab
+                    // 高亮胶囊：拖动时跟着手指走，松手吸附到选中的页签
+                    let center: CGFloat = {
+                        if let x = dragX {
+                            return min(max(x - frame.minX, segW / 2), frame.width - segW / 2)
                         }
-                        .foregroundStyle(t == tab ? Theme.blue : Theme.text)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background {
-                            if t == tab {
-                                Capsule().fill(Color.white.opacity(0.12))
-                                    .matchedGeometryEffect(id: "tabSel", in: tabNS)
+                        return (CGFloat(tab.rawValue) + 0.5) * segW
+                    }()
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.white.opacity(dragX == nil ? 0.12 : 0.18))
+                            .frame(width: segW, height: 54)
+                            .scaleEffect(dragX == nil ? 1 : 1.08)
+                            .offset(x: center - segW / 2)
+                            .animation(dragX == nil ? .spring(response: 0.4, dampingFraction: 0.75)
+                                                    : .interactiveSpring(response: 0.18, dampingFraction: 0.86),
+                                       value: center)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: dragX == nil)
+
+                        HStack(spacing: 0) {
+                            ForEach(AppTab.allCases) { t in
+                                VStack(spacing: 3) {
+                                    Image(systemName: t.icon).font(.system(size: 19, weight: .semibold))
+                                    Text(t.title).font(.system(size: 11, weight: .semibold))
+                                }
+                                .foregroundStyle(t == shown ? Theme.blue : Theme.text)
+                                .scaleEffect(dragX != nil && t == shown ? 1.1 : 1)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: shown)
+                                .frame(width: segW, height: 54)
+                                .accessibilityElement(children: .combine)
+                                .accessibilityAddTraits(t == tab ? [.isButton, .isSelected] : .isButton)
+                                .accessibilityAction { select(t, at: CGPoint(x: frame.minX + (CGFloat(t.rawValue) + 0.5) * segW, y: frame.midY)) }
                             }
                         }
-                        .contentShape(Capsule())
-                        .onTapPoint { select(t, at: $0) }
-                        .accessibilityElement(children: .combine)
-                        .accessibilityAddTraits(t == tab ? [.isButton, .isSelected] : .isButton)
                     }
+                    .contentShape(Capsule())
+                    // 按住左右拖：手在哪高亮就到哪，松手切到对应页签；轻点也能直接切
+                    .gesture(
+                        DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                            .onChanged { v in
+                                dragX = v.location.x
+                                let i = Int(((v.location.x - frame.minX) / segW).rounded(.down))
+                                let t = AppTab(rawValue: min(max(i, 0), AppTab.allCases.count - 1)) ?? tab
+                                if t != hoverTab {
+                                    if hoverTab != nil { Haptics.light() }
+                                    hoverTab = t
+                                }
+                            }
+                            .onEnded { v in
+                                let target = hoverTab ?? tab
+                                dragX = nil
+                                hoverTab = nil
+                                select(target, at: v.location)
+                            }
+                    )
                 }
+                .frame(height: 54)
                 .padding(5)
                 .glassSurface(Capsule(), interactive: true)
                 .glassID("tabs", in: glassNS)
