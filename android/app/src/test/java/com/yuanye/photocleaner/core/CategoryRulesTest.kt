@@ -69,6 +69,18 @@ class CategoryRulesTest {
         assertNull(swipeAction(-200f, 150f, 110f))                        // 斜着拖
     }
 
+    @Test fun swipeFling() {
+        // 快甩：拖了 70，速度 1500/秒 → 预测落点 370，算数
+        assertEquals(SwipeAction.DELETE, swipeAction(-70f, 5f, 110f, vx = -1500f, vy = 0f))
+        assertEquals(SwipeAction.KEEP, swipeAction(70f, 5f, 110f, vx = 1500f, vy = 0f))
+        assertEquals(SwipeAction.LATER, swipeAction(3f, -70f, 110f, vx = 0f, vy = -1500f))
+        assertNull(swipeAction(-40f, 0f, 110f, vx = -3000f))              // 不到 60：不算
+        assertNull(swipeAction(-70f, 0f, 110f, vx = -100f))               // 太慢：预测落点没过阈值
+        assertNull(swipeAction(70f, 0f, 110f, vx = -2000f))               // 往回甩：不算
+        assertNull(swipeAction(-80f, 10f, 110f, vx = -1500f, vy = 1500f)) // 斜着甩：不算
+        assertNull(swipeAction(0f, 80f, 110f, vy = 3000f))                // 下甩：不算
+    }
+
     @Test fun bytesFormat() {
         assertEquals("1.50 GB", Fmt.bytes(1_500_000_000))
         assertEquals("12.3 MB", Fmt.bytes(12_300_000))

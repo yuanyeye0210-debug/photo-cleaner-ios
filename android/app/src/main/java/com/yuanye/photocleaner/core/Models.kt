@@ -211,11 +211,30 @@ enum class SwipeAction { DELETE, KEEP, LATER }
  * 判定一次拖动算不算「滑走」：
  *  - 水平为主（|dx| > 1.5|dy|）且超过阈值：左 = 删除，右 = 保留
  *  - 向上为主（-dy > 1.5|dx|）且超过阈值：稍后再看
+ *  - 快速甩：至少拖了 flickMinPx（默认阈值的 60/110），并且「当前位置 + 速度 × 0.2 秒」的预测落点越过阈值、
+ *    方向同样明显且同向，也算数
+ * vx / vy：松手时的速度（px/秒）
  */
-fun swipeAction(dx: Float, dy: Float, thresholdPx: Float): SwipeAction? {
+fun swipeAction(
+    dx: Float, dy: Float, thresholdPx: Float,
+    vx: Float = 0f, vy: Float = 0f,
+    flickMinPx: Float = thresholdPx * 60f / 110f,
+): SwipeAction? {
     val ax = kotlin.math.abs(dx)
     val ay = kotlin.math.abs(dy)
-    if (ax >= thresholdPx && ax > 1.5f * ay) return if (dx < 0) SwipeAction.DELETE else SwipeAction.KEEP
-    if (dy <= -thresholdPx && ay > 1.5f * ax) return SwipeAction.LATER
+    val px = dx + vx * FLING_PROJECT_SECONDS
+    val py = dy + vy * FLING_PROJECT_SECONDS
+    val apx = kotlin.math.abs(px)
+    val apy = kotlin.math.abs(py)
+    if (ax > 1.5f * ay) {
+        val flick = ax >= flickMinPx && apx > 1.5f * apy && apx >= thresholdPx && (px < 0) == (dx < 0)
+        if (ax >= thresholdPx || flick) return if (dx < 0) SwipeAction.DELETE else SwipeAction.KEEP
+    } else if (dy < 0 && ay > 1.5f * ax) {
+        val flick = ay >= flickMinPx && apy > 1.5f * apx && py <= -thresholdPx
+        if (ay >= thresholdPx || flick) return SwipeAction.LATER
+    }
     return null
 }
+
+/** 按速度预测落点时往前推的时间（秒），和 iOS 的 predictedEndTranslation 差不多 */
+const val FLING_PROJECT_SECONDS = 0.2f

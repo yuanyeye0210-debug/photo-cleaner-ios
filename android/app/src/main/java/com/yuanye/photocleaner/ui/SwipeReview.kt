@@ -14,6 +14,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.systemGestureExclusion
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -157,7 +159,8 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
     val lUndo = s(R.string.action_undo)
 
     Column(modifier.fillMaxWidth().padding(horizontal = T.pagePadding), horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 6.dp)) {
+        // systemGestureExclusion：卡片区域不让系统「边缘滑动返回」抢手势（快滑时不会退回上一页；返回键/按钮照常）
+        Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 6.dp).systemGestureExclusion()) {
             // 下一张垫在后面
             queue.getOrNull(pos + 1)?.let { nid ->
                 vm.item(nid)?.let { n ->
@@ -187,10 +190,15 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
                                 )
                             }
                             .pointerInput(id) {
+                                // 速度按累计拖动距离算（卡片本身在动，不能用相对卡片的坐标）
+                                val tracker = VelocityTracker()
+                                var total = Offset.Zero
                                 detectDragGestures(
+                                    onDragStart = { tracker.resetTracking(); total = Offset.Zero },
                                     onDragEnd = {
                                         val v = offset.value
-                                        val d = swipeAction(v.x, v.y, threshold)
+                                        val vel = tracker.calculateVelocity()
+                                        val d = swipeAction(v.x, v.y, threshold, vel.x, vel.y)
                                         if (d != null) swipe(d)
                                         else scope.launch { offset.animateTo(Offset.Zero, spring(0.7f, Spring.StiffnessMedium)) }
                                     },
@@ -198,6 +206,8 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
                                 ) { ch, drag ->
                                     if (flying) return@detectDragGestures
                                     ch.consume()
+                                    total += drag
+                                    tracker.addPosition(ch.uptimeMillis, total)
                                     scope.launch { offset.snapTo(offset.value + drag) }
                                 }
                             }
