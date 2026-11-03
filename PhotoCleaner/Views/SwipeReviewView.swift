@@ -1,3 +1,4 @@
+import Photos
 import SwiftUI
 import UIKit
 
@@ -22,6 +23,12 @@ struct SwipeReviewView: View {
     /// 每张卡片的图片是否已显示（没显示出来不允许标记删除，防止误删）
     @State private var loadedIDs: Set<String> = []
     @State private var showNotLoaded = false
+    /// 卡片尺寸（预取用同一尺寸，PhotoKit 缓存才命中）
+    @State private var cardSize: CGSize = .zero
+    /// 正在预取的照片
+    @State private var caching: [PHAsset] = []
+    /// 卡片标签（换卡时算一次，拖动时不重复算）
+    @State private var tagCache: [String: [String]] = [:]
 
     private let threshold: CGFloat = 110
 
@@ -39,6 +46,11 @@ struct SwipeReviewView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(GeometryReader { g in
+                    Color.clear
+                        .onAppear { cardSize = g.size; prefetch() }
+                        .onChange(of: g.size) { cardSize = $0 }
+                })
                 .overlay(alignment: .top) {
                     if showNotLoaded {
                         Text("图片还没加载出来，先别删")
@@ -67,6 +79,7 @@ struct SwipeReviewView: View {
             prefetch()
         }
         .onChange(of: pos) { _ in prefetch() }
+        .onDisappear { stopPrefetch() }
         .fullScreenCover(item: $preview) { PhotoDetailView(item: $0) }
     }
 
@@ -124,9 +137,10 @@ struct SwipeReviewView: View {
                     .allowsHitTesting(false)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    if !tags(for: item).isEmpty {
+                    let itemTags = tagCache[item.id] ?? tags(for: item)
+                    if !itemTags.isEmpty {
                         HStack(spacing: 6) {
-                            ForEach(tags(for: item), id: \.self) { Tag(text: $0) }
+                            ForEach(itemTags, id: \.self) { Tag(text: $0) }
                         }
                         .padding(.bottom, 2)
                     }
@@ -141,21 +155,27 @@ struct SwipeReviewView: View {
                 .padding(16)
                 .allowsHitTesting(false)
 
-                // 拖动时的提示
-                hint(icon: "trash", text: String(localized: "标记删除"), color: Theme.danger)
-                    .opacity(deleteAmount)
-                    .scaleEffect(CGFloat(0.85 + min(1, deleteAmount) * 0.15))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(16)
-                hint(icon: "checkmark", text: String(localized: "保留"), color: Theme.green)
-                    .opacity(keepAmount)
-                    .scaleEffect(CGFloat(0.85 + min(1, keepAmount) * 0.15))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(16)
-                hint(icon: "clock.arrow.circlepath", text: String(localized: "稍后再看"), color: Theme.blue)
-                    .opacity(laterAmount)
-                    .scaleEffect(CGFloat(0.85 + min(1, laterAmount) * 0.15))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                // 拖动时的提示（只在拖向那个方向时才画）
+                if deleteAmount > 0.01 {
+                    hint(icon: "trash", text: String(localized: "标记删除"), color: Theme.danger)
+                        .opacity(deleteAmount)
+                        .scaleEffect(CGFloat(0.85 + min(1, deleteAmount) * 0.15))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .padding(16)
+                }
+                if keepAmount > 0.01 {
+                    hint(icon: "checkmark", text: String(localized: "保留"), color: Theme.green)
+                        .opacity(keepAmount)
+                        .scaleEffect(CGFloat(0.85 + min(1, keepAmount) * 0.15))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .padding(16)
+                }
+                if laterAmount > 0.01 {
+                    hint(icon: "clock.arrow.circlepath", text: String(localized: "稍后再看"), color: Theme.blue)
+                        .opacity(laterAmount)
+                        .scaleEffect(CGFloat(0.85 + min(1, laterAmount) * 0.15))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                }
             }
         }
     }
@@ -168,7 +188,12 @@ struct SwipeReviewView: View {
         // 点按/拖动只认看得见的圆角卡片，不会抢到上面的按钮
         .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Color.black.opacity(0.04), lineWidth: 1))
-        .shadow(color: .black.opacity(isTop ? 0.10 : 0.04), radius: isTop ? 14 : 6, y: isTop ? 6 : 2)
+        // 阴影只画在背后的圆角矩形上（给整张照片加阴影，每帧都要离屏渲染，拖动会卡）
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Theme.fill)
+                .shadow(color: .black.opacity(isTop ? 0.10 : 0.04), radius: isTop ? 14 : 6, y: isTop ? 6 : 2)
+        )
         .scaleEffect(1 - d * CGFloat(0.04))
         .offset(y: d * CGFloat(10))
         .offset(x: drag.width, y: lift)
@@ -194,7 +219,10 @@ struct SwipeReviewView: View {
                 .onChanged { v in
                     guard !flying else { return }
                     let wasPast = abs(offset.width) > threshold || -offset.height > threshold
-                    offset = v.translation
+                    // 拖动时用 interactiveSpring：跟手又不生硬
+                    var t = Transaction()
+                    t.animation = .interactiveSpring(response: 0.18, dampingFraction: 0.86)
+                    withTransaction(t) { offset = v.translation }
                     if !wasPast && (abs(offset.width) > threshold || -offset.height > threshold) { Haptics.light() }
                 }
                 .onEnded { v in
@@ -249,7 +277,9 @@ struct SwipeReviewView: View {
         .font(.system(size: 15, weight: .semibold))
         .foregroundStyle(color)
         .padding(.horizontal, 14).padding(.vertical, 8)
-        .glassSurface(Capsule())
+        // 跟着卡片移动的提示不用毛玻璃（每帧重新模糊很费），用半透明深色底
+        .background(Capsule().fill(Color.black.opacity(0.6)))
+        .overlay(Capsule().stroke(color.opacity(0.6), lineWidth: 1))
     }
 
     private var controls: some View {
@@ -363,14 +393,15 @@ struct SwipeReviewView: View {
         }
         flying = true
         if decision == .delete { Haptics.medium() } else { Haptics.light() }
-        withAnimation(.easeIn(duration: 0.22)) {
+        // 飞出用弹簧，衔接手指松开时的速度
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.9)) {
             switch decision {
             case .delete: offset = CGSize(width: -700, height: offset.height + 30)
             case .keep: offset = CGSize(width: 700, height: offset.height + 30)
             case .later: offset = CGSize(width: offset.width, height: -1100)
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             switch decision {
             case .delete: store.set(id, .delete)
             case .keep: store.set(id, .keep)
@@ -383,14 +414,33 @@ struct SwipeReviewView: View {
         }
     }
 
-    /// 提前加载后面几张，划到时图片已经准备好
+    /// 卡片的像素尺寸（和 AssetImageView 请求的一样）
+    private var cardPixelSize: CGSize {
+        let s = UIScreen.main.scale
+        return CGSize(width: (cardSize.width * s).rounded(), height: (cardSize.height * s).rounded())
+    }
+
+    /// 提前让 PhotoKit 准备后面 4 张（固定卡片尺寸，用 startCaching，不再一次开 8 个大图请求）；
+    /// 划过去的停掉。标签也在这里算好，拖动时不重复算
     private func prefetch() {
-        let next = queue.dropFirst(pos).prefix(8).compactMap { store.item($0) }
-        for item in next {
-            Task { _ = await PhotoLibraryService.shared.image(for: item.asset,
-                                                               targetSize: CGSize(width: 900, height: 1400),
-                                                               allowNetwork: true) }
-        }
+        guard pos < queue.count else { stopPrefetch(); return }
+        let window = queue.dropFirst(pos).prefix(5).compactMap { store.item($0) }
+        var tc: [String: [String]] = [:]
+        for item in window.prefix(3) { tc[item.id] = tagCache[item.id] ?? tags(for: item) }
+        tagCache = tc
+        guard cardSize.width > 0 else { return }
+        let next = Array(window.dropFirst().map(\.asset))
+        let nextIDs = Set(next.map(\.localIdentifier))
+        let stop = caching.filter { !nextIDs.contains($0.localIdentifier) }
+        let oldIDs = Set(caching.map(\.localIdentifier))
+        let start = next.filter { !oldIDs.contains($0.localIdentifier) }
+        PhotoLibraryService.shared.updateCaching(start: start, stop: stop, targetSize: cardPixelSize)
+        caching = next
+    }
+
+    private func stopPrefetch() {
+        PhotoLibraryService.shared.updateCaching(start: [], stop: caching, targetSize: cardPixelSize)
+        caching = []
     }
 
     private func undo() {

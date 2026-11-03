@@ -34,8 +34,11 @@ struct SimilarGroupsView: View {
     }
 
     var body: some View {
+        // 一次 body 只取一次分组（以前摘要、数量、可释放空间各算一遍）
+        let groups = self.groups
+        // LazyVStack：只创建屏幕上看得见的组卡片，上百组时滚动也不卡
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            LazyVStack(alignment: .leading, spacing: 12) {
                 if store.isScanning && category != .bursts {
                     VStack(alignment: .leading, spacing: 8) {
                         ThinProgress(value: store.progress)
@@ -50,14 +53,18 @@ struct SimilarGroupsView: View {
                 }
 
                 if !groups.isEmpty {
-                    summary
+                    summary(groups)
                     SectionHeader(title: String(localized: "\(groups.count) 组"),
                                   trailing: String(localized: "点照片切换选择 · 长按看大图"))
                 }
 
-                ForEach(Array(groups.enumerated()), id: \.offset) { idx, group in
-                    GroupCard(group: group, category: category, preview: $preview)
-                        .fadeIn(idx + 1)
+                // 用组里第一张的 ID 当稳定标识（以前用序号，删掉一组后下面每张卡片都会重建）
+                ForEach(Array(groups.enumerated()), id: \.element.first) { idx, group in
+                    if idx < 6 {
+                        GroupCard(group: group, category: category, preview: $preview).fadeIn(idx + 1)
+                    } else {
+                        GroupCard(group: group, category: category, preview: $preview)
+                    }
                 }
             }
             .padding(.horizontal, Theme.pagePadding)
@@ -68,7 +75,7 @@ struct SimilarGroupsView: View {
         .navigationTitle(category.title)
         .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog("每组只保留一张，其余全部选为删除？", isPresented: $confirmAll, titleVisibility: .visible) {
-            Button("全部处理（\(extraCount) 张）", role: .destructive) {
+            Button("全部处理（\(extraCount(groups)) 张）", role: .destructive) {
                 withAnimation(Theme.spring) {
                     if category == .similar {
                         for g in groups { store.keepBestDeleteRest(g, category: category) }
@@ -85,25 +92,26 @@ struct SimilarGroupsView: View {
         .fullScreenCover(item: $preview) { PhotoDetailView(item: $0) }
     }
 
-    private var extraCount: Int {
+    private func extraCount(_ groups: [[String]]) -> Int {
         groups.reduce(0) { $0 + max(0, $1.count - 1) }
     }
 
-    private var extraBytes: Int64 {
+    private func extraBytes(_ groups: [[String]]) -> Int64 {
         groups.reduce(Int64(0)) { sum, g in
             let best = store.keeperID(in: g, category: category)
             return sum + store.bytes(of: g.filter { $0 != best })
         }
     }
 
-    private var summary: some View {
-        VStack(alignment: .leading, spacing: 14) {
+    private func summary(_ groups: [[String]]) -> some View {
+        let n = extraCount(groups)
+        return VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(summaryText)
                         .font(Theme.callout)
                         .foregroundStyle(Theme.text2)
-                    Text("可释放 \(Fmt.bytes(extraBytes))")
+                    Text("可释放 \(Fmt.bytes(extraBytes(groups)))")
                         .font(Theme.number(26, .bold))
                         .foregroundStyle(Theme.text)
                 }
@@ -114,7 +122,7 @@ struct SimilarGroupsView: View {
                 Haptics.medium()
                 confirmAll = true
             } label: {
-                Text("一键处理全部 \(extraCount) 张").frame(maxWidth: .infinity)
+                Text("一键处理全部 \(n) 张").frame(maxWidth: .infinity)
             }
             .buttonStyle(PrimaryButtonStyle())
         }

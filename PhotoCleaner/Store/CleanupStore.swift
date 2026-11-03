@@ -342,7 +342,8 @@ final class CleanupStore: ObservableObject {
                     break
                 }
                 if next < total { group.addTask(operation: Self.analyzeOp(todo[next], allowCloud: allowCloud)); next += 1 }
-                if pendingResults.count >= 24 || Date().timeIntervalSince(lastApply) > 0.6 || done == total {
+                // 攒一批再写回界面（约 1 秒或 96 张一次）：分析时界面不会每张都刷新，滑动不卡
+                if pendingResults.count >= 96 || Date().timeIntervalSince(lastApply) > 1.0 || done == total {
                     applyPending(final: false)
                     progress = Double(done) / Double(total)
                 }
@@ -361,11 +362,13 @@ final class CleanupStore: ObservableObject {
         }
         var copy = items
         var cloud = cloudOnlyIDs
+        var newlyAnalyzed = 0
         for (id, r, inCloud) in pendingResults {
             if let i = index[id] { copy[i].analysis = r }
             if r == nil && inCloud { cloud.insert(id) } else { cloud.remove(id) }
-            if r != nil { analyzedCount += 1 }
+            if r != nil { newlyAnalyzed += 1 }
         }
+        if newlyAnalyzed > 0 { analyzedCount += newlyAnalyzed }   // 一批只发一次更新
         appliedSinceRebuild += pendingResults.count
         pendingResults.removeAll()
         items = copy

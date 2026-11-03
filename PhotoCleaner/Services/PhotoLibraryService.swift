@@ -3,25 +3,67 @@ import Photos
 import UIKit
 
 /// 封装 PhotoKit：权限、读取、缩略图、删除
-final class PhotoLibraryService {
+/// NSCache 和 PHCachingImageManager 都是线程安全的
+final class PhotoLibraryService: @unchecked Sendable {
     static let shared = PhotoLibraryService()
     let imageManager = PHCachingImageManager()
-    /// 内存缓存：每张照片已加载过的最大图，打开大图时可立刻先显示
-    private let memCache: NSCache<NSString, UIImage> = {
+    /// 内存缓存分两档：小图（缩略图，最长边 ≤ 600 像素）和大图（卡片 / 全屏）。
+    /// 以前只留「最大的一张」，缩略图格子里也画的是卡片大图，滚动时很费。
+    private let thumbCache: NSCache<NSString, UIImage> = {
         let c = NSCache<NSString, UIImage>()
-        c.countLimit = 400
+        c.countLimit = 600
         return c
     }()
+    private let largeCache: NSCache<NSString, UIImage> = {
+        let c = NSCache<NSString, UIImage>()
+        c.countLimit = 24
+        return c
+    }()
+    static let thumbMaxPixels: CGFloat = 600
 
+    /// 卡片 / 大图先显示：优先大图
     func cachedImage(for id: String) -> UIImage? {
-        memCache.object(forKey: id as NSString)
+        largeCache.object(forKey: id as NSString) ?? thumbCache.object(forKey: id as NSString)
+    }
+
+    /// 缩略图先显示：优先小图
+    func cachedThumbnail(for id: String) -> UIImage? {
+        thumbCache.object(forKey: id as NSString) ?? largeCache.object(forKey: id as NSString)
     }
 
     private func remember(_ img: UIImage, for id: String) {
         let key = id as NSString
-        if let old = memCache.object(forKey: key),
-           old.size.width * old.scale >= img.size.width * img.scale { return }
-        memCache.setObject(img, forKey: key)
+        let side = max(img.size.width, img.size.height) * img.scale
+        let cache = side <= Self.thumbMaxPixels ? thumbCache : largeCache
+        if let old = cache.object(forKey: key),
+           max(old.size.width, old.size.height) * old.scale >= side { return }
+        cache.setObject(img, forKey: key)
+    }
+
+    /// 在后台线程先解码好（不然第一次显示时在主线程解码 HEIC/JPEG，滑动会掉帧）
+    static func prepared(_ img: UIImage) async -> UIImage {
+        await img.byPreparingForDisplay() ?? img
+    }
+
+    /// 卡片用的请求参数（预取 startCaching 和真正请求必须用同一套，缓存才命中）
+    static func cardOptions() -> PHImageRequestOptions {
+        let options = PHImageRequestOptions()
+        options.deliveryMode = .opportunistic
+        options.resizeMode = .fast
+        options.isNetworkAccessAllowed = true
+        options.isSynchronous = false
+        return options
+    }
+
+    /// 预取：提前让 PhotoKit 准备好这几张（固定尺寸）；不再需要的停掉
+    func updateCaching(start: [PHAsset], stop: [PHAsset], targetSize: CGSize) {
+        guard targetSize.width > 0, targetSize.height > 0 else { return }
+        if !stop.isEmpty {
+            imageManager.stopCachingImages(for: stop, targetSize: targetSize, contentMode: .aspectFill, options: Self.cardOptions())
+        }
+        if !start.isEmpty {
+            imageManager.startCachingImages(for: start, targetSize: targetSize, contentMode: .aspectFill, options: Self.cardOptions())
+        }
     }
 
     private init() {
@@ -139,8 +181,12 @@ final class PhotoLibraryService {
                 cont.resume(returning: image)
             }
         }
-        if cache, let img { remember(img, for: asset.localIdentifier) }
-        return img
+        guard let raw = img else { return nil }
+        // 要显示的图先在后台解码；分析用的（cache = false）不需要
+        guard cache else { return raw }
+        let ready = await Self.prepared(raw)
+        remember(ready, for: asset.localIdentifier)
+        return ready
     }
 
     /// 渐进加载：先尽快给一张低清图（本地已有的），再给高清图。用于全屏大图。
@@ -148,22 +194,27 @@ final class PhotoLibraryService {
                            targetSize: CGSize,
                            contentMode: PHImageContentMode = .aspectFit) -> AsyncStream<(UIImage, Bool)> {
         AsyncStream { continuation in
-            let options = PHImageRequestOptions()
-            options.deliveryMode = .opportunistic
-            options.resizeMode = .fast
-            options.isNetworkAccessAllowed = true
-            options.isSynchronous = false
+            let options = Self.cardOptions()
             let id = imageManager.requestImage(for: asset,
                                                targetSize: targetSize,
                                                contentMode: contentMode,
                                                options: options) { [weak self] image, info in
                 let degraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
                 let failed = info?[PHImageErrorKey] != nil || ((info?[PHImageCancelledKey] as? Bool) ?? false)
-                if let image {
-                    self?.remember(image, for: asset.localIdentifier)
-                    continuation.yield((image, !degraded))
+                if let image, degraded {
+                    continuation.yield((image, false))      // 低清图很小，直接给
+                    if failed { continuation.finish() }
+                } else if let image {
+                    // 高清图先在后台解码好再显示
+                    Task.detached(priority: .userInitiated) {
+                        let ready = await PhotoLibraryService.prepared(image)
+                        self?.remember(ready, for: asset.localIdentifier)
+                        continuation.yield((ready, true))
+                        continuation.finish()
+                    }
+                } else if !degraded || failed {
+                    continuation.finish()
                 }
-                if !degraded || failed { continuation.finish() }
             }
             continuation.onTermination = { [weak self] _ in
                 self?.imageManager.cancelImageRequest(id)

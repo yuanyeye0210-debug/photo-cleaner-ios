@@ -17,7 +17,9 @@ struct AssetImageView: View {
 
     var body: some View {
         // 没加载完时先用内存里已有的图（比如网格/卡片里的缩略图），避免出现空白
-        let shown = image ?? PhotoLibraryService.shared.cachedImage(for: asset.localIdentifier)
+        let small = max(targetSize.width, targetSize.height) <= 200
+        let shown = image ?? (small ? PhotoLibraryService.shared.cachedThumbnail(for: asset.localIdentifier)
+                                    : PhotoLibraryService.shared.cachedImage(for: asset.localIdentifier))
         // 用 overlay：铺满（fill）的图片不会把视图撑大；clipped + contentShape 让点按范围只等于看得见的区域，
         // 否则放大溢出的部分会盖住上面的「滑动筛选 / 网格多选」等按钮
         Theme.fill.overlay {
