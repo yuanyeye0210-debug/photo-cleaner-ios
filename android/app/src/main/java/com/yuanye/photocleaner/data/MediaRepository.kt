@@ -3,7 +3,16 @@ package com.yuanye.photocleaner.data
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
+import android.content.ContentValues
 import android.content.IntentSender
+import android.database.ContentObserver
+import android.os.Handler
+import android.os.Looper
+import com.yuanye.photocleaner.core.MotionPhoto
+import java.io.FileInputStream
+import java.io.OutputStream
+import java.nio.ByteBuffer
+import java.security.MessageDigest
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
@@ -49,6 +58,8 @@ class MediaRepository(private val context: Context) {
             MediaStore.MediaColumns.HEIGHT,
             "datetaken",
             "bucket_display_name",
+            MediaStore.MediaColumns.DISPLAY_NAME,
+            MediaStore.MediaColumns.MIME_TYPE,
         )
         if (!video) cols += MediaStore.Images.ImageColumns.ORIENTATION
         if (Build.VERSION.SDK_INT >= 29) cols += MediaStore.MediaColumns.RELATIVE_PATH
@@ -63,6 +74,8 @@ class MediaRepository(private val context: Context) {
             val iH = it.getColumnIndex(MediaStore.MediaColumns.HEIGHT)
             val iTaken = it.getColumnIndex("datetaken")
             val iBucket = it.getColumnIndex("bucket_display_name")
+            val iName = it.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+            val iMime = it.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)
             val iOri = if (!video) it.getColumnIndex(MediaStore.Images.ImageColumns.ORIENTATION) else -1
             val iPath = if (Build.VERSION.SDK_INT >= 29) it.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH) else -1
             val iFav = if (Build.VERSION.SDK_INT >= 30) it.getColumnIndex(MediaStore.MediaColumns.IS_FAVORITE) else -1
@@ -90,6 +103,9 @@ class MediaRepository(private val context: Context) {
                     width = w,
                     height = h,
                     dateModified = if (iMod >= 0) it.getLong(iMod) else 0L,
+                    name = if (iName >= 0) it.getString(iName) ?: "" else "",
+                    relativePath = path,
+                    mime = if (iMime >= 0) it.getString(iMime) ?: "" else "",
                 )
             }
         }
@@ -152,10 +168,107 @@ class MediaRepository(private val context: Context) {
         return pi.intentSender
     }
 
-    /** Android 10 及以下：直接删除（界面上先自己弹确认框） */
-    fun deleteLegacy(uris: List<Uri>): Int {
-        var n = 0
-        for (u in uris) n += runCatching { cr.delete(u, null, null) }.getOrDefault(0)
-        return n
+    /** Android 10 及以下：直接删除（界面上先自己弹确认框）。返回每一项是否删掉了 */
+    fun deleteLegacy(uris: List<Uri>): List<Boolean> =
+        uris.map { u -> runCatching { cr.delete(u, null, null) > 0 }.getOrDefault(false) || !exists(u) }
+
+    /** 这一项还在不在相册里（移到回收站的也算不在） */
+    fun exists(uri: Uri): Boolean = runCatching {
+        cr.query(uri, arrayOf(MediaStore.MediaColumns._ID), null, null, null)?.use { it.moveToFirst() } ?: false
+    }.getOrDefault(true)
+
+    // ---------------- 相册变化监听 ----------------
+
+    fun observe(onChange: () -> Unit): ContentObserver {
+        val obs = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) = onChange()
+        }
+        cr.registerContentObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, true, obs)
+        cr.registerContentObserver(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, true, obs)
+        return obs
     }
+
+    fun unobserve(obs: ContentObserver) = cr.unregisterContentObserver(obs)
+
+    // ---------------- 读文件 ----------------
+
+    /** 文件内容哈希（SHA-256），完全重复用；读不了返回 null */
+    fun contentHash(uri: Uri): String? = runCatching {
+        val md = MessageDigest.getInstance("SHA-256")
+        cr.openInputStream(uri)?.use { ins ->
+            val buf = ByteArray(256 * 1024)
+            while (true) {
+                val n = ins.read(buf)
+                if (n < 0) break
+                md.update(buf, 0, n)
+            }
+        } ?: return null
+        md.digest().joinToString("") { "%02x".format(it) }
+    }.getOrNull()
+
+    /** 随机读取（动态照片只看文件头尾，不用整个读进内存） */
+    fun <T> withSource(uri: Uri, block: (MotionPhoto.Source) -> T): T? = runCatching {
+        cr.openFileDescriptor(uri, "r")?.use { pfd ->
+            FileInputStream(pfd.fileDescriptor).channel.use { ch ->
+                val src = object : MotionPhoto.Source {
+                    override val size: Long = ch.size()
+                    override fun read(pos: Long, len: Int): ByteArray {
+                        val p = pos.coerceIn(0, size)
+                        val n = minOf(len.toLong(), size - p).toInt().coerceAtLeast(0)
+                        val bb = ByteBuffer.allocate(n)
+                        var at = p
+                        while (bb.hasRemaining()) {
+                            val r = ch.read(bb, at)
+                            if (r <= 0) break
+                            at += r
+                        }
+                        return bb.array().copyOf(bb.position())
+                    }
+                }
+                block(src)
+            }
+        }
+    }.getOrNull()
+
+    fun readAll(uri: Uri): ByteArray? = runCatching { cr.openInputStream(uri)?.use { it.readBytes() } }.getOrNull()
+
+    // ---------------- 写新文件（压缩后的视频、转换后的静态照片） ----------------
+
+    /**
+     * 在相册里新建一个文件（Android 10+），写完再显示出来。保留拍摄时间；放回原来的文件夹。
+     * 返回新文件的 uri。
+     */
+    fun insert(video: Boolean, name: String, mime: String, relativePath: String, dateTaken: Long?,
+               favorite: Boolean, write: (OutputStream) -> Unit): Uri? {
+        if (Build.VERSION.SDK_INT < 29) return null
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(MediaStore.MediaColumns.MIME_TYPE, mime)
+            put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath.ifEmpty { if (video) "Movies/" else "Pictures/" })
+            if (dateTaken != null && dateTaken > 0) put(MediaStore.MediaColumns.DATE_TAKEN, dateTaken)
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        val uri = runCatching { cr.insert(collection(video), values) }.getOrNull() ?: return null
+        return try {
+            cr.openOutputStream(uri, "w")!!.use(write)
+            val done = ContentValues().apply {
+                put(MediaStore.MediaColumns.IS_PENDING, 0)
+                if (dateTaken != null && dateTaken > 0) put(MediaStore.MediaColumns.DATE_TAKEN, dateTaken)
+                if (favorite && Build.VERSION.SDK_INT >= 30) put(MediaStore.MediaColumns.IS_FAVORITE, 1)
+            }
+            runCatching { cr.update(uri, done, null, null) }.recoverCatching {
+                // 有的系统不让应用直接设收藏：去掉收藏再试
+                done.remove(MediaStore.MediaColumns.IS_FAVORITE)
+                cr.update(uri, done, null, null)
+            }
+            uri
+        } catch (e: Throwable) {
+            runCatching { cr.delete(uri, null, null) }
+            null
+        }
+    }
+
+    fun size(uri: Uri): Long = runCatching {
+        cr.query(uri, arrayOf(MediaStore.MediaColumns.SIZE), null, null, null)?.use { if (it.moveToFirst()) it.getLong(0) else 0L } ?: 0L
+    }.getOrDefault(0L)
 }

@@ -26,7 +26,7 @@ class CategoryRulesTest {
             photo("food", an(tags = setOf(ContentTag.FOOD))),
             photo("vid", null, size = 50_000_000, video = true),
         )
-        val m = CategoryRules.build(items, listOf(listOf("blur", "dark")), 60.0, 8.0)
+        val m = CategoryRules.build(items, listOf(listOf("blur", "dark")), 60.0, 8.0, listOf(listOf("big", "ugly")), listOf(listOf("food", "doc")))
         assertEquals(listOf("blur"), m[CleanCategory.BLURRY])
         assertEquals(listOf("dark"), m[CleanCategory.POOR_LIGHT])
         assertEquals(listOf("shot"), m[CleanCategory.SCREENSHOTS])
@@ -38,13 +38,16 @@ class CategoryRulesTest {
         assertEquals(listOf("food"), m[CleanCategory.FOOD])
         assertEquals(listOf("blur", "dark"), m[CleanCategory.SIMILAR])
         assertTrue(m.values.none { "fav_blur" in it })
+        assertEquals(listOf("big", "ugly"), m[CleanCategory.DUPLICATES])
+        assertEquals(listOf("food", "doc"), m[CleanCategory.BURSTS])
+        assertEquals(CleanCategory.entries.toList(), m.keys.toList())
         assertTrue(CleanCategory.FOOD.isBrowse && !CleanCategory.BLURRY.isBrowse)
     }
 
     @Test fun cardTags() {
         val t = CategoryRules.cardTags(photo("x", an(sharp = 10.0, bright = 10.0, code = "4821")), 60.0)
-        assertEquals(listOf("验证码 4821", "模糊", "过暗"), t)
-        assertTrue(CategoryRules.cardTags(photo("y", an(), shot = true), 60.0).contains("截图"))
+        assertEquals(listOf(CardTag(TagKind.CODE, "4821"), CardTag(TagKind.BLURRY), CardTag(TagKind.DARK)), t)
+        assertTrue(CategoryRules.cardTags(photo("y", an(), shot = true), 60.0).contains(CardTag(TagKind.SCREENSHOT)))
     }
 
     @Test fun qualityScore() {
@@ -58,10 +61,12 @@ class CategoryRulesTest {
     }
 
     @Test fun swipeDirection() {
-        assertEquals(Decision.DELETE, swipeDecision(-200f, 20f, 110f))   // 左滑 = 删除
-        assertEquals(Decision.KEEP, swipeDecision(200f, -20f, 110f))     // 右滑 = 保留
-        assertNull(swipeDecision(-100f, 0f, 110f))                       // 没过阈值
-        assertNull(swipeDecision(-200f, 150f, 110f))                     // 斜着拖（竖直分量太大）
+        assertEquals(SwipeAction.DELETE, swipeAction(-200f, 20f, 110f))   // 左滑 = 删除
+        assertEquals(SwipeAction.KEEP, swipeAction(200f, -20f, 110f))     // 右滑 = 保留
+        assertEquals(SwipeAction.LATER, swipeAction(10f, -200f, 110f))    // 上滑 = 稍后再看
+        assertNull(swipeAction(10f, 200f, 110f))                          // 下滑：不算
+        assertNull(swipeAction(-100f, 0f, 110f))                          // 没过阈值
+        assertNull(swipeAction(-200f, 150f, 110f))                        // 斜着拖
     }
 
     @Test fun bytesFormat() {

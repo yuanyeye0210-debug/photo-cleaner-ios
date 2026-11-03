@@ -1,5 +1,7 @@
 package com.yuanye.photocleaner.ui
 
+import com.yuanye.photocleaner.R
+
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -39,23 +41,23 @@ fun PermissionScreen(vm: CleanupViewModel) {
     ) {
         IconBadge(Icons.Rounded.PhotoLibrary, T.accent, 84.dp)
         Spacer(Modifier.height(20.dp))
-        Text("相册清理", color = T.text, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+        Text(s(R.string.app_name), color = T.text, fontSize = 30.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(10.dp))
         Text(
-            "找出相似照片、截图、模糊和过暗过曝的照片，滑一滑就能整理。\n需要访问你的相册。",
+            s(R.string.perm_intro),
             color = T.text2, fontSize = 15.sp, textAlign = TextAlign.Center, lineHeight = 22.sp,
         )
         Spacer(Modifier.height(18.dp))
         Row(Modifier.card(radius = 18.dp, padding = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Rounded.Lock, null, tint = T.accent, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(10.dp))
-            Text("所有分析都在手机上完成，不联网、不上传。删除前系统会再次确认。", color = T.text2, fontSize = 13.sp)
+            Text(s(R.string.perm_privacy), color = T.text2, fontSize = 13.sp)
         }
         Spacer(Modifier.height(28.dp))
-        PrimaryButton("允许访问相册") { launcher.launch(requiredPermissions()) }
+        PrimaryButton(s(R.string.perm_allow)) { launcher.launch(requiredPermissions()) }
         if (asked) {
             Spacer(Modifier.height(12.dp))
-            Text("没有权限？去系统设置打开", color = T.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+            Text(s(R.string.perm_settings), color = T.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.pressable {
                     ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + ctx.packageName)))
                 })

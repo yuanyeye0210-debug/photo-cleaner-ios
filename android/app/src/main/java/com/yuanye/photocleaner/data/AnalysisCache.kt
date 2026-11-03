@@ -11,7 +11,7 @@ import java.io.File
 
 /** 分析结果缓存：下次打开不用重新分析（照片修改过会重新分析） */
 class AnalysisCache(context: Context) {
-    private val file = File(context.filesDir, "analysis_v1.bin")
+    private val file = File(context.filesDir, "analysis_v2.bin")
 
     data class Entry(val dateModified: Long, val result: AnalysisResult)
 
@@ -29,7 +29,7 @@ class AnalysisCache(context: Context) {
                 val bright = s.readDouble()
                 val contrast = s.readDouble()
                 val fLen = s.readInt()
-                val feature = if (fLen >= 0) FloatArray(fLen) { s.readFloat() } else null
+                val feature = if (fLen >= 0) ByteArray(fLen).also { s.readFully(it) } else null
                 val q = s.readFloat()
                 val tagBits = s.readInt()
                 val tags = ContentTag.entries.filter { tagBits and (1 shl it.ordinal) != 0 }.toSet()
@@ -39,9 +39,10 @@ class AnalysisCache(context: Context) {
                 val code = s.readUTF().ifEmpty { null }
                 val fq = s.readFloat()
                 val fc = s.readBoolean()
+                val motion = s.readLong()
                 out[id] = Entry(mod, AnalysisResult(
                     dHash, sharp, bright, contrast, feature, if (q.isNaN()) null else q, tags, textChecked, lines, chars,
-                    code, if (fq.isNaN()) null else fq, fc,
+                    code, if (fq.isNaN()) null else fq, fc, motion,
                 ))
             }
             out
@@ -63,7 +64,7 @@ class AnalysisCache(context: Context) {
                     s.writeDouble(r.brightness)
                     s.writeDouble(r.contrast)
                     val f = r.feature
-                    if (f == null) s.writeInt(-1) else { s.writeInt(f.size); for (x in f) s.writeFloat(x) }
+                    if (f == null) s.writeInt(-1) else { s.writeInt(f.size); s.write(f) }
                     s.writeFloat(r.quality ?: Float.NaN)
                     s.writeInt(r.tags.fold(0) { acc, t -> acc or (1 shl t.ordinal) })
                     s.writeBoolean(r.textChecked)
@@ -72,13 +73,14 @@ class AnalysisCache(context: Context) {
                     s.writeUTF(r.verificationCode ?: "")
                     s.writeFloat(r.faceQuality ?: Float.NaN)
                     s.writeBoolean(r.faceChecked)
+                    s.writeLong(r.motionBytes)
                 }
             }
             tmp.renameTo(file)
         }
     }
 
-    fun clear() { file.delete() }
+    fun clear() { file.delete(); File(file.parentFile, "analysis_v1.bin").delete() }
 
-    private companion object { const val MAGIC = 0x50430002 }
+    private companion object { const val MAGIC = 0x50430003 }
 }

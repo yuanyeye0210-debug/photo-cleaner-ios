@@ -67,6 +67,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yuanye.photocleaner.Access
 import com.yuanye.photocleaner.CleanupViewModel
 import com.yuanye.photocleaner.Phase
+import com.yuanye.photocleaner.QuickMode
+import com.yuanye.photocleaner.R
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import com.yuanye.photocleaner.core.CleanCategory
 import com.yuanye.photocleaner.core.PhotoItem
 import kotlinx.coroutines.launch
@@ -75,12 +82,16 @@ import kotlin.math.roundToInt
 sealed interface Route {
     data class Category(val c: CleanCategory) : Route
     data class Month(val key: String) : Route
+    data class Quick(val mode: QuickMode) : Route
+    /** 桌面小组件点进来：所有可清理、还没看过的，直接滑 */
+    data object SwipeAll : Route
+    data object Compress : Route
     data object Review : Route
     data object Settings : Route
 }
 
-enum class AppTab(val title: String, val icon: ImageVector) {
-    HOME("首页", Icons.Rounded.Home), LIBRARY("分类", Icons.Rounded.GridView), CLEAN("清理", Icons.Rounded.Delete)
+enum class AppTab(val title: Int, val icon: ImageVector) {
+    HOME(R.string.tab_home, Icons.Rounded.Home), LIBRARY(R.string.tab_library, Icons.Rounded.GridView), CLEAN(R.string.tab_clean, Icons.Rounded.Delete)
 }
 
 /** 页面之间共享的操作：导航、看大图、删除 */
@@ -129,6 +140,7 @@ fun AppRoot() {
                     val a = currentAccess(ctx)
                     val changed = a != vm.access
                     vm.access = a
+                    if (a != Access.NONE) vm.startObserving()
                     if (a != Access.NONE && (vm.phase == Phase.IDLE || changed)) vm.startScan()
                 }
             }
@@ -193,6 +205,23 @@ private fun MainTabs(vm: CleanupViewModel) {
 
     LaunchedEffect(vm.scanFinishedTick) { if (vm.scanFinishedTick > 0) Haptics.success(view) }
 
+    // 桌面小组件：打开滑动整理
+    LaunchedEffect(vm.openSwipeRequest) {
+        if (vm.openSwipeRequest > 0) {
+            preview = null
+            tab = AppTab.HOME
+            val st = stacks.getValue(AppTab.HOME)
+            if (st.lastOrNull() != Route.SwipeAll) { navForward = true; st.add(Route.SwipeAll) }
+        }
+    }
+
+    // 压缩 / 转换时保持亮屏
+    val toolRunning = vm.tool?.running == true
+    DisposableEffect(toolRunning) {
+        view.keepScreenOn = toolRunning
+        onDispose { view.keepScreenOn = false }
+    }
+
     BackHandler(enabled = preview != null || stack.isNotEmpty() || tab != AppTab.HOME) {
         when {
             preview != null -> preview = null
@@ -255,24 +284,40 @@ private fun MainTabs(vm: CleanupViewModel) {
     legacyConfirm?.let { (ids, done) ->
         AlertDialog(
             onDismissRequest = { legacyConfirm = null; done(false) },
-            title = { Text("删除 ${ids.size} 项？") },
-            text = { Text("删除后无法恢复（Android 10 及以下没有系统回收站）。") },
+            title = { Text(s(R.string.legacy_delete_title, ids.size)) },
+            text = { Text(s(R.string.legacy_delete_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     legacyConfirm = null
-                    scope.launch { val ok = vm.deleteLegacy(ids); if (ok) Haptics.success(view); done(ok) }
-                }) { Text("删除", color = T.danger) }
+                    scope.launch { vm.deleteLegacy(ids); Haptics.success(view); done(true) }
+                }) { Text(s(R.string.delete), color = T.danger) }
             },
-            dismissButton = { TextButton(onClick = { legacyConfirm = null; done(false) }) { Text("取消") } },
+            dismissButton = { TextButton(onClick = { legacyConfirm = null; done(false) }) { Text(s(R.string.cancel)) } },
         )
     }
 
     vm.lastDeleteMessage?.let { msg ->
         AlertDialog(
             onDismissRequest = { vm.lastDeleteMessage = null },
-            title = { Text("完成") },
+            title = { Text(s(R.string.done_title)) },
             text = { Text(msg) },
-            confirmButton = { TextButton(onClick = { vm.lastDeleteMessage = null }) { Text("好的") } },
+            confirmButton = { TextButton(onClick = { vm.lastDeleteMessage = null }) { Text(s(R.string.ok)) } },
+            containerColor = T.card,
+        )
+    }
+
+    // 视频压缩 / 动态照片转换进度
+    vm.tool?.let { t ->
+        AlertDialog(
+            onDismissRequest = { vm.dismissTool() },
+            title = { Text(if (t.running) s(R.string.tool_working, t.done + 1, t.total) else s(R.string.done_title)) },
+            text = {
+                if (t.running) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    ThinProgress((t.done + t.current) / maxOf(1, t.total))
+                    Text(s(R.string.tool_keep_open), color = T.text2, fontSize = T.caption)
+                } else Text(t.message ?: "")
+            },
+            confirmButton = { if (!t.running) TextButton(onClick = { vm.dismissTool() }) { Text(s(R.string.ok)) } },
             containerColor = T.card,
         )
     }
@@ -282,13 +327,21 @@ private fun MainTabs(vm: CleanupViewModel) {
 private fun RouteScreen(vm: CleanupViewModel, route: Route) {
     val a = LocalActions.current
     when (route) {
-        is Route.Category ->
-            if (route.c == CleanCategory.SIMILAR) SimilarScreen(vm)
-            else CategoryScreen(vm, route.c.title, vm.ids(route.c))
+        is Route.Category -> when {
+            route.c.isGrouped -> GroupsScreen(vm, route.c)
+            route.c == CleanCategory.MOTION -> MotionScreen(vm)
+            route.c == CleanCategory.VIDEOS -> CategoryScreen(vm, s(route.c.titleRes), vm.ids(route.c)) { CompressEntry { a.push(Route.Compress) } }
+            else -> CategoryScreen(vm, s(route.c.titleRes), vm.ids(route.c))
+        }
         is Route.Month -> {
             val m = vm.months.firstOrNull { it.key == route.key }
-            CategoryScreen(vm, m?.title ?: route.key, m?.ids ?: emptyList())
+            CategoryScreen(vm, m?.let { s(R.string.month_title, it.year, it.month) } ?: route.key, m?.ids ?: emptyList()) {
+                MonthCleanedToggle(vm, route.key)
+            }
         }
+        is Route.Quick -> QuickScreen(vm, route.mode)
+        Route.SwipeAll -> SwipeAllScreen(vm)
+        Route.Compress -> CompressScreen(vm)
         Route.Review -> ReviewScreen(vm, inTab = false)
         Route.Settings -> SettingsScreen(vm, onBack = a.pop)
     }
@@ -355,7 +408,7 @@ private fun TabBar(tab: AppTab, scanning: Boolean, onSelect: (AppTab) -> Unit, o
                 Box(
                     Modifier.offset { IntOffset(highlightX.value.roundToInt(), 0) }
                         .width(wDp).fillMaxHeight()
-                        .graphicsLayer { val s = if (dragging) 1.06f else 1f; scaleX = s; scaleY = s }
+                        .graphicsLayer { val k = if (dragging) 1.06f else 1f; scaleX = k; scaleY = k }
                         .clip(CircleShape).background(Color.White.copy(alpha = if (dragging) 0.18f else 0.12f)),
                 )
             }
@@ -365,12 +418,13 @@ private fun TabBar(tab: AppTab, scanning: Boolean, onSelect: (AppTab) -> Unit, o
                     val on = t == shown
                     Column(
                         Modifier.weight(1f).fillMaxHeight()
-                            .graphicsLayer { val s = if (dragging && on) 1.1f else 1f; scaleX = s; scaleY = s },
+                            .graphicsLayer { val k = if (dragging && on) 1.1f else 1f; scaleX = k; scaleY = k }
+                            .semantics(mergeDescendants = true) { role = Role.Tab; selected = t == tab; onClick { onSelect(t); true } },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
-                        Icon(t.icon, t.title, tint = if (on) T.accent else T.text, modifier = Modifier.size(22.dp))
-                        Text(t.title, color = if (on) T.accent else T.text, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        Icon(t.icon, null, tint = if (on) T.accent else T.text, modifier = Modifier.size(22.dp))
+                        Text(s(t.title), color = if (on) T.accent else T.text, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -384,7 +438,7 @@ private fun TabBar(tab: AppTab, scanning: Boolean, onSelect: (AppTab) -> Unit, o
                         .pressable(enabled = !scanning, onClick = onRescan),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(if (scanning) Icons.Rounded.HourglassTop else Icons.Rounded.Refresh, "重新扫描", tint = T.text, modifier = Modifier.size(24.dp))
+                    Icon(if (scanning) Icons.Rounded.HourglassTop else Icons.Rounded.Refresh, s(R.string.rescan), tint = T.text, modifier = Modifier.size(24.dp))
                 }
             }
         }

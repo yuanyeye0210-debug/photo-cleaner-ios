@@ -54,7 +54,17 @@ import com.yuanye.photocleaner.CleanupViewModel
 import com.yuanye.photocleaner.core.Decision
 import com.yuanye.photocleaner.core.Fmt
 import com.yuanye.photocleaner.core.PhotoItem
-import com.yuanye.photocleaner.core.swipeDecision
+import com.yuanye.photocleaner.core.swipeAction
+import com.yuanye.photocleaner.core.SwipeAction
+import com.yuanye.photocleaner.core.CardTag
+import com.yuanye.photocleaner.core.TagKind
+import com.yuanye.photocleaner.R
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -68,9 +78,9 @@ fun cardRequest(ctx: android.content.Context, item: PhotoItem): ImageRequest =
         .placeholderMemoryCacheKey("thumb:${item.id}").crossfade(false).build()
 
 
-/** 滑动筛选：左滑标记删除，右滑保留，不会立即删除；看完后统一确认 */
+/** 滑动筛选：左滑标记删除，右滑保留，上滑稍后再看；不会立即删除，看完后统一确认 */
 @Composable
-fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Modifier) {
+fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Modifier, finishedTitle: Int = R.string.swipe_finished) {
     val ctx = LocalContext.current
     val view = LocalView.current
     val a = LocalActions.current
@@ -79,10 +89,11 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
     val threshold = with(density) { 110.dp.toPx() }
     val flyOut = with(density) { 700.dp.toPx() }
 
-    // 本轮队列：进来时还没决定过的
+    // 本轮队列：进来时还没决定过的（全是「稍后再看」的时候，就看这些）
     val queue = remember(ids) { vm.undecided(ids).ifEmpty { ids.filter { it !in vm.toDelete && it !in vm.kept } } }
     var pos by rememberSaveable(ids) { mutableIntStateOf(0) }
-    val history = remember(ids) { mutableStateListOf<String>() }
+    /** 撤销用：id + 之前是不是在「稍后再看」里 */
+    val history = remember(ids) { mutableStateListOf<Pair<String, Boolean>>() }
     val loaded = remember(ids) { mutableStateMapOf<String, Boolean>() }
     var flying by remember { mutableStateOf(false) }
     var showNotLoaded by remember { mutableStateOf(false) }
@@ -93,10 +104,10 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
         queue.drop(pos).take(9).forEach { id -> vm.item(id)?.let { ctx.imageLoader.enqueue(cardRequest(ctx, it)) } }
     }
 
-    fun swipe(d: Decision) {
+    fun swipe(d: SwipeAction) {
         if (pos >= queue.size || flying) return
         val id = queue[pos]
-        if (d == Decision.DELETE && loaded[id] != true) {
+        if (d == SwipeAction.DELETE && loaded[id] != true) {
             Haptics.warning(view)
             scope.launch { offset.animateTo(Offset.Zero, spring(0.7f, Spring.StiffnessMedium)) }
             showNotLoaded = true
@@ -104,11 +115,21 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
             return
         }
         flying = true
-        if (d == Decision.DELETE) Haptics.medium(view) else Haptics.light(view)
+        if (d == SwipeAction.DELETE) Haptics.medium(view) else Haptics.light(view)
+        val wasLater = id in vm.later
         scope.launch {
-            offset.animateTo(Offset(if (d == Decision.DELETE) -flyOut else flyOut, offset.value.y + 30f), tween(220, easing = FastOutLinearInEasing))
-            vm.set(id, d)
-            history.add(id)
+            val target = when (d) {
+                SwipeAction.DELETE -> Offset(-flyOut, offset.value.y + 30f)
+                SwipeAction.KEEP -> Offset(flyOut, offset.value.y + 30f)
+                SwipeAction.LATER -> Offset(offset.value.x, -flyOut * 1.4f)
+            }
+            offset.animateTo(target, tween(220, easing = FastOutLinearInEasing))
+            when (d) {
+                SwipeAction.DELETE -> vm.set(id, Decision.DELETE)
+                SwipeAction.KEEP -> vm.set(id, Decision.KEEP)
+                SwipeAction.LATER -> vm.setLater(id, true)
+            }
+            history.add(id to wasLater)
             offset.snapTo(Offset.Zero)
             pos += 1
             flying = false
@@ -117,26 +138,32 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
 
     fun undo() {
         if (flying) return
-        val last = history.removeLastOrNull() ?: return
+        val (last, wasLater) = history.removeLastOrNull() ?: return
         Haptics.medium(view)
         vm.set(last, null)
+        if (wasLater) vm.setLater(last, true)
         pos = maxOf(0, pos - 1)
         scope.launch { offset.snapTo(Offset.Zero) }
     }
 
     if (pos >= queue.size) {
-        FinishedView(vm, queue.ifEmpty { ids }, modifier, onUndo = if (history.isNotEmpty()) ({ undo() }) else null)
+        FinishedView(vm, queue.ifEmpty { ids }, modifier, finishedTitle, onUndo = if (history.isNotEmpty()) ({ undo() }) else null)
         return
     }
+
+    val lDelete = s(R.string.action_delete)
+    val lKeep = s(R.string.action_keep)
+    val lLater = s(R.string.action_later)
+    val lUndo = s(R.string.action_undo)
 
     Column(modifier.fillMaxWidth().padding(horizontal = T.pagePadding), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 6.dp)) {
             // 下一张垫在后面
             queue.getOrNull(pos + 1)?.let { nid ->
                 vm.item(nid)?.let { n ->
-                    val progress = (abs(offset.value.x) / threshold).coerceIn(0f, 1f)
-                    PhotoCard(vm, n, Modifier.fillMaxSize().graphicsLayer {
-                        val s = 0.94f + 0.06f * progress; scaleX = s; scaleY = s; alpha = 0.6f + 0.4f * progress
+                    val progress = (maxOf(abs(offset.value.x), -offset.value.y) / threshold).coerceIn(0f, 1f)
+                    PhotoCard(vm, n, Modifier.fillMaxSize().clearAndSetSemantics { }.graphicsLayer {
+                        val k = 0.94f + 0.06f * progress; scaleX = k; scaleY = k; alpha = 0.6f + 0.4f * progress
                     }, onLoaded = { loaded[nid] = true })
                 }
             }
@@ -145,16 +172,25 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
             if (item != null) {
                 key(id) {
                     val dx = offset.value.x
+                    val dy = offset.value.y
                     PhotoCard(
                         vm, item,
                         Modifier.fillMaxSize()
-                            .offset { IntOffset(dx.roundToInt(), offset.value.y.roundToInt()) }
+                            .offset { IntOffset(dx.roundToInt(), dy.roundToInt()) }
                             .graphicsLayer { rotationZ = dx / 40f }
+                            // TalkBack：不能滑的时候用「操作」菜单
+                            .semantics {
+                                customActions = listOf(
+                                    CustomAccessibilityAction(lDelete) { swipe(SwipeAction.DELETE); true },
+                                    CustomAccessibilityAction(lKeep) { swipe(SwipeAction.KEEP); true },
+                                    CustomAccessibilityAction(lLater) { swipe(SwipeAction.LATER); true },
+                                )
+                            }
                             .pointerInput(id) {
                                 detectDragGestures(
                                     onDragEnd = {
                                         val v = offset.value
-                                        val d = swipeDecision(v.x, v.y, threshold)
+                                        val d = swipeAction(v.x, v.y, threshold)
                                         if (d != null) swipe(d)
                                         else scope.launch { offset.animateTo(Offset.Zero, spring(0.7f, Spring.StiffnessMedium)) }
                                     },
@@ -177,34 +213,41 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
                                 )
                             },
                         overlayHint = dx / threshold,
+                        upHint = -dy / threshold,
                         onLoaded = { loaded[id] = true },
                     )
                 }
             }
             androidx.compose.animation.AnimatedVisibility(showNotLoaded, Modifier.align(Alignment.TopCenter).padding(top = 14.dp), enter = fadeIn(), exit = fadeOut()) {
-                Text("图片还没加载出来，先别删", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                Text(s(R.string.swipe_not_loaded), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clip(CircleShape).background(Color.Black.copy(alpha = 0.75f)).padding(horizontal = 14.dp, vertical = 8.dp))
             }
         }
         Text("${minOf(pos + 1, queue.size)} / ${queue.size}", color = T.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        Text("左滑标记删除 · 右滑保留 · 不会立即删除", color = T.text3, fontSize = T.caption)
+        Text(s(R.string.swipe_hint), color = T.text3, fontSize = T.caption)
         Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(32.dp), verticalAlignment = Alignment.CenterVertically,
+        Row(horizontalArrangement = Arrangement.spacedBy(22.dp), verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 16.dp)) {
-            CircleButton(Icons.Rounded.Close, T.danger, 60.dp) { swipe(Decision.DELETE) }
+            CircleButton(Icons.Rounded.Close, T.danger, 60.dp, lDelete) { swipe(SwipeAction.DELETE) }
             Box(Modifier.alpha(if (history.isEmpty()) 0.4f else 1f)) {
-                CircleButton(Icons.AutoMirrored.Rounded.Undo, T.text2, 46.dp, enabled = history.isNotEmpty()) { undo() }
+                CircleButton(Icons.AutoMirrored.Rounded.Undo, T.text2, 46.dp, lUndo, enabled = history.isNotEmpty()) { undo() }
             }
-            CircleButton(Icons.Rounded.Check, T.keep, 60.dp) { swipe(Decision.KEEP) }
+            CircleButton(Icons.Rounded.Schedule, T.accent, 46.dp, lLater) { swipe(SwipeAction.LATER) }
+            CircleButton(Icons.Rounded.Check, T.keep, 60.dp, lKeep) { swipe(SwipeAction.KEEP) }
         }
     }
 }
 
 @Composable
-private fun PhotoCard(vm: CleanupViewModel, item: PhotoItem, modifier: Modifier, overlayHint: Float = 0f, onLoaded: () -> Unit) {
+private fun PhotoCard(vm: CleanupViewModel, item: PhotoItem, modifier: Modifier, overlayHint: Float = 0f, upHint: Float = 0f, onLoaded: () -> Unit) {
     val ctx = LocalContext.current
     var state by remember(item.id) { mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty) }
-    Box(modifier.clip(RoundedCornerShape(28.dp)).background(T.card)) {
+    val tags = vm.cardTags(item)
+    val tagTexts = tags.map { tagText(it) }
+    val date = item.dateMillis?.let { fmtDate(it) } ?: ""
+    val desc = listOf(s(if (item.isVideo) R.string.a11y_video else R.string.a11y_photo), date, Fmt.bytes(item.fileSize))
+        .plus(tagTexts).filter { it.isNotEmpty() }.joinToString("，")
+    Box(modifier.clip(RoundedCornerShape(28.dp)).background(T.card).semantics { contentDescription = desc }) {
         AsyncImage(
             model = remember(item.id) { cardRequest(ctx, item) }, contentDescription = null,
             contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize(),
@@ -212,17 +255,20 @@ private fun PhotoCard(vm: CleanupViewModel, item: PhotoItem, modifier: Modifier,
         )
         if (state !is AsyncImagePainter.State.Success) {
             Box(Modifier.align(Alignment.Center)) {
-                if (state is AsyncImagePainter.State.Error) Text("无法加载", color = T.text2, fontSize = 13.sp) else Spinner(28.dp)
+                if (state is AsyncImagePainter.State.Error) Text(s(R.string.cannot_load), color = T.text2, fontSize = 13.sp) else Spinner(28.dp)
             }
         }
         if (item.isVideo) Icon(Icons.Rounded.PlayCircle, null, tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.align(Alignment.Center).size(64.dp))
         // 滑动方向提示
-        if (overlayHint < -0.15f) {
+        if (upHint > 0.15f && upHint > abs(overlayHint) * 1.5f) {
+            Box(Modifier.fillMaxSize().background(T.accent.copy(alpha = upHint.coerceAtMost(1f) * 0.25f)))
+            Stamp(s(R.string.action_later), T.accent, Modifier.align(Alignment.BottomCenter).padding(bottom = 90.dp))
+        } else if (overlayHint < -0.15f) {
             Box(Modifier.fillMaxSize().background(T.danger.copy(alpha = (-overlayHint).coerceAtMost(1f) * 0.3f)))
-            Stamp("删除", T.danger, Modifier.align(Alignment.TopEnd).padding(20.dp))
+            Stamp(s(R.string.action_delete), T.danger, Modifier.align(Alignment.TopEnd).padding(20.dp))
         } else if (overlayHint > 0.15f) {
             Box(Modifier.fillMaxSize().background(T.keep.copy(alpha = overlayHint.coerceAtMost(1f) * 0.25f)))
-            Stamp("保留", T.keep, Modifier.align(Alignment.TopStart).padding(20.dp))
+            Stamp(s(R.string.action_keep), T.keep, Modifier.align(Alignment.TopStart).padding(20.dp))
         }
         // 底部信息
         Column(
@@ -231,9 +277,7 @@ private fun PhotoCard(vm: CleanupViewModel, item: PhotoItem, modifier: Modifier,
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            val tags = vm.cardTags(item)
-            if (tags.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { tags.forEach { CardTag(it) } }
-            val date = item.dateMillis?.let { SimpleDateFormat("yyyy年M月d日 HH:mm", Locale.CHINA).format(Date(it)) } ?: ""
+            if (tagTexts.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { tagTexts.forEach { TagChip(it) } }
             Text(date, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             Text("${Fmt.bytes(item.fileSize)} · ${item.width}×${item.height}", color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp)
         }
@@ -247,14 +291,29 @@ private fun Stamp(text: String, color: Color, modifier: Modifier) {
 }
 
 @Composable
-fun CardTag(text: String) {
+fun tagText(t: CardTag): String = when (t.kind) {
+    TagKind.SCREENSHOT -> s(R.string.tag_screenshot)
+    TagKind.VIDEO -> s(R.string.tag_video)
+    TagKind.CODE -> s(R.string.tag_code, t.arg ?: "")
+    TagKind.QR -> s(R.string.tag_qr)
+    TagKind.DOCUMENT -> s(R.string.tag_document)
+    TagKind.TEXT -> s(R.string.tag_text)
+    TagKind.BLURRY -> s(R.string.tag_blurry)
+    TagKind.DARK -> s(R.string.tag_dark)
+    TagKind.BRIGHT -> s(R.string.tag_bright)
+    TagKind.LOW_QUALITY -> s(R.string.tag_low_quality)
+    TagKind.MOTION -> s(R.string.tag_motion)
+}
+
+@Composable
+fun TagChip(text: String) {
     Text(text, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium,
         modifier = Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.22f)).padding(horizontal = 8.dp, vertical = 3.dp))
 }
 
 /** 一类看完：列出本轮标记的照片，点缩略图取消标记，确认后才真正删除（系统再确认一次） */
 @Composable
-private fun FinishedView(vm: CleanupViewModel, queue: List<String>, modifier: Modifier, onUndo: (() -> Unit)?) {
+private fun FinishedView(vm: CleanupViewModel, queue: List<String>, modifier: Modifier, finishedTitle: Int, onUndo: (() -> Unit)?) {
     val a = LocalActions.current
     val view = LocalView.current
     val marked = queue.filter { it in vm.toDelete }
@@ -270,14 +329,16 @@ private fun FinishedView(vm: CleanupViewModel, queue: List<String>, modifier: Mo
                 Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconBadge(Icons.Rounded.Check, T.keep, 56.dp)
-                    Text(if (deletedCount >= 0) "已删除 $deletedCount 项" else "这一类看完了", color = T.text, fontSize = T.title, fontWeight = FontWeight.Bold)
+                    Text(if (deletedCount >= 0) s(R.string.deleted_n, deletedCount) else s(finishedTitle), color = T.text, fontSize = T.title, fontWeight = FontWeight.Bold)
                     if (deletedCount < 0) {
-                        if (marked.isEmpty()) Text("没有标记要删除的照片", color = T.text2, fontSize = T.callout)
+                        if (marked.isEmpty()) Text(s(R.string.finished_none), color = T.text2, fontSize = T.callout)
                         else {
-                            Text("标记了 ${marked.size} 项，可释放 ${Fmt.bytes(vm.bytes(marked))}", color = T.text2, fontSize = T.callout)
-                            Text("照片还没删除 · 点缩略图可取消标记", color = T.text3, fontSize = T.caption)
+                            Text(s(R.string.finished_marked, marked.size, Fmt.bytes(vm.bytes(marked))), color = T.text2, fontSize = T.callout)
+                            Text(s(R.string.finished_hint), color = T.text3, fontSize = T.caption)
                         }
-                        if (onUndo != null) Text("撤销上一张", color = T.accent, fontSize = T.callout, fontWeight = FontWeight.SemiBold,
+                        val laterN = queue.count { it in vm.later }
+                        if (laterN > 0) Text(s(R.string.finished_later, laterN), color = T.text3, fontSize = T.caption)
+                        if (onUndo != null) Text(s(R.string.undo_last), color = T.accent, fontSize = T.callout, fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.pressable(onClick = onUndo).padding(6.dp))
                     }
                 }
@@ -290,7 +351,7 @@ private fun FinishedView(vm: CleanupViewModel, queue: List<String>, modifier: Mo
         }
         if (marked.isNotEmpty()) {
             PrimaryButton(
-                if (working) "等待系统确认…" else "确认删除 ${marked.size} 项",
+                if (working) s(R.string.waiting_system) else s(R.string.confirm_delete_n, marked.size),
                 Modifier.padding(horizontal = T.pagePadding, vertical = 10.dp), tint = T.danger, enabled = !working,
             ) {
                 Haptics.warning(view)

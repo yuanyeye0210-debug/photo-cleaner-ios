@@ -1,5 +1,7 @@
 package com.yuanye.photocleaner.ui
 
+import com.yuanye.photocleaner.R
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -51,7 +53,7 @@ fun PhotoPreview(item: PhotoItem, onClose: () -> Unit) {
             Row(Modifier.align(Alignment.TopStart).fillMaxWidth().systemBarsPadding().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("${Fmt.bytes(item.fileSize)} · ${item.width}×${item.height}", color = Color.White.copy(alpha = 0.8f), fontSize = 13.sp, modifier = Modifier.weight(1f))
                 Box(Modifier.size(40.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.18f)).pressable(onClick = onClose), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Close, "关闭", tint = Color.White, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Rounded.Close, s(R.string.close), tint = Color.White, modifier = Modifier.size(20.dp))
                 }
             }
         }

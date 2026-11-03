@@ -1,5 +1,17 @@
 package com.yuanye.photocleaner.ui
 
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import com.yuanye.photocleaner.R
+import com.yuanye.photocleaner.core.Fmt
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -56,7 +68,7 @@ fun Modifier.pressable(enabled: Boolean = true, onClick: () -> Unit): Modifier {
     val src = remember { MutableInteractionSource() }
     val pressed by src.collectIsPressedAsState()
     val s by animateFloatAsState(if (pressed) 0.97f else 1f, T.spring(), label = "press")
-    return this.scale(s).clickable(interactionSource = src, indication = null, enabled = enabled, onClick = onClick)
+    return this.scale(s).clickable(interactionSource = src, indication = null, enabled = enabled, role = Role.Button, onClick = onClick)
 }
 
 @Composable
@@ -112,7 +124,8 @@ fun ThinProgress(value: Float, tint: Color = T.accent, modifier: Modifier = Modi
 @Composable
 fun RingGauge(value: Float, center: String, caption: String, modifier: Modifier = Modifier, tint: Color = T.accent) {
     val v by animateFloatAsState(value.coerceIn(0f, 1f), T.spring(), label = "ring")
-    Box(modifier, contentAlignment = Alignment.Center) {
+    Box(modifier.semantics(mergeDescendants = true) { progressBarRangeInfo = ProgressBarRangeInfo(value.coerceIn(0f, 1f), 0f..1f) },
+        contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
             val stroke = size.minDimension * 0.1f
             val inset = stroke / 2
@@ -144,7 +157,7 @@ fun <O> Segmented(options: List<O>, selected: O, label: (O) -> String, onSelect:
             val on = o == selected
             Box(
                 Modifier.weight(1f).clip(CircleShape).background(if (on) T.fillHigh else Color.Transparent)
-                    .clickable { onSelect(o) }.padding(vertical = 8.dp),
+                    .selectable(selected = on, role = Role.Tab) { onSelect(o) }.padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(label(o), color = if (on) T.text else T.text2, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
@@ -165,9 +178,9 @@ fun PrimaryButton(text: String, modifier: Modifier = Modifier, tint: Color = T.a
 }
 
 @Composable
-fun SecondaryButton(text: String, icon: ImageVector? = null, tint: Color = T.accent, onClick: () -> Unit) {
+fun SecondaryButton(text: String, icon: ImageVector? = null, tint: Color = T.accent, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Row(
-        Modifier.clip(CircleShape).background(T.card).border(1.dp, T.hairline, CircleShape)
+        modifier.clip(CircleShape).background(T.card).border(1.dp, T.hairline, CircleShape)
             .pressable(onClick = onClick).padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -177,13 +190,13 @@ fun SecondaryButton(text: String, icon: ImageVector? = null, tint: Color = T.acc
 }
 
 @Composable
-fun CircleButton(icon: ImageVector, tint: Color, size: Dp, enabled: Boolean = true, onClick: () -> Unit) {
+fun CircleButton(icon: ImageVector, tint: Color, size: Dp, label: String, enabled: Boolean = true, onClick: () -> Unit) {
     Box(
         Modifier.size(size).clip(CircleShape).background(T.card).border(1.dp, T.hairline, CircleShape)
             .pressable(enabled, onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, null, tint = if (enabled) tint else T.text3, modifier = Modifier.size(size * 0.42f))
+        Icon(icon, label, tint = if (enabled) tint else T.text3, modifier = Modifier.size(size * 0.42f))
     }
 }
 
@@ -205,7 +218,7 @@ fun TopBar(title: String, onBack: () -> Unit, trailing: @Composable () -> Unit =
         Box(
             Modifier.align(Alignment.CenterStart).size(40.dp).clip(CircleShape).background(T.card).clickable(onClick = onBack),
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Rounded.ArrowBackIosNew, "返回", tint = T.text, modifier = Modifier.size(18.dp)) }
+        ) { Icon(Icons.Rounded.ArrowBackIosNew, stringResource(R.string.back), tint = T.text, modifier = Modifier.size(18.dp)) }
         Text(title, color = T.text, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.align(Alignment.Center))
         Box(Modifier.align(Alignment.CenterEnd)) { trailing() }
     }
@@ -218,7 +231,20 @@ fun thumbRequest(ctx: android.content.Context, item: PhotoItem, px: Int = 320): 
 @Composable
 fun ThumbnailCell(item: PhotoItem, marked: Boolean, kept: Boolean, isBest: Boolean = false, modifier: Modifier = Modifier) {
     val ctx = LocalContext.current
-    Box(modifier.aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(T.fill)) {
+    // 读屏（TalkBack）：类型 + 日期 + 状态
+    val desc = buildString {
+        append(stringResource(if (item.isVideo) R.string.a11y_video else R.string.a11y_photo))
+        item.dateMillis?.let { append("，").append(fmtDate(it)) }
+        append("，").append(Fmt.bytes(item.fileSize))
+        if (item.isFavorite) append("，").append(stringResource(R.string.a11y_favorite))
+        if (isBest) append("，").append(stringResource(R.string.best))
+        when {
+            marked -> append("，").append(stringResource(R.string.a11y_marked_delete))
+            kept -> append("，").append(stringResource(R.string.a11y_kept))
+        }
+    }
+    Box(modifier.aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(T.fill)
+        .semantics(mergeDescendants = true) { contentDescription = desc; selected = marked }) {
         AsyncImage(
             model = remember(item.id) { thumbRequest(ctx, item) }, contentDescription = null,
             contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize(),
@@ -232,8 +258,11 @@ fun ThumbnailCell(item: PhotoItem, marked: Boolean, kept: Boolean, isBest: Boole
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Rounded.Star, null, tint = Color.Black, modifier = Modifier.size(11.dp))
-                Text("推荐", color = Color.Black, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.best), color = Color.Black, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
+        }
+        if (item.isFavorite) {
+            Icon(Icons.Rounded.Favorite, null, tint = Color.White, modifier = Modifier.align(Alignment.BottomEnd).padding(5.dp).size(14.dp))
         }
         if (marked) {
             Box(Modifier.fillMaxSize().background(T.danger.copy(alpha = 0.35f)))
@@ -250,4 +279,14 @@ fun ThumbnailCell(item: PhotoItem, marked: Boolean, kept: Boolean, isBest: Boole
 @Composable
 fun Spinner(size: Dp = 18.dp, color: Color = T.text2) {
     CircularProgressIndicator(Modifier.size(size), color = color, strokeWidth = 2.dp)
+}
+
+@Composable
+fun s(id: Int, vararg args: Any): String = stringResource(id, *args)
+
+/** 按系统语言格式化日期 */
+fun fmtDate(millis: Long, withTime: Boolean = true): String {
+    val f = if (withTime) java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT)
+    else java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM)
+    return f.format(java.util.Date(millis))
 }

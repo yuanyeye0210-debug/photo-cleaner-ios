@@ -89,5 +89,13 @@ dependencies {
     // MediaPipe 图像特征向量（AI 相似度）
     implementation("com.google.mediapipe:tasks-vision:0.10.20")
 
+    // 视频压缩成 HEVC（H.265）：Media3 Transformer，用手机自带的硬件编码器
+    implementation("androidx.media3:media3-transformer:1.4.1")
+    implementation("androidx.media3:media3-effect:1.4.1")
+    implementation("androidx.media3:media3-common:1.4.1")
+    implementation("androidx.media3:media3-muxer:1.4.1")
+    // 桌面小组件
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+
     testImplementation("junit:junit:4.13.2")
 }

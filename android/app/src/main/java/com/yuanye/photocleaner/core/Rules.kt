@@ -138,6 +138,22 @@ object VisionRules {
         }
         return sqrt(s)
     }
+
+    /** 归一化向量量化成 int8（每维 1 字节，内存只要 float 的 1/4） */
+    fun quantize(v: FloatArray): ByteArray =
+        ByteArray(v.size) { (v[it] * 127f).roundToInt().coerceIn(-127, 127).toByte() }
+
+    /** 量化向量的欧氏距离（约等于原始归一化向量的距离） */
+    fun distance(a: ByteArray, b: ByteArray): Float {
+        val n = min(a.size, b.size)
+        if (n == 0) return Float.POSITIVE_INFINITY
+        var s = 0L
+        for (i in 0 until n) {
+            val d = a[i] - b[i]
+            s += d * d
+        }
+        return (sqrt(s.toDouble()) / 127.0).toFloat()
+    }
 }
 
 /**
@@ -171,7 +187,7 @@ object QualityScore {
     private fun ln10(x: Double) = kotlin.math.log10(x)
 }
 
-class HashEntry(val id: String, val hash: Long, val time: Double?, val feature: FloatArray? = null)
+class HashEntry(val id: String, val hash: Long, val time: Double?, val feature: ByteArray? = null)
 
 data class BestCandidate(
     val faceQuality: Float? = null,
@@ -180,19 +196,45 @@ data class BestCandidate(
     val pixels: Int,
 )
 
-/** 相似照片分组（并查集），规则与 iOS 版一致 */
+/**
+ * 相似照片分组（并查集），规则与 iOS 版一致。
+ * 快速版：不再两两比较全部照片（n² 次），只比较
+ *  1) 按拍摄时间排序后、时间窗口内的照片；
+ *  2) dHash 分 8 段、任一段完全相同的照片（汉明距离 ≤ 7 一定会碰上）；
+ *  3) AI 特征的随机投影桶（LSH）相同的照片（找时间相隔很久的重复图）。
+ * 判定规则和暴力版 [groupsBruteForce] 完全相同。
+ */
 object SimilarityGrouper {
-    fun groups(
-        entries: List<HashEntry>,
-        strictThreshold: Int = 4,
-        looseThreshold: Int = 10,
-        timeWindow: Double = 180.0,
-        featureNear: Float = 0.45f,
-        featureDup: Float = 0.25f,
-        dupPrefilter: Int = 20,
-    ): List<List<String>> {
-        val n = entries.size
-        if (n < 2) return emptyList()
+    private const val BANDS = 8
+    private const val LSH_TABLES = 8
+    private const val LSH_BITS = 10
+    private const val LSH_NONZERO = 48
+    /** 桶太大（比如大量纯黑图 dHash 都一样）时只和按时间相邻的若干张比较，避免退化成 n² */
+    private const val BIG_BUCKET = 400
+    private const val BIG_BUCKET_NEIGHBORS = 40
+
+    private class Rules(
+        val strict: Int, val loose: Int, val window: Double, val near: Float, val dup: Float, val prefilter: Int,
+    ) {
+        fun similar(a: HashEntry, b: HashEntry): Boolean {
+            val d = ImageMath.hamming(a.hash, b.hash)
+            if (d <= strict) return true
+            val ta = a.time
+            val tb = b.time
+            val close = ta != null && tb != null && abs(ta - tb) <= window
+            val fa = a.feature
+            val fb = b.feature
+            return if (fa != null && fb != null) {
+                if (!(close || d <= prefilter)) false
+                else {
+                    val f = VisionRules.distance(fa, fb)
+                    (close && f <= near) || f <= dup
+                }
+            } else close && d <= loose
+        }
+    }
+
+    private class UnionFind(n: Int) {
         val parent = IntArray(n) { it }
         fun find(i: Int): Int {
             var r = i
@@ -205,29 +247,132 @@ object SimilarityGrouper {
             val ra = find(a); val rb = find(b)
             if (ra != rb) parent[rb] = ra
         }
-        for (i in 0 until n - 1) {
-            val hi = entries[i].hash
-            val ti = entries[i].time
-            val fi = entries[i].feature
-            for (j in i + 1 until n) {
-                val d = ImageMath.hamming(hi, entries[j].hash)
-                if (d <= strictThreshold) { union(i, j); continue }
-                val tj = entries[j].time
-                val close = ti != null && tj != null && abs(ti - tj) <= timeWindow
-                val fj = entries[j].feature
-                if (fi != null && fj != null) {
-                    if (!(close || d <= dupPrefilter)) continue
-                    val f = VisionRules.distance(fi, fj)
-                    if ((close && f <= featureNear) || f <= featureDup) union(i, j)
-                } else if (close && d <= looseThreshold) {
-                    union(i, j)
+    }
+
+    fun groups(
+        entries: List<HashEntry>,
+        strictThreshold: Int = 4,
+        looseThreshold: Int = 10,
+        timeWindow: Double = 180.0,
+        featureNear: Float = 0.45f,
+        featureDup: Float = 0.25f,
+        dupPrefilter: Int = 20,
+    ): List<List<String>> {
+        val n = entries.size
+        if (n < 2) return emptyList()
+        val rules = Rules(strictThreshold, looseThreshold, timeWindow, featureNear, featureDup, dupPrefilter)
+        val uf = UnionFind(n)
+        fun check(i: Int, j: Int) {
+            if (i == j || uf.find(i) == uf.find(j)) return
+            if (rules.similar(entries[i], entries[j])) uf.union(i, j)
+        }
+        val byTime = (0 until n).filter { entries[it].time != null }.sortedBy { entries[it].time!! }
+        // 1) 时间窗口
+        for (a in byTime.indices) {
+            val ta = entries[byTime[a]].time!!
+            var b = a + 1
+            while (b < byTime.size && entries[byTime[b]].time!! - ta <= timeWindow) {
+                check(byTime[a], byTime[b]); b++
+            }
+        }
+        val timeRank = IntArray(n) { Int.MAX_VALUE }
+        byTime.forEachIndexed { r, i -> timeRank[i] = r }
+        fun compareBucket(members: List<Int>) {
+            if (members.size < 2) return
+            if (members.size <= BIG_BUCKET) {
+                for (x in 0 until members.size - 1) for (y in x + 1 until members.size) check(members[x], members[y])
+            } else {
+                val sorted = members.sortedBy { timeRank[it] }
+                for (x in sorted.indices) {
+                    for (y in x + 1 until minOf(sorted.size, x + 1 + BIG_BUCKET_NEIGHBORS)) check(sorted[x], sorted[y])
                 }
             }
         }
+        // 2) dHash 分段
+        for (band in 0 until BANDS) {
+            val buckets = HashMap<Int, MutableList<Int>>()
+            for (i in 0 until n) {
+                val key = ((entries[i].hash ushr (band * 8)) and 0xFF).toInt()
+                buckets.getOrPut(key) { ArrayList() }.add(i)
+            }
+            buckets.values.forEach { compareBucket(it) }
+        }
+        // 3) AI 特征随机投影桶
+        val withFeature = (0 until n).filter { entries[it].feature != null }
+        if (withFeature.size >= 2) {
+            val dim = withFeature.maxOf { entries[it].feature!!.size }
+            val planes = Planes.get(dim)
+            for (t in 0 until LSH_TABLES) {
+                val buckets = HashMap<Int, MutableList<Int>>()
+                for (i in withFeature) {
+                    buckets.getOrPut(planes.signature(entries[i].feature!!, t)) { ArrayList() }.add(i)
+                }
+                buckets.values.forEach { compareBucket(it) }
+            }
+        }
+        return collect(entries, uf)
+    }
+
+    /** 稀疏随机超平面（固定种子，每次结果一样） */
+    private class Planes(dim: Int) {
+        private val idx = Array(LSH_TABLES * LSH_BITS) { IntArray(LSH_NONZERO) }
+        private val sign = Array(LSH_TABLES * LSH_BITS) { BooleanArray(LSH_NONZERO) }
+
+        init {
+            val rnd = java.util.Random(0x5EEDL + dim)
+            for (p in idx.indices) for (k in 0 until LSH_NONZERO) {
+                idx[p][k] = rnd.nextInt(maxOf(1, dim))
+                sign[p][k] = rnd.nextBoolean()
+            }
+        }
+
+        fun signature(f: ByteArray, table: Int): Int {
+            var sig = 0
+            for (b in 0 until LSH_BITS) {
+                val p = table * LSH_BITS + b
+                var s = 0
+                val ix = idx[p]
+                val sg = sign[p]
+                for (k in 0 until LSH_NONZERO) {
+                    val j = ix[k]
+                    if (j < f.size) { val v = f[j].toInt(); s += if (sg[k]) v else -v }
+                }
+                if (s >= 0) sig = sig or (1 shl b)
+            }
+            return sig
+        }
+
+        companion object {
+            private val cache = HashMap<Int, Planes>()
+            @Synchronized fun get(dim: Int): Planes = cache.getOrPut(dim) { Planes(dim) }
+        }
+    }
+
+    private fun collect(entries: List<HashEntry>, uf: UnionFind): List<List<String>> {
         val buckets = LinkedHashMap<Int, MutableList<String>>()
-        for (i in 0 until n) buckets.getOrPut(find(i)) { mutableListOf() }.add(entries[i].id)
+        for (i in entries.indices) buckets.getOrPut(uf.find(i)) { mutableListOf() }.add(entries[i].id)
         return buckets.values.filter { it.size > 1 }
             .sortedWith(compareByDescending<List<String>> { it.size }.thenBy { it[0] })
+    }
+
+    /** 暴力版（两两比较），只用于单元测试对照 */
+    fun groupsBruteForce(
+        entries: List<HashEntry>,
+        strictThreshold: Int = 4,
+        looseThreshold: Int = 10,
+        timeWindow: Double = 180.0,
+        featureNear: Float = 0.45f,
+        featureDup: Float = 0.25f,
+        dupPrefilter: Int = 20,
+    ): List<List<String>> {
+        val n = entries.size
+        if (n < 2) return emptyList()
+        val rules = Rules(strictThreshold, looseThreshold, timeWindow, featureNear, featureDup, dupPrefilter)
+        val uf = UnionFind(n)
+        for (i in 0 until n - 1) for (j in i + 1 until n) {
+            if (rules.similar(entries[i], entries[j])) uf.union(i, j)
+        }
+        return collect(entries, uf)
     }
 
     fun bestIndex(sharpness: List<Double>, pixels: List<Int>): Int =

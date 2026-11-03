@@ -7,6 +7,7 @@ import kotlin.math.sqrt
 /** 从 iOS 版 VisionRulesTests 移植（标签换成 ML Kit 的） */
 class VisionRulesTest {
     private fun unit(vararg v: Float) = VisionRules.normalized(v)!!
+    private fun q(vararg v: Float) = VisionRules.quantize(unit(*v))
 
     @Test fun normalizedAndDistance() {
         val a = unit(3f, 4f)
@@ -14,16 +15,20 @@ class VisionRulesTest {
         assertNull(VisionRules.normalized(floatArrayOf(0f, 0f)))
         assertEquals(0f, VisionRules.distance(a, a), 1e-6f)
         assertEquals(sqrt(2f), VisionRules.distance(unit(1f, 0f), unit(0f, 1f)), 1e-5f)
+        // 量化后距离误差很小
+        assertEquals(sqrt(2f), VisionRules.distance(q(1f, 0f), q(0f, 1f)), 1e-3f)
+        assertEquals(VisionRules.distance(unit(1f, 0.2f, 0f), unit(1f, 0.3f, 0f)),
+            VisionRules.distance(q(1f, 0.2f, 0f), q(1f, 0.3f, 0f)), 0.01f)
     }
 
     @Test fun aiGroupingUsesFeaturesWithinTimeWindow() {
         val base = 0xF0F0F0F00F0F0F0FUL.toLong()
         val entries = listOf(
-            HashEntry("a", base, 1000.0, unit(1f, 0.2f, 0f)),
-            HashEntry("b", base xor 0xFFFFFFFFL, 1030.0, unit(1f, 0.3f, 0f)),
-            HashEntry("c", base xor 0xFF0000000000L, 1010.0, unit(0f, 0f, 1f)),
-            HashEntry("d", base xor 0x3FF, 9_000_000.0, unit(1f, 0.21f, 0f)),
-            HashEntry("e", base.inv(), 5_000_000.0, unit(1f, 0.2f, 0f)),
+            HashEntry("a", base, 1000.0, q(1f, 0.2f, 0f)),
+            HashEntry("b", base xor 0xFFFFFFFFL, 1030.0, q(1f, 0.3f, 0f)),
+            HashEntry("c", base xor 0xFF0000000000L, 1010.0, q(0f, 0f, 1f)),
+            HashEntry("d", base xor 0x3FF, 9_000_000.0, q(1f, 0.21f, 0f)),
+            HashEntry("e", base.inv(), 5_000_000.0, q(1f, 0.2f, 0f)),
         )
         val g = SimilarityGrouper.groups(entries)
         assertEquals(1, g.size)

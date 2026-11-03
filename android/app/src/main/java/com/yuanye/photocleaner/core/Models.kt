@@ -1,5 +1,7 @@
 package com.yuanye.photocleaner.core
 
+import com.yuanye.photocleaner.R
+
 import kotlin.math.max
 import kotlin.math.min
 
@@ -10,7 +12,7 @@ data class AnalysisResult(
     val brightness: Double,      // 平均亮度 0..255
     val contrast: Double = 0.0,  // 亮度标准差
     // ---- AI（Google ML Kit + MediaPipe，本机运行）----
-    val feature: FloatArray? = null,   // 特征向量（已归一化），AI 相似度
+    val feature: ByteArray? = null,    // 特征向量（归一化后量化成 int8，省内存），AI 相似度
     val quality: Float? = null,        // 质量评分 -1~1（清晰度/曝光/对比度近似）
     val tags: Set<ContentTag> = emptySet(),
     val textChecked: Boolean = false,
@@ -19,6 +21,8 @@ data class AnalysisResult(
     val verificationCode: String? = null,
     val faceQuality: Float? = null,    // 人脸质量 0~1（只对相似组里的照片计算）
     val faceChecked: Boolean = false,
+    /** 动态照片（三星 / Google / 小米）里内嵌视频的字节数；0 = 不是动态照片 */
+    val motionBytes: Long = 0,
 ) {
     val textHeavy: Boolean get() = VisionRules.isTextHeavy(textLines, textChars)
 
@@ -40,6 +44,9 @@ data class PhotoItem(
     val height: Int,
     val dateModified: Long = 0,
     val analysis: AnalysisResult? = null,
+    val name: String = "",          // 文件名（连拍识别用）
+    val relativePath: String = "",  // 相册里的文件夹（压缩/转换后的新文件放回同一个文件夹）
+    val mime: String = "",
 ) {
     val pixelCount: Int get() = width * height
     val aspect: Double get() = max(width, height).toDouble() / max(1, min(width, height)).toDouble()
@@ -47,25 +54,73 @@ data class PhotoItem(
 
 enum class Decision { DELETE, KEEP }
 
-enum class CleanCategory(val title: String, val subtitle: String, val needsAnalysis: Boolean = true) {
-    // 顺序就是首页 / 分类页的显示顺序：先清理类，最后是「回顾」类
-    SIMILAR("相似照片", "连拍和重复，留一张最好的"),
-    SCREENSHOTS("截图", "聊天记录、验证码截图", false),
-    TEXT_IMAGES("文字图片", "聊天记录、长图、验证码"),
-    DOCUMENTS("文档/票据", "票据、文件、证件照片"),
-    QR_CODES("二维码", "用过的付款码、海报二维码"),
-    LOW_QUALITY("低质量照片", "质量评分很低的照片"),
-    BLURRY("模糊照片", "手抖、失焦的照片"),
-    POOR_LIGHT("过暗/过曝", "太黑或太亮，基本看不清"),
-    LARGE("大文件", "占空间最多的照片", false),
-    VIDEOS("视频", "按大小排序的视频", false),
-    FOOD("美食", "吃过的美食，留几张就够"),
-    PETS("宠物", "猫猫狗狗，挑出拍废的"),
-    SCENERY("风景", "风景照，挑出重复的");
+enum class CleanCategory(val needsAnalysis: Boolean = true) {
+    // 顺序就是首页 / 分类页的显示顺序（与 iOS 版一致）：先清理类，最后是「回顾」类
+    SIMILAR,
+    DUPLICATES(false),
+    BURSTS(false),
+    SCREENSHOTS(false),
+    TEXT_IMAGES,
+    DOCUMENTS,
+    QR_CODES,
+    LOW_QUALITY,
+    BLURRY,
+    POOR_LIGHT,
+    MOTION,
+    LARGE(false),
+    VIDEOS(false),
+    FOOD,
+    PETS,
+    SCENERY;
 
     /** 「回顾」类：不算进可清理空间 */
     val isBrowse: Boolean get() = this == FOOD || this == PETS || this == SCENERY
+
+    /** 分组展示（每组留一张） */
+    val isGrouped: Boolean get() = this == SIMILAR || this == DUPLICATES || this == BURSTS
+
+    val titleRes: Int get() = when (this) {
+        SIMILAR -> R.string.cat_similar
+        DUPLICATES -> R.string.cat_duplicates
+        BURSTS -> R.string.cat_bursts
+        SCREENSHOTS -> R.string.cat_screenshots
+        TEXT_IMAGES -> R.string.cat_text
+        DOCUMENTS -> R.string.cat_documents
+        QR_CODES -> R.string.cat_qr
+        LOW_QUALITY -> R.string.cat_low_quality
+        BLURRY -> R.string.cat_blurry
+        POOR_LIGHT -> R.string.cat_poor_light
+        MOTION -> R.string.cat_motion
+        LARGE -> R.string.cat_large
+        VIDEOS -> R.string.cat_videos
+        FOOD -> R.string.cat_food
+        PETS -> R.string.cat_pets
+        SCENERY -> R.string.cat_scenery
+    }
+
+    val subtitleRes: Int get() = when (this) {
+        SIMILAR -> R.string.cat_similar_sub
+        DUPLICATES -> R.string.cat_duplicates_sub
+        BURSTS -> R.string.cat_bursts_sub
+        SCREENSHOTS -> R.string.cat_screenshots_sub
+        TEXT_IMAGES -> R.string.cat_text_sub
+        DOCUMENTS -> R.string.cat_documents_sub
+        QR_CODES -> R.string.cat_qr_sub
+        LOW_QUALITY -> R.string.cat_low_quality_sub
+        BLURRY -> R.string.cat_blurry_sub
+        POOR_LIGHT -> R.string.cat_poor_light_sub
+        MOTION -> R.string.cat_motion_sub
+        LARGE -> R.string.cat_large_sub
+        VIDEOS -> R.string.cat_videos_sub
+        FOOD -> R.string.cat_food_sub
+        PETS -> R.string.cat_pets_sub
+        SCENERY -> R.string.cat_scenery_sub
+    }
 }
+
+/** 卡片上的小标签（界面再翻译成文字） */
+enum class TagKind { SCREENSHOT, VIDEO, CODE, QR, DOCUMENT, TEXT, BLURRY, DARK, BRIGHT, LOW_QUALITY, MOTION }
+data class CardTag(val kind: TagKind, val arg: String? = null)
 
 /** 分类规则（滑动卡片上的小标签也用这些） */
 object CategoryRules {
@@ -100,6 +155,7 @@ object CategoryRules {
     /** 按分类整理（收藏的永远不进任何分类） */
     fun build(
         items: List<PhotoItem>, similarGroups: List<List<String>>, blurThreshold: Double, largeFileMB: Double,
+        duplicateGroups: List<List<String>> = emptyList(), burstGroups: List<List<String>> = emptyList(),
     ): Map<CleanCategory, List<String>> {
         val largeBytes = (largeFileMB * 1_000_000).toLong()
         val pool = items.filter { !it.isFavorite }
@@ -107,6 +163,8 @@ object CategoryRules {
         fun tag(t: ContentTag) = photos.filter { !it.isScreenshot && it.analysis?.tags?.contains(t) == true }.map { it.id }
         val m = LinkedHashMap<CleanCategory, List<String>>()
         m[CleanCategory.SIMILAR] = similarGroups.flatten()
+        m[CleanCategory.DUPLICATES] = duplicateGroups.flatten()
+        m[CleanCategory.BURSTS] = burstGroups.flatten()
         m[CleanCategory.SCREENSHOTS] = pool.filter { it.isScreenshot }.map { it.id }
         m[CleanCategory.TEXT_IMAGES] = photos.filter { isTextImage(it) }.map { it.id }
         m[CleanCategory.DOCUMENTS] = photos.filter { isDocument(it) }.map { it.id }
@@ -116,35 +174,48 @@ object CategoryRules {
         m[CleanCategory.BLURRY] = photos.filter { isBlurry(it, blurThreshold) }
             .sortedBy { it.analysis?.sharpness ?: 0.0 }.map { it.id }
         m[CleanCategory.POOR_LIGHT] = photos.filter { isPoorLight(it) }.map { it.id }
+        m[CleanCategory.MOTION] = photos.filter { (it.analysis?.motionBytes ?: 0) > 0 }
+            .sortedByDescending { it.analysis?.motionBytes ?: 0 }.map { it.id }
         m[CleanCategory.LARGE] = photos.filter { it.fileSize >= largeBytes }.sortedByDescending { it.fileSize }.map { it.id }
         m[CleanCategory.VIDEOS] = pool.filter { it.isVideo }.sortedByDescending { it.fileSize }.map { it.id }
         m[CleanCategory.FOOD] = tag(ContentTag.FOOD)
         m[CleanCategory.PETS] = tag(ContentTag.PET)
         m[CleanCategory.SCENERY] = tag(ContentTag.SCENERY)
-        return m
+        // 按首页顺序排好
+        return CleanCategory.entries.associateWithTo(LinkedHashMap()) { m[it] ?: emptyList() }
     }
 
     /** 滑动卡片上的小标签（最多 4 个） */
-    fun cardTags(item: PhotoItem, blurThreshold: Double): List<String> {
-        val t = mutableListOf<String>()
-        if (item.isScreenshot) t += "截图"
-        if (item.isVideo) t += "视频"
+    fun cardTags(item: PhotoItem, blurThreshold: Double): List<CardTag> {
+        val t = mutableListOf<CardTag>()
+        if (item.isScreenshot) t += CardTag(TagKind.SCREENSHOT)
+        if (item.isVideo) t += CardTag(TagKind.VIDEO)
         val a = item.analysis
         if (a != null) {
-            a.verificationCode?.let { t += "验证码 $it" }
-            if (ContentTag.QR_CODE in a.tags) t += "二维码"
-            if (ContentTag.DOCUMENT in a.tags) t += "文档"
-            if (a.textHeavy && !item.isScreenshot) t += "文字多"
-            if (isBlurry(item, blurThreshold)) t += "模糊"
-            if (isPoorLight(item)) t += if (a.brightness < 35) "过暗" else "过曝"
-            if (isLowQuality(item)) t += "低质量"
+            a.verificationCode?.let { t += CardTag(TagKind.CODE, it) }
+            if (ContentTag.QR_CODE in a.tags) t += CardTag(TagKind.QR)
+            if (ContentTag.DOCUMENT in a.tags) t += CardTag(TagKind.DOCUMENT)
+            if (a.textHeavy && !item.isScreenshot) t += CardTag(TagKind.TEXT)
+            if (isBlurry(item, blurThreshold)) t += CardTag(TagKind.BLURRY)
+            if (isPoorLight(item)) t += CardTag(if (a.brightness < 35) TagKind.DARK else TagKind.BRIGHT)
+            if (isLowQuality(item)) t += CardTag(TagKind.LOW_QUALITY)
+            if (a.motionBytes > 0) t += CardTag(TagKind.MOTION)
         }
         return t.take(4)
     }
 }
 
-/** 判定一次拖动是否算「滑走」：水平为主（|dx| > 1.5|dy|）且超过阈值。左 = 删除，右 = 保留 */
-fun swipeDecision(dx: Float, dy: Float, thresholdPx: Float): Decision? {
-    if (kotlin.math.abs(dx) < thresholdPx || kotlin.math.abs(dx) <= 1.5f * kotlin.math.abs(dy)) return null
-    return if (dx < 0) Decision.DELETE else Decision.KEEP
+enum class SwipeAction { DELETE, KEEP, LATER }
+
+/**
+ * 判定一次拖动算不算「滑走」：
+ *  - 水平为主（|dx| > 1.5|dy|）且超过阈值：左 = 删除，右 = 保留
+ *  - 向上为主（-dy > 1.5|dx|）且超过阈值：稍后再看
+ */
+fun swipeAction(dx: Float, dy: Float, thresholdPx: Float): SwipeAction? {
+    val ax = kotlin.math.abs(dx)
+    val ay = kotlin.math.abs(dy)
+    if (ax >= thresholdPx && ax > 1.5f * ay) return if (dx < 0) SwipeAction.DELETE else SwipeAction.KEEP
+    if (dy <= -thresholdPx && ay > 1.5f * ax) return SwipeAction.LATER
+    return null
 }

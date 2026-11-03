@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yuanye.photocleaner.R
 import com.yuanye.photocleaner.core.CleanCategory
 import java.util.Calendar
 
@@ -42,18 +43,21 @@ object T {
 
     fun <V> spring() = spring<V>(dampingRatio = 0.82f, stiffness = Spring.StiffnessMediumLow)
 
-    fun greeting(): String = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
-        in 5..10 -> "早上好"
-        in 11..12 -> "中午好"
-        in 13..17 -> "下午好"
-        in 18..22 -> "晚上好"
-        else -> "夜深了"
+    fun greeting(): Int = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+        in 5..10 -> R.string.greet_morning
+        in 11..12 -> R.string.greet_noon
+        in 13..17 -> R.string.greet_afternoon
+        in 18..22 -> R.string.greet_evening
+        else -> R.string.greet_night
     }
 }
 
 val CleanCategory.icon: ImageVector
     get() = when (this) {
         CleanCategory.SIMILAR -> Icons.Rounded.ContentCopy
+        CleanCategory.DUPLICATES -> Icons.Rounded.FileCopy
+        CleanCategory.BURSTS -> Icons.Rounded.BurstMode
+        CleanCategory.MOTION -> Icons.Rounded.MotionPhotosOn
         CleanCategory.SCREENSHOTS -> Icons.Rounded.PhoneAndroid
         CleanCategory.TEXT_IMAGES -> Icons.Rounded.Chat
         CleanCategory.DOCUMENTS -> Icons.Rounded.Description

@@ -23,6 +23,10 @@ import com.yuanye.photocleaner.core.ImageMath
 import com.yuanye.photocleaner.core.PhotoItem
 import com.yuanye.photocleaner.core.QualityScore
 import com.yuanye.photocleaner.core.VisionRules
+import com.yuanye.photocleaner.core.MotionPhoto
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -71,10 +75,17 @@ class Analyzer(context: Context, private val repo: MediaRepository) {
         val bright = ImageMath.meanBrightness(small)
         val contrast = ImageMath.contrast(small)
 
+        // 同一张位图同时跑：内容识别、二维码、特征向量、动态照片检测（以前是一个接一个）
         val input = InputImage.fromBitmap(bmp, 0)
-        val labels = runCatching { labeler.process(input).await().map { it.text to it.confidence } }.getOrDefault(emptyList())
-        val hasQR = runCatching { barcode.process(input).await().isNotEmpty() }.getOrDefault(false)
-        val feature = embed(bmp)
+        val labelTask = labeler.process(input)
+        val qrTask = barcode.process(input)
+        val (feature, motion) = coroutineScope {
+            val f = async(Dispatchers.Default) { embed(bmp) }
+            val m = async(Dispatchers.IO) { motionBytes(item) }
+            f.await() to m.await()
+        }
+        val labels = runCatching { labelTask.await().map { it.text to it.confidence } }.getOrDefault(emptyList())
+        val hasQR = runCatching { qrTask.await().isNotEmpty() }.getOrDefault(false)
         val tags = VisionRules.tags(labels, hasQR)
 
         var r = AnalysisResult(
@@ -85,6 +96,7 @@ class Analyzer(context: Context, private val repo: MediaRepository) {
             feature = feature,
             quality = QualityScore.score(sharp, bright, contrast),
             tags = tags,
+            motionBytes = motion,
         )
         val w = if (item.width > 0) item.width else bmp.width
         val h = if (item.height > 0) item.height else bmp.height
@@ -116,14 +128,20 @@ class Analyzer(context: Context, private val repo: MediaRepository) {
         return qs.average().toFloat()
     }
 
-    private fun embed(bmp: Bitmap): FloatArray? {
+    /** 动态照片里内嵌视频的大小（只读文件头尾）；不是动态照片返回 0 */
+    fun motionBytes(item: PhotoItem): Long {
+        if (item.isVideo || !(item.mime.contains("jpeg") || item.mime.contains("jpg") || item.mime.isEmpty())) return 0
+        return repo.withSource(Uri.parse(item.uri)) { src -> MotionPhoto.detect(src)?.videoBytes(src.size) } ?: 0L
+    }
+
+    private fun embed(bmp: Bitmap): ByteArray? {
         val e = embedder ?: return null
         return runCatching {
             synchronized(embedLock) {
                 val res = e.embed(BitmapImageBuilder(bmp).build())
                 res.embeddingResult().embeddings().firstOrNull()?.floatEmbedding()
             }
-        }.getOrNull()?.let { VisionRules.normalized(it) }
+        }.getOrNull()?.let { VisionRules.normalized(it) }?.let { VisionRules.quantize(it) }
     }
 
     private fun gray(b: Bitmap): GrayImage {
