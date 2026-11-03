@@ -44,8 +44,10 @@ fun GroupsScreen(vm: CleanupViewModel, c: CleanCategory) {
     var confirmAll by remember { mutableStateOf(false) }
     var confirmWhole by remember { mutableStateOf<List<String>?>(null) }
     val groups = vm.groups(c)
-    val bests = groups.map { vm.bestId(it, c) }
-    val extras = groups.zip(bests).flatMap { (g, b) -> g.filter { it != b && vm.item(it)?.isFavorite != true } }
+    // 推荐保留 / 可释放只在分组变化时算一次（以前每次点选、每个扫描批次都要重算）
+    val bests = remember(groups, c) { groups.map { vm.bestId(it, c) } }
+    val extras = remember(groups, bests) { groups.zip(bests).flatMap { (g, b) -> g.filter { it != b && vm.item(it)?.isFavorite != true } } }
+    val extraBytes = remember(extras) { vm.bytes(extras) }
     val (headerTitle, headerSub, groupTitle) = when (c) {
         CleanCategory.DUPLICATES -> Triple(R.string.groups_dup_n, R.string.groups_dup_sub, R.string.group_dup_n)
         CleanCategory.BURSTS -> Triple(R.string.groups_burst_n, R.string.groups_burst_sub, R.string.group_burst_n)
@@ -63,7 +65,7 @@ fun GroupsScreen(vm: CleanupViewModel, c: CleanCategory) {
                 Column(Modifier.fillMaxWidth().card(padding = 18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     CardHeader(Icons.Rounded.AutoAwesome, s(headerTitle, groups.size))
                     Text(s(headerSub), color = T.text2, fontSize = T.callout)
-                    Text(s(R.string.can_free_size, Fmt.bytes(vm.bytes(extras))), color = T.text, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text(s(R.string.can_free_size, Fmt.bytes(extraBytes)), color = T.text, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     PrimaryButton(s(R.string.handle_all_n, extras.size), enabled = extras.isNotEmpty()) { Haptics.medium(view); confirmAll = true }
                 }
             }

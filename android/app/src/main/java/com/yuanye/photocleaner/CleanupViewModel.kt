@@ -216,10 +216,11 @@ class CleanupViewModel(app: Application) : AndroidViewModel(app) {
                 var sinceRebuild = 0
                 repeat(todo.size) { n ->
                     pending += results.receive()
-                    analyzedCount = doneCount.incrementAndGet()
+                    val done = doneCount.incrementAndGet()
                     val now = System.currentTimeMillis()
                     val last = n == todo.size - 1
                     if (pending.size >= 48 || now - lastFlush > 1000 || last) {
+                        analyzedCount = done   // 计数也按批更新：扫描时界面不会每张都重组
                         sinceRebuild += pending.size
                         applyResults(pending)
                         pending.clear()

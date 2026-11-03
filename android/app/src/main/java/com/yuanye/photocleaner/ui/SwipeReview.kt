@@ -101,9 +101,10 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
     var showNotLoaded by remember { mutableStateOf(false) }
     val offset = remember { Animatable(Offset.Zero, Offset.VectorConverter) }
 
-    // 预加载后面 8 张
+    // 预加载后面 4 张（固定 900×1400，和卡片同一个缓存键）；换卡时取消还没开始的
     LaunchedEffect(pos, queue) {
-        queue.drop(pos).take(9).forEach { id -> vm.item(id)?.let { ctx.imageLoader.enqueue(cardRequest(ctx, it)) } }
+        val jobs = queue.drop(pos + 1).take(4).mapNotNull { id -> vm.item(id)?.let { ctx.imageLoader.enqueue(cardRequest(ctx, it)) } }
+        try { kotlinx.coroutines.awaitCancellation() } finally { jobs.forEach { it.dispose() } }
     }
 
     fun swipe(d: SwipeAction) {
@@ -164,8 +165,9 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
             // 下一张垫在后面
             queue.getOrNull(pos + 1)?.let { nid ->
                 vm.item(nid)?.let { n ->
-                    val progress = (maxOf(abs(offset.value.x), -offset.value.y) / threshold).coerceIn(0f, 1f)
+                    // 拖动位置只在 graphicsLayer 里读：拖动时只重画，不重组
                     PhotoCard(vm, n, Modifier.fillMaxSize().clearAndSetSemantics { }.graphicsLayer {
+                        val progress = (maxOf(abs(offset.value.x), -offset.value.y) / threshold).coerceIn(0f, 1f)
                         val k = 0.94f + 0.06f * progress; scaleX = k; scaleY = k; alpha = 0.6f + 0.4f * progress
                     }, onLoaded = { loaded[nid] = true })
                 }
@@ -174,13 +176,15 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
             val item = vm.item(id)
             if (item != null) {
                 key(id) {
-                    val dx = offset.value.x
-                    val dy = offset.value.y
                     PhotoCard(
                         vm, item,
+                        // 位移 / 旋转都放在 graphicsLayer 里读：拖动每一帧只改图层，不重组整页
                         Modifier.fillMaxSize()
-                            .offset { IntOffset(dx.roundToInt(), dy.roundToInt()) }
-                            .graphicsLayer { rotationZ = dx / 40f }
+                            .graphicsLayer {
+                                translationX = offset.value.x
+                                translationY = offset.value.y
+                                rotationZ = offset.value.x / 40f
+                            }
                             // 先裁成圆角卡片再接手势：点按/拖动只认看得见的卡片
                             .clip(RoundedCornerShape(28.dp))
                             // TalkBack：不能滑的时候用「操作」菜单
@@ -224,8 +228,7 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
                                     onLongPress = { Haptics.medium(view); a.preview(item) },
                                 )
                             },
-                        overlayHint = dx / threshold,
-                        upHint = -dy / threshold,
+                        hint = { offset.value / threshold },
                         onLoaded = { loaded[id] = true },
                     )
                 }
@@ -251,11 +254,24 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
 }
 
 @Composable
-private fun PhotoCard(vm: CleanupViewModel, item: PhotoItem, modifier: Modifier, overlayHint: Float = 0f, upHint: Float = 0f, onLoaded: () -> Unit) {
+private fun PhotoCard(vm: CleanupViewModel, item: PhotoItem, modifier: Modifier, hint: (() -> Offset)? = null, onLoaded: () -> Unit) {
     val ctx = LocalContext.current
     var state by remember(item.id) { mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty) }
-    val tags = vm.cardTags(item)
+    val tags = remember(item, vm.blurThreshold) { vm.cardTags(item) }
     val tagTexts = tags.map { tagText(it) }
+    // 只有「提示方向」变了才重组；深浅在 graphicsLayer 里按拖动距离改
+    val dir by remember(hint) {
+        derivedStateOf {
+            val h = hint?.invoke() ?: Offset.Zero
+            val up = -h.y
+            when {
+                up > 0.15f && up > abs(h.x) * 1.5f -> 3
+                h.x < -0.15f -> 1
+                h.x > 0.15f -> 2
+                else -> 0
+            }
+        }
+    }
     val date = item.dateMillis?.let { fmtDate(it) } ?: ""
     val desc = listOf(s(if (item.isVideo) R.string.a11y_video else R.string.a11y_photo), date, Fmt.bytes(item.fileSize))
         .plus(tagTexts).filter { it.isNotEmpty() }.joinToString("，")
@@ -272,15 +288,19 @@ private fun PhotoCard(vm: CleanupViewModel, item: PhotoItem, modifier: Modifier,
         }
         if (item.isVideo) Icon(Icons.Rounded.PlayCircle, null, tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.align(Alignment.Center).size(64.dp))
         // 滑动方向提示
-        if (upHint > 0.15f && upHint > abs(overlayHint) * 1.5f) {
-            Box(Modifier.fillMaxSize().background(T.accent.copy(alpha = upHint.coerceAtMost(1f) * 0.25f)))
-            Stamp(s(R.string.action_later), T.accent, Modifier.align(Alignment.BottomCenter).padding(bottom = 90.dp))
-        } else if (overlayHint < -0.15f) {
-            Box(Modifier.fillMaxSize().background(T.danger.copy(alpha = (-overlayHint).coerceAtMost(1f) * 0.3f)))
-            Stamp(s(R.string.action_delete), T.danger, Modifier.align(Alignment.TopEnd).padding(20.dp))
-        } else if (overlayHint > 0.15f) {
-            Box(Modifier.fillMaxSize().background(T.keep.copy(alpha = overlayHint.coerceAtMost(1f) * 0.25f)))
-            Stamp(s(R.string.action_keep), T.keep, Modifier.align(Alignment.TopStart).padding(20.dp))
+        when (dir) {
+            3 -> {
+                Box(Modifier.fillMaxSize().graphicsLayer { alpha = (-(hint?.invoke()?.y ?: 0f)).coerceIn(0f, 1f) }.background(T.accent.copy(alpha = 0.25f)))
+                Stamp(s(R.string.action_later), T.accent, Modifier.align(Alignment.BottomCenter).padding(bottom = 90.dp))
+            }
+            1 -> {
+                Box(Modifier.fillMaxSize().graphicsLayer { alpha = (-(hint?.invoke()?.x ?: 0f)).coerceIn(0f, 1f) }.background(T.danger.copy(alpha = 0.3f)))
+                Stamp(s(R.string.action_delete), T.danger, Modifier.align(Alignment.TopEnd).padding(20.dp))
+            }
+            2 -> {
+                Box(Modifier.fillMaxSize().graphicsLayer { alpha = (hint?.invoke()?.x ?: 0f).coerceIn(0f, 1f) }.background(T.keep.copy(alpha = 0.25f)))
+                Stamp(s(R.string.action_keep), T.keep, Modifier.align(Alignment.TopStart).padding(20.dp))
+            }
         }
         // 底部信息
         Column(
