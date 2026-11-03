@@ -1,0 +1,2969 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "": {
+      "shouldTranslate": false
+    },
+    "${applicationName}确认待删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review deletions in ${applicationName}"
+          }
+        }
+      }
+    },
+    "${applicationName}那年今日": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${applicationName} On This Day"
+          }
+        }
+      }
+    },
+    "%@ · %@": {
+      "shouldTranslate": false
+    },
+    "%@ · %lld×%lld": {
+      "shouldTranslate": false
+    },
+    "%@，%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %@"
+          }
+        }
+      }
+    },
+    "%@，%lld 项，%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %lld items, %@"
+          }
+        }
+      }
+    },
+    "%lld": {
+      "shouldTranslate": false
+    },
+    "%lld / %lld": {
+      "shouldTranslate": false
+    },
+    "%lld 个分类": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld categories"
+          }
+        }
+      }
+    },
+    "%lld 份相同": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld identical copies"
+          }
+        }
+      }
+    },
+    "%lld 张": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld photos"
+          }
+        }
+      }
+    },
+    "%lld 张原图只在 iCloud。打开后会用流量下载缩略图来分析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld originals are only in iCloud. When on, thumbnails are downloaded to analyze them"
+          }
+        }
+      }
+    },
+    "%lld 张未分析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld not analyzed"
+          }
+        }
+      }
+    },
+    "%lld 张相似": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld similar"
+          }
+        }
+      }
+    },
+    "%lld 张连拍": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld burst shots"
+          }
+        }
+      }
+    },
+    "%lld 待看": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld to review"
+          }
+        }
+      }
+    },
+    "%lld 组": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld groups"
+          }
+        }
+      }
+    },
+    "%lld 项": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld items"
+          }
+        }
+      }
+    },
+    "%lld 项 · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld items · %@"
+          }
+        }
+      }
+    },
+    "%lld%%": {
+      "shouldTranslate": false
+    },
+    "/ %lld": {
+      "shouldTranslate": false
+    },
+    "AI 评分很低的照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos with a very low AI score"
+          }
+        }
+      }
+    },
+    "BlurDetection2（拉普拉斯模糊检测）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BlurDetection2 (Laplacian blur detection)"
+          }
+        }
+      }
+    },
+    "czkawka（相似图查找）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "czkawka (similar image finder)"
+          }
+        }
+      }
+    },
+    "iCloud 照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Photos"
+          }
+        }
+      }
+    },
+    "imagehash（dHash 感知哈希）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "imagehash (dHash perceptual hash)"
+          }
+        }
+      }
+    },
+    "immich-swipe（滑动清理交互）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "immich-swipe (swipe-to-clean interaction)"
+          }
+        }
+      }
+    },
+    "一模一样的文件，一键只留一份": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identical files — keep one copy with one tap"
+          }
+        }
+      }
+    },
+    "一键处理全部 %lld 张": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handle all %lld at once"
+          }
+        }
+      }
+    },
+    "上下甩动": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scroll to adjust"
+          }
+        }
+      }
+    },
+    "上次有 %lld 项没删掉，还留在下面，可以再试一次": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld items weren't deleted last time. They're still below — you can try again"
+          }
+        }
+      }
+    },
+    "下午好": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good afternoon"
+          }
+        }
+      }
+    },
+    "中午好": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good afternoon"
+          }
+        }
+      }
+    },
+    "二维码": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QR code"
+          }
+        }
+      }
+    },
+    "会分析相册里的全部照片。分析结果存在本机，下次打开只分析新拍的或编辑过的照片。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every photo in your library is analyzed. Results are saved on this device, so next time only new or edited photos are analyzed."
+          }
+        }
+      }
+    },
+    "会用流量和电量，建议连着 Wi-Fi": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uses data and battery — Wi-Fi recommended"
+          }
+        }
+      }
+    },
+    "低质量": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low quality"
+          }
+        }
+      }
+    },
+    "低质量照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low-quality photos"
+          }
+        }
+      }
+    },
+    "你之前拒绝了相册权限，请到「设置」里打开。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo access was denied. Please turn it on in Settings."
+          }
+        }
+      }
+    },
+    "你只授权了部分照片，只能清理这些照片。可到「设置 › 隐私 › 照片」改为「完全访问」。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've only allowed access to some photos, so only those can be cleaned. Change it to Full Access in Settings › Privacy › Photos."
+          }
+        }
+      }
+    },
+    "你的名字": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your name"
+          }
+        }
+      }
+    },
+    "保存失败": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save"
+          }
+        }
+      }
+    },
+    "保留": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep"
+          }
+        }
+      }
+    },
+    "保留推荐，删其余 %lld 张": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep best, delete other %lld"
+          }
+        }
+      }
+    },
+    "允许从 iCloud 下载来分析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download from iCloud to analyze"
+          }
+        }
+      }
+    },
+    "允许访问相册": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Photo Access"
+          }
+        }
+      }
+    },
+    "全选": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select All"
+          }
+        }
+      }
+    },
+    "全部 %lld 张，可省约 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld in total, saves about %@"
+          }
+        }
+      }
+    },
+    "全部保留": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep All"
+          }
+        }
+      }
+    },
+    "全部处理（%lld 张）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handle all (%lld)"
+          }
+        }
+      }
+    },
+    "全部标记删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark All for Deletion"
+          }
+        }
+      }
+    },
+    "全部看完": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All done"
+          }
+        }
+      }
+    },
+    "关于": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About"
+          }
+        }
+      }
+    },
+    "关闭": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "其中 %lld 张是收藏，不会被标记。标记后还要在「清理」页确认，系统也会再问一次才真正删除。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of them are favorites and won't be marked. You'll still confirm on the Clean tab, and the system asks once more before anything is deleted."
+          }
+        }
+      }
+    },
+    "分析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysis"
+          }
+        }
+      }
+    },
+    "分析完成": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysis complete"
+          }
+        }
+      }
+    },
+    "分类": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Categories"
+          }
+        }
+      }
+    },
+    "删掉的照片 30 天内可在「最近删除」恢复": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted photos can be recovered from Recently Deleted for 30 days"
+          }
+        }
+      }
+    },
+    "删除": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        }
+      }
+    },
+    "删除 %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete %lld"
+          }
+        }
+      }
+    },
+    "删除前一定会让你确认": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You always confirm before anything is deleted"
+          }
+        }
+      }
+    },
+    "删除后进入「最近删除」，30 天内可恢复": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted items go to Recently Deleted and can be recovered for 30 days"
+          }
+        }
+      }
+    },
+    "占用": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used"
+          }
+        }
+      }
+    },
+    "占空间最多的照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos taking the most space"
+          }
+        }
+      }
+    },
+    "压缩后不会更小，已跳过": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wouldn't get smaller — skipped"
+          }
+        }
+      }
+    },
+    "压缩失败": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compression failed"
+          }
+        }
+      }
+    },
+    "压缩好了 %lld 个视频。原视频已放进「待删除」，到「清理」页确认删除后才会真正省出空间。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compressed %lld videos. The originals are in To Delete — confirm on the Clean tab to actually free the space."
+          }
+        }
+      }
+    },
+    "压缩成 HEVC": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compress to HEVC"
+          }
+        }
+      }
+    },
+    "压缩成 HEVC 省空间": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compress to HEVC to save space"
+          }
+        }
+      }
+    },
+    "压缩视频": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compress Videos"
+          }
+        }
+      }
+    },
+    "压缩选中的 %lld 个": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compress %lld selected"
+          }
+        }
+      }
+    },
+    "原文件不在本机（可能只在 iCloud）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original isn't on this device (it may be in iCloud only)"
+          }
+        }
+      }
+    },
+    "原来的实况照片放进「待删除」，你确认后才会真的删除。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original Live Photos go to To Delete and are only deleted after you confirm."
+          }
+        }
+      }
+    },
+    "去确认": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review"
+          }
+        }
+      }
+    },
+    "去设置开启": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        }
+      }
+    },
+    "取消": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "取消全选": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deselect All"
+          }
+        }
+      }
+    },
+    "只在 iCloud 的照片都分析完了。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All iCloud-only photos have been analyzed."
+          }
+        }
+      }
+    },
+    "只是标记，不会立刻删除。最后还要在确认页再确认一次。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only marks them — nothing is deleted until you confirm on the review page."
+          }
+        }
+      }
+    },
+    "可在系统相册「最近删除」中恢复": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can be recovered from Recently Deleted in Photos"
+          }
+        }
+      }
+    },
+    "可清理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanable"
+          }
+        }
+      }
+    },
+    "可清理 %lld%%": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%% cleanable"
+          }
+        }
+      }
+    },
+    "可清理共 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ cleanable"
+          }
+        }
+      }
+    },
+    "可释放": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can free"
+          }
+        }
+      }
+    },
+    "可释放 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frees %@"
+          }
+        }
+      }
+    },
+    "可释放空间": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space to free"
+          }
+        }
+      }
+    },
+    "吃过的美食，留几张就够": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Food photos — a few are enough"
+          }
+        }
+      }
+    },
+    "向左滑标记删除，向右滑保留，向上滑稍后再看。也可以用操作菜单。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe left to mark for deletion, right to keep, up to review later. You can also use the actions menu."
+          }
+        }
+      }
+    },
+    "图片加载失败": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load image"
+          }
+        }
+      }
+    },
+    "图片还没加载出来，先别删": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The image hasn't loaded yet — can't delete it"
+          }
+        }
+      }
+    },
+    "在分类里左滑或点选照片，会出现在这里": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos you swipe left or select in a category appear here"
+          }
+        }
+      }
+    },
+    "在系统相册里收藏（❤️）过的照片不会出现在任何清理分类里，也不会被自动标记删除。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos you've favorited (❤️) in Photos never appear in any cleanup category and are never marked automatically."
+          }
+        }
+      }
+    },
+    "夜深了": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good night"
+          }
+        }
+      }
+    },
+    "大文件": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Large Files"
+          }
+        }
+      }
+    },
+    "大文件 MB": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Large file MB"
+          }
+        }
+      }
+    },
+    "太黑或太亮，基本看不清": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too dark or too bright to see"
+          }
+        }
+      }
+    },
+    "好的": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "完全重复": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exact Duplicates"
+          }
+        }
+      }
+    },
+    "完成": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "实况": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live"
+          }
+        }
+      }
+    },
+    "实况照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photos"
+          }
+        }
+      }
+    },
+    "实况照片里带了一段 3 秒的小视频。转成静态照片只保留照片（编辑过的保留编辑后的样子），拍摄时间、地点和收藏都不变。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Live Photo carries a 3-second video. Converting keeps only the still photo (edited photos keep their edits), with the same date, location and favorite status."
+          }
+        }
+      }
+    },
+    "实况照片，%@，视频部分 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Photo, %@, video part %@"
+          }
+        }
+      }
+    },
+    "宠物": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pets"
+          }
+        }
+      }
+    },
+    "小批量整理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quick Sessions"
+          }
+        }
+      }
+    },
+    "展开": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand"
+          }
+        }
+      }
+    },
+    "展开这一组": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand this group"
+          }
+        }
+      }
+    },
+    "左滑删除 · 右滑保留 · 上滑稍后": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left delete · Right keep · Up later"
+          }
+        }
+      }
+    },
+    "已保留": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kept"
+          }
+        }
+      }
+    },
+    "已分析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyzed"
+          }
+        }
+      }
+    },
+    "已分析 %lld / %lld 张": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyzed %lld / %lld"
+          }
+        }
+      }
+    },
+    "已分析 %lld%%": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%% analyzed"
+          }
+        }
+      }
+    },
+    "已删除 %lld 项": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted %lld items"
+          }
+        }
+      }
+    },
+    "已删除 %lld 项，释放 %@。可在系统相册「最近删除」中恢复。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted %lld items and freed %@. They can be recovered from Recently Deleted in Photos."
+          }
+        }
+      }
+    },
+    "已删除 %lld 项，释放 %@；有 %lld 项没删掉，还留在待删除里。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted %lld items and freed %@; %lld items weren't deleted and are still in To Delete."
+          }
+        }
+      }
+    },
+    "已压缩，省了 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compressed, saved %@"
+          }
+        }
+      }
+    },
+    "已取消删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deletion canceled"
+          }
+        }
+      }
+    },
+    "已处理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handled"
+          }
+        }
+      }
+    },
+    "已暂停": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused"
+          }
+        }
+      }
+    },
+    "已暂停分析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysis paused"
+          }
+        }
+      }
+    },
+    "已标记保留": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked to keep"
+          }
+        }
+      }
+    },
+    "已标记删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked for deletion"
+          }
+        }
+      }
+    },
+    "已标记删除，点按取消": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked for deletion, tap to undo"
+          }
+        }
+      }
+    },
+    "已清理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleaned"
+          }
+        }
+      }
+    },
+    "已生成 %lld 张静态照片。原实况照片已放进「待删除」，到「清理」页确认删除后才会真正省出空间。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Created %lld still photos. The original Live Photos are in To Delete — confirm on the Clean tab to actually free the space."
+          }
+        }
+      }
+    },
+    "已经是高效格式": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already in an efficient format"
+          }
+        }
+      }
+    },
+    "已选": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected"
+          }
+        }
+      }
+    },
+    "已选 %lld 个，预计省 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld selected, saves about %@"
+          }
+        }
+      }
+    },
+    "开了 iCloud 照片的话，删除会同步到你所有设备": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With iCloud Photos on, deletions sync to all your devices"
+          }
+        }
+      }
+    },
+    "开了 iCloud 照片的话，删除会同步到你所有设备（iPad、Mac 上也会删掉）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With iCloud Photos on, deletions sync to all your devices (they're deleted on your iPad and Mac too)"
+          }
+        }
+      }
+    },
+    "张": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "photos"
+          }
+        }
+      }
+    },
+    "张截图可清理": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "screenshots to clean"
+          }
+        }
+      }
+    },
+    "往年今天没有照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No photos from this day in past years"
+          }
+        }
+      }
+    },
+    "待删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To Delete"
+          }
+        }
+      }
+    },
+    "截图": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screenshots"
+          }
+        }
+      }
+    },
+    "所有分析都在手机本地完成，不上传任何照片": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All analysis happens on your phone — no photos are uploaded"
+          }
+        }
+      }
+    },
+    "所有分析都在本机完成，不上传任何照片（只有打开 iCloud 下载开关时才会从你自己的 iCloud 下载原图）。删除使用系统相册接口，删除前系统会再次确认。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All analysis happens on this device and no photos are uploaded (originals are only downloaded from your own iCloud if you turn on the iCloud download switch). Deleting uses the system Photos API, and the system asks you to confirm."
+          }
+        }
+      }
+    },
+    "手抖、失焦的照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shaky or out-of-focus photos"
+          }
+        }
+      }
+    },
+    "打开 App 允许访问相册": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the app to allow photo access"
+          }
+        }
+      }
+    },
+    "打开往年今天拍的照片。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens photos taken on this day in past years."
+          }
+        }
+      }
+    },
+    "打开待删除列表，确认后删除。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens the To Delete list so you can confirm."
+          }
+        }
+      }
+    },
+    "打开截图分类，滑动挑出要删的截图。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens Screenshots so you can swipe through them."
+          }
+        }
+      }
+    },
+    "打开相册清理，随机挑 10 张还没整理过的照片滑一滑。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens Photo Cleaner with 10 random photos you haven't sorted yet."
+          }
+        }
+      }
+    },
+    "扫描中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanning"
+          }
+        }
+      }
+    },
+    "扫描完成后按月份显示": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shown by month after scanning"
+          }
+        }
+      }
+    },
+    "把这个月标为已清理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark this month as cleaned"
+          }
+        }
+      }
+    },
+    "按大小排序的视频": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Videos sorted by size"
+          }
+        }
+      }
+    },
+    "换一批": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Batch"
+          }
+        }
+      }
+    },
+    "推荐保留": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Best"
+          }
+        }
+      }
+    },
+    "撤销": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        }
+      }
+    },
+    "收起": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse"
+          }
+        }
+      }
+    },
+    "整理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort"
+          }
+        }
+      }
+    },
+    "整组全部删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Whole Group"
+          }
+        }
+      }
+    },
+    "文件一模一样，每组留最早的一份": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identical files — keeps the earliest copy in each group"
+          }
+        }
+      }
+    },
+    "文字图片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text Images"
+          }
+        }
+      }
+    },
+    "文字多": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text"
+          }
+        }
+      }
+    },
+    "文档": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Document"
+          }
+        }
+      }
+    },
+    "文档/票据": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documents"
+          }
+        }
+      }
+    },
+    "新视频保留原来的拍摄时间、地点和收藏。原视频放进「待删除」，你确认后才会真的删除。压缩时请保持 App 在前台。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The new video keeps the original date, location and favorite status. The original goes to To Delete and is only deleted after you confirm. Keep the app open while compressing."
+          }
+        }
+      }
+    },
+    "日期": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
+          }
+        }
+      }
+    },
+    "早上好": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good morning"
+          }
+        }
+      }
+    },
+    "时间线": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timeline"
+          }
+        }
+      }
+    },
+    "明天再来看看": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check back tomorrow"
+          }
+        }
+      }
+    },
+    "晚上好": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good evening"
+          }
+        }
+      }
+    },
+    "暂停": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
+        }
+      }
+    },
+    "暂停分析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause Analysis"
+          }
+        }
+      }
+    },
+    "有 %lld 张没转成功：%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld couldn't be converted: %@"
+          }
+        }
+      }
+    },
+    "未知日期": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown date"
+          }
+        }
+      }
+    },
+    "未选择": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        }
+      }
+    },
+    "查看大图": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Full Size"
+          }
+        }
+      }
+    },
+    "标为已清理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark Cleaned"
+          }
+        }
+      }
+    },
+    "标记了 %lld 项，可释放 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marked %lld items, frees %@"
+          }
+        }
+      }
+    },
+    "标记删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark for Deletion"
+          }
+        }
+      }
+    },
+    "标记后还要在「清理」页确认，系统也会再问一次才真正删除。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You'll still confirm on the Clean tab, and the system asks once more before anything is deleted."
+          }
+        }
+      }
+    },
+    "模糊": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blurry"
+          }
+        }
+      }
+    },
+    "模糊照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blurry Photos"
+          }
+        }
+      }
+    },
+    "模糊阈值": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blur threshold"
+          }
+        }
+      }
+    },
+    "模糊阈值越大，越多照片被判为模糊（默认 60）。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A higher blur threshold flags more photos as blurry (default 60)."
+          }
+        }
+      }
+    },
+    "正在加载…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading…"
+          }
+        }
+      }
+    },
+    "正在加载图片…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading image…"
+          }
+        }
+      }
+    },
+    "正在压缩…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compressing…"
+          }
+        }
+      }
+    },
+    "正在挑选每组最好的一张…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picking the best photo in each group…"
+          }
+        }
+      }
+    },
+    "正在查找完全重复的文件…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finding exact duplicates…"
+          }
+        }
+      }
+    },
+    "正在查找相似照片…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finding similar photos…"
+          }
+        }
+      }
+    },
+    "正在用 AI 分析照片…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyzing photos with AI…"
+          }
+        }
+      }
+    },
+    "正在读取相册…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading your library…"
+          }
+        }
+      }
+    },
+    "正在转换 %lld/%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Converting %lld/%lld"
+          }
+        }
+      }
+    },
+    "正在转换…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Converting…"
+          }
+        }
+      }
+    },
+    "每次几分钟": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A few minutes each"
+          }
+        }
+      }
+    },
+    "每组只保留一张，其余全部选为删除？": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep one in each group and mark the rest for deletion?"
+          }
+        }
+      }
+    },
+    "每组留最好的一张（看表情、AI 评分和清晰度）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keeps the best of each group (expressions, AI score, sharpness)"
+          }
+        }
+      }
+    },
+    "每组连拍留系统挑中的一张（你在相册里选过的优先）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keeps the system's pick in each burst (your own pick in Photos comes first)"
+          }
+        }
+      }
+    },
+    "没有删掉：%@。照片还在待删除里，可以再试一次。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not deleted: %@. The photos are still in To Delete — you can try again."
+          }
+        }
+      }
+    },
+    "没有完全重复的文件": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No exact duplicates"
+          }
+        }
+      }
+    },
+    "没有实况照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Live Photos"
+          }
+        }
+      }
+    },
+    "没有找到需要清理的内容": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to clean here"
+          }
+        }
+      }
+    },
+    "没有标记要删除的照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No photos marked for deletion"
+          }
+        }
+      }
+    },
+    "没有相似照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No similar photos"
+          }
+        }
+      }
+    },
+    "没有稍后再看的照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing saved for later"
+          }
+        }
+      }
+    },
+    "没有视频": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No videos"
+          }
+        }
+      }
+    },
+    "没有还没看过的照片了": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've seen every photo"
+          }
+        }
+      }
+    },
+    "没有连拍": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No bursts"
+          }
+        }
+      }
+    },
+    "清理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clean"
+          }
+        }
+      }
+    },
+    "清理截图": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clean Screenshots"
+          }
+        }
+      }
+    },
+    "清理记录": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup History"
+          }
+        }
+      }
+    },
+    "清空": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        }
+      }
+    },
+    "清除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        }
+      }
+    },
+    "清除「保留」记录": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear \"Keep\" History"
+          }
+        }
+      }
+    },
+    "清除分析缓存？全部照片会重新分析一遍。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear the analysis cache? Every photo will be analyzed again."
+          }
+        }
+      }
+    },
+    "清除并重新分析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear and Re-analyze"
+          }
+        }
+      }
+    },
+    "清除缓存重新分析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Cache & Re-analyze"
+          }
+        }
+      }
+    },
+    "滑一滑": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe"
+          }
+        }
+      }
+    },
+    "滑动筛选": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe"
+          }
+        }
+      }
+    },
+    "滑照片时往上滑，就会放到这里": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe a photo up to save it here"
+          }
+        }
+      }
+    },
+    "点一下选中删除，长按看大图。已标记「保留」的不会被全选。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to select for deletion, long-press to view. Photos marked Keep aren't included in Select All."
+          }
+        }
+      }
+    },
+    "点卡片展开 %lld 个分类": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the card to expand %lld categories"
+          }
+        }
+      }
+    },
+    "点按切换是否删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to toggle deletion"
+          }
+        }
+      }
+    },
+    "点按切换是否删除，长按查看大图": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to toggle deletion, long-press to view"
+          }
+        }
+      }
+    },
+    "点按展开这一组": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to expand this group"
+          }
+        }
+      }
+    },
+    "点按移出待删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to remove from To Delete"
+          }
+        }
+      }
+    },
+    "点照片切换选择 · 长按看大图": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to select · Long-press to view"
+          }
+        }
+      }
+    },
+    "点缩略图可移出": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap a thumbnail to remove"
+          }
+        }
+      }
+    },
+    "点选 · 长按看大图": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to select · Long-press to view"
+          }
+        }
+      }
+    },
+    "照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos"
+          }
+        }
+      }
+    },
+    "照片还没删除 · 点缩略图可取消标记": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing is deleted yet · Tap a thumbnail to unmark"
+          }
+        }
+      }
+    },
+    "猫猫狗狗，挑出拍废的": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cats and dogs — weed out the misses"
+          }
+        }
+      }
+    },
+    "用${applicationName}清理截图": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clean screenshots with ${applicationName}"
+          }
+        }
+      }
+    },
+    "用${applicationName}随机整理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort random photos with ${applicationName}"
+          }
+        }
+      }
+    },
+    "用苹果 Vision 本机 AI 识别相似照片、内容（文档、二维码、美食、宠物、风景）、文字和人脸表情。照片质量评分需要 iOS 18 及以上。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uses Apple Vision on-device AI to detect similar photos, content (documents, QR codes, food, pets, scenery), text and facial expressions. Photo quality scores need iOS 18 or later."
+          }
+        }
+      }
+    },
+    "用苹果的 HEVC（H.265）重新编码，画质几乎不变，通常能省 30%~50%。已经是 HEVC 的会自动跳过。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Re-encodes with Apple's HEVC (H.265) at nearly the same quality, usually saving 30–50%. Videos already in HEVC are skipped."
+          }
+        }
+      }
+    },
+    "用过的付款码、海报二维码": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used payment codes, poster QR codes"
+          }
+        }
+      }
+    },
+    "画质几乎不变，原视频确认后再删": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearly the same quality; originals deleted only after you confirm"
+          }
+        }
+      }
+    },
+    "相似照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Similar Photos"
+          }
+        }
+      }
+    },
+    "相册清理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo Cleaner"
+          }
+        }
+      }
+    },
+    "相册状态": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Library Status"
+          }
+        }
+      }
+    },
+    "相册里没有一模一样的照片或视频": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No identical photos or videos in your library"
+          }
+        }
+      }
+    },
+    "相册里没有发现长得像的照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No look-alike photos found"
+          }
+        }
+      }
+    },
+    "相册里没有可以压缩的视频": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No videos to compress"
+          }
+        }
+      }
+    },
+    "相册里没有连拍照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No burst photos in your library"
+          }
+        }
+      }
+    },
+    "相册里没有需要转换的实况照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Live Photos to convert"
+          }
+        }
+      }
+    },
+    "看看有多少截图可以清理，以及那年今日拍的照片。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See how many screenshots you can clean and what you shot on this day."
+          }
+        }
+      }
+    },
+    "确定清除保留记录？": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Keep history?"
+          }
+        }
+      }
+    },
+    "确认删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm Delete"
+          }
+        }
+      }
+    },
+    "确认待删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Deletions"
+          }
+        }
+      }
+    },
+    "票据、文件、证件照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receipts, documents, ID photos"
+          }
+        }
+      }
+    },
+    "称呼": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        }
+      }
+    },
+    "稍后再看": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        }
+      }
+    },
+    "系统拒绝了删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The system refused the deletion"
+          }
+        }
+      }
+    },
+    "累计删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total deleted"
+          }
+        }
+      }
+    },
+    "累计释放": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total freed"
+          }
+        }
+      }
+    },
+    "继续": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume"
+          }
+        }
+      }
+    },
+    "继续分析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume Analysis"
+          }
+        }
+      }
+    },
+    "网格多选": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grid"
+          }
+        }
+      }
+    },
+    "美食": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Food"
+          }
+        }
+      }
+    },
+    "聊天记录、长图、验证码": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chats, long images, verification codes"
+          }
+        }
+      }
+    },
+    "聊天记录、验证码截图": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chats, verification code screenshots"
+          }
+        }
+      }
+    },
+    "自动找出相似照片、截图、模糊照片和大视频，\n滑一滑就能清理，释放手机空间。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finds similar photos, screenshots, blurry shots and large videos.\nSwipe to clean and free up space."
+          }
+        }
+      }
+    },
+    "视频": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Videos"
+          }
+        }
+      }
+    },
+    "记录": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        }
+      }
+    },
+    "设置": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "识别设置": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detection"
+          }
+        }
+      }
+    },
+    "转成静态照片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convert to Still Photos"
+          }
+        }
+      }
+    },
+    "转成静态照片，省下视频部分": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convert to stills and save the video part"
+          }
+        }
+      }
+    },
+    "转换 %lld 张，省约 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convert %lld, save about %@"
+          }
+        }
+      }
+    },
+    "过暗": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too dark"
+          }
+        }
+      }
+    },
+    "过暗/过曝": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poor Lighting"
+          }
+        }
+      }
+    },
+    "过曝": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overexposed"
+          }
+        }
+      }
+    },
+    "近 30 天 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 30 days %@"
+          }
+        }
+      }
+    },
+    "近 30 天释放了 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Freed %@ in the last 30 days"
+          }
+        }
+      }
+    },
+    "还在分析中，稍后再来看看": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Still analyzing — check back soon"
+          }
+        }
+      }
+    },
+    "还在读取相册，稍后再来看看": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Still reading your library — check back soon"
+          }
+        }
+      }
+    },
+    "还没有待删除": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to delete yet"
+          }
+        }
+      }
+    },
+    "还没有数据": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No data yet"
+          }
+        }
+      }
+    },
+    "还没有清理记录。删除照片后，这里会按天显示释放了多少空间。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No cleanups yet. After you delete photos, this shows how much space you freed each day."
+          }
+        }
+      }
+    },
+    "这一类看完了": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All done here"
+          }
+        }
+      }
+    },
+    "这一组全部标记删除，一张都不保留": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marks every photo in this group for deletion, keeping none"
+          }
+        }
+      }
+    },
+    "这个月已清理，点按取消": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This month is marked cleaned, tap to undo"
+          }
+        }
+      }
+    },
+    "这些照片的原图只在 iCloud、没下载到本机，所以还没做 AI 分析（相似、模糊等分类里不会有它们）。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The originals of these photos are only in iCloud, not on this device, so they haven't been analyzed (they won't show up in Similar, Blurry, etc.)."
+          }
+        }
+      }
+    },
+    "这组 %lld 张全部标记删除，不保留？": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark all %lld in this group for deletion, keeping none?"
+          }
+        }
+      }
+    },
+    "这里很干净": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All clean"
+          }
+        }
+      }
+    },
+    "连拍": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bursts"
+          }
+        }
+      }
+    },
+    "连拍只留一张": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep one per burst"
+          }
+        }
+      }
+    },
+    "那年今日": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On This Day"
+          }
+        }
+      }
+    },
+    "都整理完了": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All sorted"
+          }
+        }
+      }
+    },
+    "释放 MB": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Freed MB"
+          }
+        }
+      }
+    },
+    "重新扫描": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rescan"
+          }
+        }
+      }
+    },
+    "长得像的几张，留一张最好的": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Look-alikes — keep the best one"
+          }
+        }
+      }
+    },
+    "随机 10 张": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Random 10"
+          }
+        }
+      }
+    },
+    "随机整理": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Random"
+          }
+        }
+      }
+    },
+    "随机整理 10 张": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort 10 Random Photos"
+          }
+        }
+      }
+    },
+    "项": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "items"
+          }
+        }
+      }
+    },
+    "项已删除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "items deleted"
+          }
+        }
+      }
+    },
+    "预计省 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saves about %@"
+          }
+        }
+      }
+    },
+    "风景": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scenery"
+          }
+        }
+      }
+    },
+    "风景照，挑出重复的": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scenery — weed out repeats"
+          }
+        }
+      }
+    },
+    "首页": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home"
+          }
+        }
+      }
+    },
+    "首页显示「%@，%@」": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home shows \"%@, %@\""
+          }
+        }
+      }
+    },
+    "验证码 %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code %@"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
