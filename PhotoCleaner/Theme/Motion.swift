@@ -173,13 +173,13 @@ struct LinkedProgressHeader: View {
             }
         }
         .padding(14)
-        .background(
+        .background {
             ZStack {
                 Theme.card
                 tint.opacity(0.04 + 0.16 * progress)     // 底色随进度变化
-            },
-            in: RoundedRectangle(cornerRadius: 20, style: .continuous)
-        )
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Theme.hairline, lineWidth: 1))
         .animation(Theme.springSoft, value: done)
         .animation(Theme.spring, value: marked)
