@@ -181,6 +181,8 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
                         Modifier.fillMaxSize()
                             .offset { IntOffset(dx.roundToInt(), dy.roundToInt()) }
                             .graphicsLayer { rotationZ = dx / 40f }
+                            // 先裁成圆角卡片再接手势：点按/拖动只认看得见的卡片
+                            .clip(RoundedCornerShape(28.dp))
                             // TalkBack：不能滑的时候用「操作」菜单
                             .semantics {
                                 customActions = listOf(
@@ -283,7 +285,7 @@ private fun PhotoCard(vm: CleanupViewModel, item: PhotoItem, modifier: Modifier,
         // 底部信息
         Column(
             Modifier.align(Alignment.BottomStart).fillMaxWidth()
-                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f))))
+                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.45f), Color.Black.copy(alpha = 0.8f))))
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
@@ -318,7 +320,7 @@ fun tagText(t: CardTag): String = when (t.kind) {
 @Composable
 fun TagChip(text: String) {
     Text(text, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium,
-        modifier = Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.22f)).padding(horizontal = 8.dp, vertical = 3.dp))
+        modifier = Modifier.clip(CircleShape).background(Color.Black.copy(alpha = 0.5f)).padding(horizontal = 8.dp, vertical = 3.dp))
 }
 
 /** 一类看完：列出本轮标记的照片，点缩略图取消标记，确认后才真正删除（系统再确认一次） */

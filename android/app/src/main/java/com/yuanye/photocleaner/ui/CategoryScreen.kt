@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,8 +35,9 @@ fun CategoryScreen(vm: CleanupViewModel, title: String, ids: List<String>, extra
     val marked = ids.filter { it in vm.toDelete }
     val done = ids.count { vm.decision(it) != null }
     Column(Modifier.fillMaxSize()) {
-        TopBar(title, a.pop)
-        Column(Modifier.padding(horizontal = T.pagePadding).padding(bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        // zIndex：顶部栏、进度和「滑动筛选 / 网格多选」始终压在卡片上面，点按优先（卡片拖上来也不会盖住）
+        Box(Modifier.zIndex(2f)) { TopBar(title, a.pop) }
+        Column(Modifier.zIndex(2f).padding(horizontal = T.pagePadding).padding(bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // 进度：已看 / 总数，标记数 + 可释放
             Row(Modifier.fillMaxWidth().card(radius = 20.dp, padding = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                 RingGauge(if (ids.isEmpty()) 0f else done.toFloat() / ids.size, "", "", Modifier.size(44.dp))
