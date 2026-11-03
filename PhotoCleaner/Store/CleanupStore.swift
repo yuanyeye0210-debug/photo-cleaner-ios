@@ -387,6 +387,8 @@ final class CleanupStore: ObservableObject {
         r.aesthetics = v.aesthetics
         r.isUtility = v.isUtility
         r.tags = VisionRules.tags(labels: v.labels, hasQR: v.hasQR)
+        r.labels = VisionRules.subjectLabels(v.labels)
+        r.faceCount = v.faceCount
 
         let w = asset.pixelWidth, h = asset.pixelHeight
         let aspect = Double(max(w, h)) / Double(max(1, min(w, h)))
@@ -405,6 +407,10 @@ final class CleanupStore: ObservableObject {
                 r.textLines = lines.count
                 r.textChars = lines.reduce(0) { $0 + $1.count }
                 r.verificationCode = VisionRules.verificationCode(in: lines)
+                // 文字很多时，文档 / 票据门槛放宽到 0.5
+                if r.textHeavy {
+                    r.tags = VisionRules.tags(labels: v.labels, hasQR: v.hasQR, textHeavy: true)
+                }
             }
         }
         return (r, false)
@@ -512,10 +518,13 @@ final class CleanupStore: ObservableObject {
         let entries = items.compactMap { item -> HashEntry? in
             guard let a = item.analysis, !item.isScreenshot, !item.isFavorite, !item.burstHidden else { return nil }
             return HashEntry(id: item.id, hash: a.dHash, time: item.creationDate?.timeIntervalSince1970,
-                             qfeature: a.feature)
+                             qfeature: a.feature,
+                             aspect: HashEntry.aspect(width: item.pixelWidth, height: item.pixelHeight),
+                             labels: a.labels, faces: a.faceCount)
         }
+        let excluded = state.notSimilar
         let groups = await Task.detached(priority: .userInitiated) {
-            SimilarityGrouper.groups(entries)
+            SimilarityGrouper.groups(entries, excluded: excluded)
         }.value
         if Task.isCancelled { return }
         let exact = exactGroups
@@ -757,6 +766,19 @@ final class CleanupStore: ObservableObject {
         state.toDelete.remove(id); state.kept.remove(id)
         state.later.insert(id)
         persistDecisions()
+    }
+
+    /// 「不是相似」：把这张从相似组里拿出来，并记住（重新扫描也不会再分进来）
+    func markNotSimilar(_ id: String, in group: [String]) {
+        state.markNotSimilar(id, from: group)
+        persistDecisions()
+        let g = Set(group)
+        similarGroups = similarGroups.compactMap { grp -> [String]? in
+            guard Set(grp) == g else { return grp }
+            let rest = grp.filter { $0 != id }
+            return rest.count > 1 ? rest : nil
+        }
+        rebuildCategories()
     }
 
     func toggleDelete(_ id: String) {

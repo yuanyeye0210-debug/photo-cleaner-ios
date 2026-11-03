@@ -27,27 +27,53 @@ enum VisionRules {
     /// 可能有大量文字的标签（决定要不要做文字识别）
     static let textLabels: Set<String> = ["document", "printed_page", "receipt", "screenshot", "handwriting", "text", "menu", "sign"]
 
-    static let documentConfidence: Float = 0.5
-    static let foodConfidence: Float = 0.6
-    static let petConfidence: Float = 0.6
-    static let sceneryConfidence: Float = 0.6
+    /// 文档 / 票据：置信度 >= 0.6；文字很多时放宽到 0.5
+    static let documentConfidence: Float = 0.6
+    static let documentTextConfidence: Float = 0.5
+    /// 美食 / 宠物 / 风景：置信度 >= 0.7，并且必须是「最主要的标签」（跳过 genericLabels 这类大类后排第一）
+    static let foodConfidence: Float = 0.7
+    static let petConfidence: Float = 0.7
+    static let sceneryConfidence: Float = 0.7
     static let screenshotConfidence: Float = 0.5
     static let peopleConfidence: Float = 0.5
+    /// 相似分组用的主体标签：前 5 个、置信度 >= 0.3
+    static let subjectLabelCount = 5
+    static let subjectLabelConfidence: Float = 0.3
+    /// Vision 的标签是分层的（狗的照片同时有 animal / mammal / dog），判断「主要标签」时跳过这些大类
+    static let genericLabels: Set<String> = [
+        "animal", "mammal", "outdoor", "indoor", "structure", "plant", "sky", "land", "water", "liquid",
+        "material", "people", "adult", "child", "textile", "wood", "foliage", "consumable", "conveyance",
+    ]
 
-    /// 把分类标签（identifier, confidence）映射成我们关心的少量内容标签；不认识的标签直接忽略
-    static func tags(labels: [(String, Float)], hasQR: Bool) -> Set<ContentTag> {
+    /// 按置信度排序后，跳过大类，第一个具体标签
+    static func topSpecificLabel(_ labels: [(String, Float)]) -> String? {
+        labels.sorted { $0.1 != $1.1 ? $0.1 > $1.1 : $0.0 < $1.0 }.first { !genericLabels.contains($0.0) }?.0
+    }
+
+    /// 相似分组用：前 5 个置信度 >= 0.3 的标签
+    static func subjectLabels(_ labels: [(String, Float)]) -> [String] {
+        labels.filter { $0.1 >= subjectLabelConfidence }
+            .sorted { $0.1 != $1.1 ? $0.1 > $1.1 : $0.0 < $1.0 }
+            .prefix(subjectLabelCount).map(\.0)
+    }
+
+    /// 把分类标签（identifier, confidence）映射成我们关心的少量内容标签；不认识的标签直接忽略。
+    /// 二维码只看真正的条码识别结果（hasQR），不看分类标签。
+    static func tags(labels: [(String, Float)], hasQR: Bool, textHeavy: Bool = false) -> Set<ContentTag> {
         var conf: [String: Float] = [:]
         for (id, c) in labels { conf[id] = max(conf[id] ?? 0, c) }
         func maxConf(_ set: Set<String>) -> Float {
             set.reduce(Float(0)) { max($0, conf[$1] ?? 0) }
         }
+        let top = topSpecificLabel(labels)
+        func isTop(_ set: Set<String>) -> Bool { top.map { set.contains($0) } ?? false }
         var out: Set<ContentTag> = []
         if hasQR { out.insert(.qrCode) }
-        if maxConf(documentLabels) >= documentConfidence { out.insert(.document) }
-        if maxConf(foodLabels) >= foodConfidence { out.insert(.food) }
-        if maxConf(petLabels) >= petConfidence { out.insert(.pet) }
+        if maxConf(documentLabels) >= (textHeavy ? documentTextConfidence : documentConfidence) { out.insert(.document) }
+        if maxConf(foodLabels) >= foodConfidence && isTop(foodLabels) { out.insert(.food) }
+        if maxConf(petLabels) >= petConfidence && isTop(petLabels) { out.insert(.pet) }
         let hasPeople = (conf["people"] ?? 0) >= peopleConfidence || (conf["portrait"] ?? 0) >= peopleConfidence
-        if !hasPeople && maxConf(sceneryLabels) >= sceneryConfidence { out.insert(.scenery) }
+        if !hasPeople && maxConf(sceneryLabels) >= sceneryConfidence && isTop(sceneryLabels) { out.insert(.scenery) }
         if (conf["screenshot"] ?? 0) >= screenshotConfidence { out.insert(.screenshotLike) }
         return out
     }

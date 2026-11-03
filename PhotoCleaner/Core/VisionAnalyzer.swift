@@ -11,6 +11,7 @@ enum VisionAnalyzer {
         var isUtility: Bool?
         var labels: [(String, Float)] = []
         var hasQR = false
+        var faceCount: Int?
     }
 
     static func orientation(_ o: UIImage.Orientation) -> CGImagePropertyOrientation {
@@ -27,7 +28,7 @@ enum VisionAnalyzer {
         }
     }
 
-    /// 特征向量 + 内容识别 + 美观评分 + 二维码：一次 perform 一起跑（共用一次解码和缩放）
+    /// 特征向量 + 内容识别 + 美观评分 + 二维码 + 人脸数：一次 perform 一起跑（共用一次解码和缩放）
     static func analyze(_ cg: CGImage, orientation: CGImagePropertyOrientation) -> Basic {
         var out = Basic()
         let handler = VNImageRequestHandler(cgImage: cg, orientation: orientation, options: [:])
@@ -39,7 +40,8 @@ enum VisionAnalyzer {
         let cls = VNClassifyImageRequest()                      // 内容识别
         let bc = VNDetectBarcodesRequest()                      // 二维码
         bc.symbologies = [.qr]
-        var requests: [VNRequest] = [fp, cls, bc]
+        let faces = VNDetectFaceRectanglesRequest()             // 人脸数（相似分组：人数差太多不算相似）
+        var requests: [VNRequest] = [fp, cls, bc, faces]
         var aesthetics: VNRequest?
         if #available(iOS 18.0, *) {                            // 美观评分
             let a = VNCalculateImageAestheticsScoresRequest()
@@ -58,7 +60,9 @@ enum VisionAnalyzer {
         if let res = cls.results {
             out.labels = res.filter { $0.confidence >= 0.1 }.map { ($0.identifier, $0.confidence) }
         }
-        if let r = bc.results, !r.isEmpty { out.hasQR = true }
+        // 只有真正读出内容的二维码才算（避免花纹、栅栏被误认）
+        if let r = bc.results, r.contains(where: { !($0.payloadStringValue ?? "").isEmpty }) { out.hasQR = true }
+        if let r = faces.results { out.faceCount = r.count }
         if #available(iOS 18.0, *), let a = aesthetics as? VNCalculateImageAestheticsScoresRequest,
            let o = a.results?.first {
             out.aesthetics = o.overallScore

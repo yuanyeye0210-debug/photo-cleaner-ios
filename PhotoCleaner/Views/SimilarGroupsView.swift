@@ -167,6 +167,7 @@ private struct GroupCard: View {
                 HStack(spacing: 6) {
                     ForEach(Array(group.enumerated()), id: \.element) { i, id in
                         if let item = store.item(id) {
+                          VStack(spacing: 6) {
                             ThumbnailCell(item: item, isBest: id == best)
                                 .frame(width: 104, height: 104)
                                 .accessibilityAddTraits(.isButton)
@@ -179,7 +180,24 @@ private struct GroupCard: View {
                                 .onLongPressGesture(minimumDuration: 0.35) {
                                     preview = item
                                 }
-                                .fanOut(index: i, count: group.count, expanded: expanded, step: 110, axis: .horizontal)
+                            // 分错了：把这张从组里拿出来，并记住（重新扫描也不会再分进来）
+                            if expanded && category == .similar {
+                                Button {
+                                    Haptics.light()
+                                    withAnimation(Theme.spring) { store.markNotSimilar(id, in: group) }
+                                } label: {
+                                    Label(String(localized: "不是相似"), systemImage: "rectangle.badge.minus")
+                                        .font(Theme.caption)
+                                        .foregroundStyle(Theme.text2)
+                                        .padding(.horizontal, 8).padding(.vertical, 5)
+                                        .background(Capsule().fill(Theme.fill))
+                                }
+                                .buttonStyle(PressableStyle())
+                                .accessibilityHint(Text("把这张移出这一组，以后也不再分进来"))
+                                .transition(.opacity)
+                            }
+                          }
+                          .fanOut(index: i, count: group.count, expanded: expanded, step: 110, axis: .horizontal)
                         }
                     }
                 }

@@ -92,20 +92,21 @@ final class ImageMathTests: XCTestCase {
             HashEntry(id: "d", hash: base ^ 0xFF00, time: 9_000_000),       // 与 a 距离 8 但时间很远：不应合并
             HashEntry(id: "e", hash: ~base, time: 1001),                    // 完全不同
         ]
+        // a–b 重复、a–c 连拍，但 b–c 不相似 → 完全连接下 c 不能进 {a, b}
         let groups = SimilarityGrouper.groups(entries)
         XCTAssertEqual(groups.count, 1)
-        XCTAssertEqual(Set(groups[0]), Set(["a", "b", "c"]))
+        XCTAssertEqual(Set(groups[0]), Set(["a", "b"]))
     }
 
-    func testGroupingWithDistantPairChains() {
-        // d 与 c 汉明距离 0（同一哈希）→ 视为重复，会通过 c 连到 a 组
+    func testGroupingWithDistantPairDoesNotChain() {
+        // d 与 c 汉明距离 0（重复），c 与 a 是连拍，但 a 与 d 既不近也不像 → 不会经过 c 把 a、d 连成一组
         let base: UInt64 = 0x1234_5678_9ABC_DEF0
         let entries = [
             HashEntry(id: "a", hash: base, time: 0),
             HashEntry(id: "c", hash: base ^ 0xFF, time: 30),
             HashEntry(id: "d", hash: base ^ 0xFF, time: 99_999),
         ]
-        XCTAssertEqual(Set(SimilarityGrouper.groups(entries).first ?? []), Set(["a", "c", "d"]))
+        XCTAssertEqual(SimilarityGrouper.groups(entries), [["c", "d"]])
     }
 
     func testBestIndex() {

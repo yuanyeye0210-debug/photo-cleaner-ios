@@ -12,10 +12,12 @@ struct DecisionState: Codable, Equatable, Sendable {
     var failed: Set<String> = []         // 上次删除失败的
     /// 已压缩 / 已转成静态照片的原件 → 新文件的大小（删原件时只算真正省下的空间）
     var replacements: [String: Int64] = [:]
+    /// 用户点过「不是相似」的照片对（PairKey.make 的 "a|b"），重新扫描也不会再分到一组
+    var notSimilar: Set<String> = []
 
     init() {}
 
-    private enum CodingKeys: String, CodingKey { case toDelete, kept, later, cleanedMonths, failed, replacements }
+    private enum CodingKeys: String, CodingKey { case toDelete, kept, later, cleanedMonths, failed, replacements, notSimilar }
 
     // 字段缺失时用默认值，老文件、新版本都能读
     init(from decoder: Decoder) throws {
@@ -26,6 +28,12 @@ struct DecisionState: Codable, Equatable, Sendable {
         cleanedMonths = try c.decodeIfPresent(Set<String>.self, forKey: .cleanedMonths) ?? []
         failed = try c.decodeIfPresent(Set<String>.self, forKey: .failed) ?? []
         replacements = try c.decodeIfPresent([String: Int64].self, forKey: .replacements) ?? [:]
+        notSimilar = try c.decodeIfPresent(Set<String>.self, forKey: .notSimilar) ?? []
+    }
+
+    /// 「不是相似」：把 id 和组里其他每张记成不相似
+    mutating func markNotSimilar(_ id: String, from group: [String]) {
+        for other in group where other != id { notSimilar.insert(PairKey.make(id, other)) }
     }
 
     /// 删掉一张照片时真正省下的空间
@@ -41,6 +49,10 @@ struct DecisionState: Codable, Equatable, Sendable {
         later.formIntersection(existing)
         failed.formIntersection(existing)
         replacements = replacements.filter { existing.contains($0.key) }
+        notSimilar = notSimilar.filter { key in
+            guard let (a, b) = PairKey.ids(key) else { return false }
+            return existing.contains(a) && existing.contains(b)
+        }
     }
 
     static func load(from url: URL) -> DecisionState? {

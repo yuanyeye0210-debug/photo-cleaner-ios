@@ -10,6 +10,21 @@ final class CleanLogicTests: XCTestCase {
 
     // MARK: 量化特征
 
+    func testNotSimilarPersistsAndPrunes() throws {
+        var s = DecisionState()
+        s.markNotSimilar("c", from: ["a", "b", "c"])
+        XCTAssertEqual(s.notSimilar, [PairKey.make("a", "c"), PairKey.make("b", "c")])
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("ns-\(UUID().uuidString).json")
+        try s.save(to: url)
+        var loaded = try XCTUnwrap(DecisionState.load(from: url))
+        XCTAssertEqual(loaded.notSimilar, s.notSimilar)
+        loaded.prune(existing: ["a", "c"])
+        XCTAssertEqual(loaded.notSimilar, [PairKey.make("a", "c")])
+        // 老文件没有这个字段也能读
+        let old = try JSONDecoder().decode(DecisionState.self, from: Data("{}".utf8))
+        XCTAssertTrue(old.notSimilar.isEmpty)
+    }
+
     func testQuantizedDistanceMatchesFloat() {
         let a = VisionRules.normalized([1, 0.2, 0.1, -0.4])!
         let b = VisionRules.normalized([0.9, 0.3, 0.0, -0.3])!

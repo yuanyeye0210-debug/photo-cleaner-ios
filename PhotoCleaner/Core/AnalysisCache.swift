@@ -5,7 +5,7 @@ import Foundation
 /// 存成一个二进制 plist 文件，几万张也就十几 MB，一次读完。
 final class AnalysisCache: @unchecked Sendable {
     /// 分析算法变了就加 1，旧缓存自动作废
-    static let version = 2
+    static let version = 3   // 3：分类阈值提高 + 记录主体标签和人脸数（分组更准）
 
     struct Entry: Codable, Sendable, Equatable {
         var modified: Double?

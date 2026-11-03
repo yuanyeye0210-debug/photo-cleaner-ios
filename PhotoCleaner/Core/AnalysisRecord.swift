@@ -51,6 +51,8 @@ struct AnalysisResult: Sendable, Codable, Equatable {
     var verificationCode: String? = nil
     var faceChecked = false             // 是否算过人脸质量
     var faceQuality: Float? = nil       // 人脸拍摄质量 0~1（只对相似组里的照片计算）
+    var labels: [String]? = nil         // 主体标签：前 5 个、置信度 >= 0.3（相似分组看主体是否一致）
+    var faceCount: Int? = nil           // 人脸数（相似分组：人数相差超过 1 不算相似）
 
     init(dHash: UInt64, sharpness: Double, brightness: Double) {
         self.dHash = dHash
