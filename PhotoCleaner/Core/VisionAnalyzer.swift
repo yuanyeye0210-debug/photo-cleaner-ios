@@ -81,7 +81,7 @@ enum VisionAnalyzer {
         let req = VNDetectFaceCaptureQualityRequest()
         let handler = VNImageRequestHandler(cgImage: cg, orientation: orientation, options: [:])
         guard (try? handler.perform([req])) != nil, let res = req.results else { return nil }
-        let qs: [Float] = res.compactMap { obs in obs.faceCaptureQuality.map { Float(truncating: $0) } }
+        let qs: [Float] = res.compactMap { $0.faceCaptureQuality }
         guard !qs.isEmpty else { return nil }
         return qs.reduce(0, +) / Float(qs.count)
     }
