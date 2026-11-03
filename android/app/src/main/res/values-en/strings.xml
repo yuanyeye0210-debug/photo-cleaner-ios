@@ -258,4 +258,9 @@
     <string name="widget_pending">%d to delete</string>
     <string name="widget_tap">Tap to start swiping</string>
     <string name="widget_desc">Shows how much you can clean; tap to start swiping</string>
+    <string name="crash_title">The app crashed last time</string>
+    <string name="crash_message">PhotoCleaner closed unexpectedly last time. Tap Copy and send the log below to the developer to help fix it.</string>
+    <string name="crash_copy">Copy</string>
+    <string name="crash_copied">Copied</string>
+    <string name="crash_close">Close</string>
 </resources>

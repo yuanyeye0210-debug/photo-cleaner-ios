@@ -282,7 +282,9 @@ fun Spinner(size: Dp = 18.dp, color: Color = T.text2) {
 }
 
 @Composable
-fun s(id: Int, vararg args: Any): String = stringResource(id, *args)
+fun s(id: Int, vararg args: Any): String =
+    // 没有参数时不能走带参数的版本：那会对文字做 String.format，里面的「%」会直接闪退
+    if (args.isEmpty()) stringResource(id) else stringResource(id, *args)
 
 /** 按系统语言格式化日期 */
 fun fmtDate(millis: Long, withTime: Boolean = true): String {

@@ -258,4 +258,9 @@
     <string name="widget_pending">待删除 %d 项</string>
     <string name="widget_tap">点一下开始滑动整理</string>
     <string name="widget_desc">显示还能清理多少，点一下直接开始滑动整理</string>
+    <string name="crash_title">上次闪退了</string>
+    <string name="crash_message">App 上次意外退出。下面是出错记录，点「复制」后发给开发者，能帮忙尽快修好。</string>
+    <string name="crash_copy">复制</string>
+    <string name="crash_copied">已复制</string>
+    <string name="crash_close">关闭</string>
 </resources>

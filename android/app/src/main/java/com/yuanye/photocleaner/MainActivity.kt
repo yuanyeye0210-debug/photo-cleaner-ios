@@ -15,6 +15,11 @@ import coil.memory.MemoryCache
 import com.yuanye.photocleaner.ui.AppRoot
 
 class PhotoCleanerApp : Application(), ImageLoaderFactory {
+    override fun onCreate() {
+        super.onCreate()
+        CrashLog.install(this)
+    }
+
     override fun newImageLoader(): ImageLoader =
         ImageLoader.Builder(this)
             .components { add(VideoFrameDecoder.Factory()) }
@@ -33,7 +38,10 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
         setContent { AppRoot() }
-        if (savedInstanceState == null) handle(intent)
+        if (savedInstanceState == null) {
+            handle(intent)
+            CrashLog.showIfAny(this)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

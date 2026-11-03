@@ -25,12 +25,14 @@ class MarksStore(context: Context) {
         val cleanedMonths: Set<String> = emptySet(),
     )
 
-    fun load(): Marks {
+    fun load(): Marks = runCatching { loadUnsafe() }.getOrDefault(Marks())
+
+    private fun loadUnsafe(): Marks {
         if (!file.exists()) {
             // 从旧版（SharedPreferences）迁移
             val m = Marks(
-                toDelete = prefs.getStringSet("toDeleteIDs", emptySet())!!.toSet(),
-                kept = prefs.getStringSet("keptIDs", emptySet())!!.toSet(),
+                toDelete = runCatching { prefs.getStringSet("toDeleteIDs", null)?.toSet() }.getOrNull() ?: emptySet(),
+                kept = runCatching { prefs.getStringSet("keptIDs", null)?.toSet() }.getOrNull() ?: emptySet(),
             )
             save(m)
             prefs.edit().remove("toDeleteIDs").remove("keptIDs").apply()

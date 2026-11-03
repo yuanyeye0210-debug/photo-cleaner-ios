@@ -102,10 +102,10 @@ class CleanupViewModel(app: Application) : AndroidViewModel(app) {
     var cleanedMonths by mutableStateOf(initialMarks.cleanedMonths); private set
     var stats by mutableStateOf(statsStore.load()); private set
 
-    var blurThreshold by mutableDoubleStateOf(prefs.getFloat(K_BLUR, 60f).toDouble()); private set
-    var largeFileMB by mutableDoubleStateOf(prefs.getFloat(K_LARGE, 8f).toDouble()); private set
-    var userName by mutableStateOf(prefs.getString(K_NAME, ctx.getString(R.string.default_name))!!); private set
-    var useTrash by mutableStateOf(prefs.getBoolean(K_TRASH, true)); private set
+    var blurThreshold by mutableDoubleStateOf(runCatching { prefs.getFloat(K_BLUR, 60f) }.getOrDefault(60f).toDouble()); private set
+    var largeFileMB by mutableDoubleStateOf(runCatching { prefs.getFloat(K_LARGE, 8f) }.getOrDefault(8f).toDouble()); private set
+    var userName by mutableStateOf(runCatching { prefs.getString(K_NAME, null) }.getOrNull() ?: ctx.getString(R.string.default_name)); private set
+    var useTrash by mutableStateOf(runCatching { prefs.getBoolean(K_TRASH, true) }.getOrDefault(true)); private set
     var lastDeleteMessage by mutableStateOf<String?>(null)
     var tool by mutableStateOf<ToolState?>(null)
     /** 桌面小组件点进来：直接打开滑动整理 */
