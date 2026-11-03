@@ -1,0 +1,52 @@
+# XcodeGen 配置（项目的唯一来源）。生成 Xcode 工程：xcodegen generate
+name: PhotoCleaner
+options:
+  bundleIdPrefix: com.yeyuanye
+  deploymentTarget:
+    iOS: "16.0"
+  developmentLanguage: zh-Hans
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  PhotoCleaner:
+    type: application
+    platform: iOS
+    sources:
+      - path: PhotoCleaner
+        excludes:
+          - Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yeyuanye.photocleaner
+        PRODUCT_NAME: PhotoCleaner
+        INFOPLIST_FILE: PhotoCleaner/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_PREVIEWS: YES
+  PhotoCleanerTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - PhotoCleanerTests
+    dependencies:
+      - target: PhotoCleaner
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yeyuanye.photocleaner.tests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  PhotoCleaner:
+    build:
+      targets:
+        PhotoCleaner: all
+        PhotoCleanerTests: [test]
+    test:
+      targets:
+        - PhotoCleanerTests

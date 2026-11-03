@@ -1,0 +1,71 @@
+# 在 GitHub 的 Mac 云电脑上自动编译，产出未签名的 PhotoCleaner.ipa
+# 用法：推送代码到 GitHub → 仓库的 Actions 页 → Build IPA → Run workflow → 运行完成后在页面底部 Artifacts 下载
+name: Build IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 选择 Xcode
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)/Contents/Developer"
+          xcodebuild -version
+
+      - name: 安装 XcodeGen 并生成工程
+        run: |
+          brew install xcodegen
+          xcodegen generate --spec project.yml
+
+      - name: 单元测试（模拟器）
+        continue-on-error: true
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import sys,json;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for k,v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone')))")
+          echo "Simulator: $UDID"
+          xcodebuild test \
+            -project PhotoCleaner.xcodeproj \
+            -scheme PhotoCleaner \
+            -destination "id=$UDID" \
+            CODE_SIGNING_ALLOWED=NO | tail -40
+
+      - name: 编译归档（不签名）
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project PhotoCleaner.xcodeproj \
+            -scheme PhotoCleaner \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/PhotoCleaner.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            | tail -60
+
+      - name: 打包成 IPA
+        run: |
+          set -e
+          APP="$RUNNER_TEMP/PhotoCleaner.xcarchive/Products/Applications/PhotoCleaner.app"
+          test -d "$APP"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          cp -R "$APP" "$RUNNER_TEMP/ipa/Payload/"
+          cd "$RUNNER_TEMP/ipa"
+          zip -qry PhotoCleaner-unsigned.ipa Payload
+          ls -lh PhotoCleaner-unsigned.ipa
+
+      - name: 上传 IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoCleaner-unsigned-ipa
+          path: ${{ runner.temp }}/ipa/PhotoCleaner-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30

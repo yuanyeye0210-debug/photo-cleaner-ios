@@ -1,0 +1,517 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0ECC1F1297408ED4B0DCDDC6 /* SimilarityGrouper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFCF8E93D57C7FB870437D24 /* SimilarityGrouper.swift */; };
+		1117D1B5FBDB8E548213B4FA /* PhotoCleanerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05CC9D95062C49370884CF8 /* PhotoCleanerApp.swift */; };
+		2C697F6DD0DBA05C3CCD6034 /* CleanupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F6E9DF505AC19D5F7303F3 /* CleanupStore.swift */; };
+		348EE27937A6DAAD6863FCB5 /* CategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008DE9241B4C1A24B0B10BFF /* CategoryView.swift */; };
+		3526ED67D85664224D176737 /* PhotoLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A11F0033B8AB4D2F3B6C0EA /* PhotoLibraryService.swift */; };
+		3694FEE0A8CA7CB27974368F /* SimilarGroupsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29F6641A6BAEF88A70ACADD /* SimilarGroupsView.swift */; };
+		3C7FA49C885174EFA9A6D6C8 /* SwipeReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B6EDE8B4A6EF4077026BDE /* SwipeReviewView.swift */; };
+		4296ADFA18FFA607DA477852 /* ImageMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A2F9814876745341432556 /* ImageMathTests.swift */; };
+		450C642B1BAF6CBA279138D7 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A911EF90FB9462660D5741 /* Haptics.swift */; };
+		4BC1B4932ADF9B6533458233 /* GridSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D56C491B109C73DFE81B539 /* GridSelectView.swift */; };
+		56860E8C64274D337A06D68A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C22BCBEF1583A00B5C55BD8C /* SettingsView.swift */; };
+		6F5FF3F72B82E9035F5B0154 /* AssetImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968F052B9644853344F51222 /* AssetImageView.swift */; };
+		7CECF3B464B22E13DFDE5824 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E340D74CDFDE9B9802A20161 /* Models.swift */; };
+		9F384E1C0487AB041DB035FF /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7DC27DA405218544EC5B041 /* DashboardView.swift */; };
+		9F5476CBD250614C606D520A /* ImageMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 705DD935640FD3835C39E1C4 /* ImageMath.swift */; };
+		A4638A7AABC443A6AE222AC1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 798D567E0472B0922D78C9DA /* Assets.xcassets */; };
+		BA3F442C4F755E957BE3D2BD /* ReviewDeleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1ECF4D47723E7D170975A89 /* ReviewDeleteView.swift */; };
+		CC62B1AA03304B4B16146164 /* PermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BBAB2B78B7179E9B92CEAF /* PermissionView.swift */; };
+		F56F325B74F486A915D0121D /* ImageAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8EC05F48FEA69EF33997E6 /* ImageAnalyzer.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		20B885FBA14246E32E13C0DA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5BAADF0CE04725929DE2FAAC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 13933E16DFDCB5A8F4C761DB;
+			remoteInfo = PhotoCleaner;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		008DE9241B4C1A24B0B10BFF /* CategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryView.swift; sourceTree = "<group>"; };
+		1A11F0033B8AB4D2F3B6C0EA /* PhotoLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryService.swift; sourceTree = "<group>"; };
+		1A8EC05F48FEA69EF33997E6 /* ImageAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageAnalyzer.swift; sourceTree = "<group>"; };
+		30F6E9DF505AC19D5F7303F3 /* CleanupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupStore.swift; sourceTree = "<group>"; };
+		43B6EDE8B4A6EF4077026BDE /* SwipeReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeReviewView.swift; sourceTree = "<group>"; };
+		492F1B172D6392170B3BD6FF /* PhotoCleaner.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PhotoCleaner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		705DD935640FD3835C39E1C4 /* ImageMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMath.swift; sourceTree = "<group>"; };
+		72DBBB4A3DBAD5139A4D55C2 /* PhotoCleanerTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PhotoCleanerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		798D567E0472B0922D78C9DA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7D56C491B109C73DFE81B539 /* GridSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridSelectView.swift; sourceTree = "<group>"; };
+		968F052B9644853344F51222 /* AssetImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetImageView.swift; sourceTree = "<group>"; };
+		C1A911EF90FB9462660D5741 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
+		C22BCBEF1583A00B5C55BD8C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		D3BBAB2B78B7179E9B92CEAF /* PermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionView.swift; sourceTree = "<group>"; };
+		E05CC9D95062C49370884CF8 /* PhotoCleanerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCleanerApp.swift; sourceTree = "<group>"; };
+		E340D74CDFDE9B9802A20161 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		E7DC27DA405218544EC5B041 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		EFCF8E93D57C7FB870437D24 /* SimilarityGrouper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarityGrouper.swift; sourceTree = "<group>"; };
+		F1ECF4D47723E7D170975A89 /* ReviewDeleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewDeleteView.swift; sourceTree = "<group>"; };
+		F29F6641A6BAEF88A70ACADD /* SimilarGroupsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimilarGroupsView.swift; sourceTree = "<group>"; };
+		F9A2F9814876745341432556 /* ImageMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageMathTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1750976EF2B1235FA0CDA106 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				E05CC9D95062C49370884CF8 /* PhotoCleanerApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		1BF3A1187159A5C0B12B5678 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				1A8EC05F48FEA69EF33997E6 /* ImageAnalyzer.swift */,
+				705DD935640FD3835C39E1C4 /* ImageMath.swift */,
+				E340D74CDFDE9B9802A20161 /* Models.swift */,
+				EFCF8E93D57C7FB870437D24 /* SimilarityGrouper.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		1CCE4DDFAFADD48325EADC7D /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				30F6E9DF505AC19D5F7303F3 /* CleanupStore.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		20A795E43D65B8A8C2CD5EEF = {
+			isa = PBXGroup;
+			children = (
+				8F0A8316404CCCA6DF1CA068 /* PhotoCleaner */,
+				6CF834C5F131C781ED14A8F1 /* PhotoCleanerTests */,
+				718A4C893A457C80E95D0EE9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6CF834C5F131C781ED14A8F1 /* PhotoCleanerTests */ = {
+			isa = PBXGroup;
+			children = (
+				F9A2F9814876745341432556 /* ImageMathTests.swift */,
+			);
+			path = PhotoCleanerTests;
+			sourceTree = "<group>";
+		};
+		718A4C893A457C80E95D0EE9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				492F1B172D6392170B3BD6FF /* PhotoCleaner.app */,
+				72DBBB4A3DBAD5139A4D55C2 /* PhotoCleanerTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8F0A8316404CCCA6DF1CA068 /* PhotoCleaner */ = {
+			isa = PBXGroup;
+			children = (
+				798D567E0472B0922D78C9DA /* Assets.xcassets */,
+				1750976EF2B1235FA0CDA106 /* App */,
+				1BF3A1187159A5C0B12B5678 /* Core */,
+				DFDAC7CD4F5661BDA6D2823B /* Services */,
+				1CCE4DDFAFADD48325EADC7D /* Store */,
+				EAEDF1B2ABDEF58E876C5590 /* Views */,
+			);
+			path = PhotoCleaner;
+			sourceTree = "<group>";
+		};
+		DFDAC7CD4F5661BDA6D2823B /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				C1A911EF90FB9462660D5741 /* Haptics.swift */,
+				1A11F0033B8AB4D2F3B6C0EA /* PhotoLibraryService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		EAEDF1B2ABDEF58E876C5590 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				968F052B9644853344F51222 /* AssetImageView.swift */,
+				008DE9241B4C1A24B0B10BFF /* CategoryView.swift */,
+				E7DC27DA405218544EC5B041 /* DashboardView.swift */,
+				7D56C491B109C73DFE81B539 /* GridSelectView.swift */,
+				D3BBAB2B78B7179E9B92CEAF /* PermissionView.swift */,
+				F1ECF4D47723E7D170975A89 /* ReviewDeleteView.swift */,
+				C22BCBEF1583A00B5C55BD8C /* SettingsView.swift */,
+				F29F6641A6BAEF88A70ACADD /* SimilarGroupsView.swift */,
+				43B6EDE8B4A6EF4077026BDE /* SwipeReviewView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		13933E16DFDCB5A8F4C761DB /* PhotoCleaner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A9541318FE0C509F393D91E2 /* Build configuration list for PBXNativeTarget "PhotoCleaner" */;
+			buildPhases = (
+				EA6B22D7EBDCBECF5DCC0B2B /* Sources */,
+				C21600E35081892B61446F52 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PhotoCleaner;
+			packageProductDependencies = (
+			);
+			productName = PhotoCleaner;
+			productReference = 492F1B172D6392170B3BD6FF /* PhotoCleaner.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A6ADFCE7CF7E7F168B92C98A /* PhotoCleanerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 14B8EEFBF0D831B84FF88E53 /* Build configuration list for PBXNativeTarget "PhotoCleanerTests" */;
+			buildPhases = (
+				FE7A2D646F0852EA0A3D74C1 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D56C6B6FE8C05512B1B7C9F0 /* PBXTargetDependency */,
+			);
+			name = PhotoCleanerTests;
+			packageProductDependencies = (
+			);
+			productName = PhotoCleanerTests;
+			productReference = 72DBBB4A3DBAD5139A4D55C2 /* PhotoCleanerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5BAADF0CE04725929DE2FAAC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					13933E16DFDCB5A8F4C761DB = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 34A43265EEDF1282B8A97AA0 /* Build configuration list for PBXProject "PhotoCleaner" */;
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = 20A795E43D65B8A8C2CD5EEF;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 718A4C893A457C80E95D0EE9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				13933E16DFDCB5A8F4C761DB /* PhotoCleaner */,
+				A6ADFCE7CF7E7F168B92C98A /* PhotoCleanerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C21600E35081892B61446F52 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A4638A7AABC443A6AE222AC1 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		EA6B22D7EBDCBECF5DCC0B2B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6F5FF3F72B82E9035F5B0154 /* AssetImageView.swift in Sources */,
+				348EE27937A6DAAD6863FCB5 /* CategoryView.swift in Sources */,
+				2C697F6DD0DBA05C3CCD6034 /* CleanupStore.swift in Sources */,
+				9F384E1C0487AB041DB035FF /* DashboardView.swift in Sources */,
+				4BC1B4932ADF9B6533458233 /* GridSelectView.swift in Sources */,
+				450C642B1BAF6CBA279138D7 /* Haptics.swift in Sources */,
+				F56F325B74F486A915D0121D /* ImageAnalyzer.swift in Sources */,
+				9F5476CBD250614C606D520A /* ImageMath.swift in Sources */,
+				7CECF3B464B22E13DFDE5824 /* Models.swift in Sources */,
+				CC62B1AA03304B4B16146164 /* PermissionView.swift in Sources */,
+				1117D1B5FBDB8E548213B4FA /* PhotoCleanerApp.swift in Sources */,
+				3526ED67D85664224D176737 /* PhotoLibraryService.swift in Sources */,
+				BA3F442C4F755E957BE3D2BD /* ReviewDeleteView.swift in Sources */,
+				56860E8C64274D337A06D68A /* SettingsView.swift in Sources */,
+				3694FEE0A8CA7CB27974368F /* SimilarGroupsView.swift in Sources */,
+				0ECC1F1297408ED4B0DCDDC6 /* SimilarityGrouper.swift in Sources */,
+				3C7FA49C885174EFA9A6D6C8 /* SwipeReviewView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FE7A2D646F0852EA0A3D74C1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4296ADFA18FFA607DA477852 /* ImageMathTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D56C6B6FE8C05512B1B7C9F0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 13933E16DFDCB5A8F4C761DB /* PhotoCleaner */;
+			targetProxy = 20B885FBA14246E32E13C0DA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		06D8EC806C6B2CC17D286181 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PhotoCleaner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yeyuanye.photocleaner;
+				PRODUCT_NAME = PhotoCleaner;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		15AF4CFB4B29A4B4F4A0E549 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PhotoCleaner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yeyuanye.photocleaner;
+				PRODUCT_NAME = PhotoCleaner;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		8F7D3F926EE81F07CBB982AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yeyuanye.photocleaner.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PhotoCleaner.app/PhotoCleaner";
+			};
+			name = Release;
+		};
+		9E4918CC550F290BC1F7769F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		D3EE4AF16AFE7D33FE5A9BE4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		E2058D143B4CF8816F4E6A2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.yeyuanye.photocleaner.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PhotoCleaner.app/PhotoCleaner";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		14B8EEFBF0D831B84FF88E53 /* Build configuration list for PBXNativeTarget "PhotoCleanerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E2058D143B4CF8816F4E6A2C /* Debug */,
+				8F7D3F926EE81F07CBB982AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		34A43265EEDF1282B8A97AA0 /* Build configuration list for PBXProject "PhotoCleaner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9E4918CC550F290BC1F7769F /* Debug */,
+				D3EE4AF16AFE7D33FE5A9BE4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A9541318FE0C509F393D91E2 /* Build configuration list for PBXNativeTarget "PhotoCleaner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				06D8EC806C6B2CC17D286181 /* Debug */,
+				15AF4CFB4B29A4B4F4A0E549 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5BAADF0CE04725929DE2FAAC /* Project object */;
+}
