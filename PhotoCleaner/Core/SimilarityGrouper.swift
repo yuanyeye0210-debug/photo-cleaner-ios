@@ -61,15 +61,6 @@ struct GroupingParams: Sendable {
     static let standard = GroupingParams()
 }
 
-/// 「不是相似」的配对键（两张 ID 排序后拼起来）
-enum PairKey {
-    static func make(_ a: String, _ b: String) -> String { a < b ? a + "|" + b : b + "|" + a }
-    static func ids(_ key: String) -> (String, String)? {
-        let parts = key.split(separator: "|", maxSplits: 1).map(String.init)
-        return parts.count == 2 ? (parts[0], parts[1]) : nil
-    }
-}
-
 /// 64 位哈希按 8 段、每段 8 位建索引。
 /// 鸽笼原理：两个哈希相差 ≤ 7 位时，最多弄脏 7 段，至少有 1 段完全相同 → 一定能被找到。
 /// 相差更多位的也常常能找到（只要有一段没变），但不保证。
