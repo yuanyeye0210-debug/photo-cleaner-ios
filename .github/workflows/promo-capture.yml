@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/promo-capture.yml'
       - '.github/promo/**'
+      - 'PhotoCleanerPromoUITests/**'
 
 concurrency:
   group: promo-capture
@@ -43,19 +44,26 @@ jobs:
           echo "UDID=$UDID" >> $GITHUB_ENV
           xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
-      - name: 编译模拟器版
+      - name: 模拟器设为简体中文
+        run: |
+          xcrun simctl spawn "$UDID" defaults write -g AppleLanguages -array zh-Hans || true
+          xcrun simctl spawn "$UDID" defaults write -g AppleLocale -string zh_CN || true
+          xcrun simctl shutdown "$UDID" || true
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+      - name: 编译（App + 宣传用 UI 自动化）
         run: |
           set -o pipefail
-          xcodebuild build -project PhotoCleaner.xcodeproj -scheme PhotoCleaner \
+          xcodebuild build-for-testing -project PhotoCleaner.xcodeproj -scheme PromoCapture \
             -destination "id=$UDID" -configuration Debug -derivedDataPath "$RUNNER_TEMP/dd" \
-            CODE_SIGNING_ALLOWED=NO > "$RUNNER_TEMP/build.log" 2>&1 || { tail -60 "$RUNNER_TEMP/build.log"; exit 1; }
+            CODE_SIGNING_ALLOWED=NO > "$RUNNER_TEMP/build.log" 2>&1 || { tail -80 "$RUNNER_TEMP/build.log"; exit 1; }
           echo "APP=$(find "$RUNNER_TEMP/dd/Build/Products" -maxdepth 2 -name PhotoCleaner.app | head -1)" >> $GITHUB_ENV
       - name: 示例照片
         run: |
           python3 -m pip install --break-system-packages -q pillow piexif qrcode || python3 -m pip install -q pillow piexif qrcode
           python3 .github/promo/make_media.py "$RUNNER_TEMP/media"
           xcrun simctl addmedia "$UDID" "$RUNNER_TEMP"/media/*.jpg
-      - name: 截图与录屏
+      - name: 自动操作、截图与录屏
         run: |
           set -x
           S="$RUNNER_TEMP/shots"; mkdir -p "$S"; cp "$RUNNER_TEMP/device.txt" "$S/" || true
@@ -63,29 +71,15 @@ jobs:
           xcrun simctl ui "$UDID" appearance dark || true
           xcrun simctl install "$UDID" "$APP"
           xcrun simctl privacy "$UDID" grant photos com.yeyuanye.photocleaner || true
-          xcrun simctl privacy "$UDID" grant photos-add com.yeyuanye.photocleaner || true
-          xcrun simctl io "$UDID" recordVideo --codec h264 --force "$S/launch.mp4" & REC=$!
-          sleep 2
-          xcrun simctl launch "$UDID" com.yeyuanye.photocleaner
-          sleep 6;  xcrun simctl io "$UDID" screenshot "$S/00-home-scanning.png"
-          sleep 50; xcrun simctl io "$UDID" screenshot "$S/01-home.png"
+          xcrun simctl io "$UDID" recordVideo --codec h264 --force "$S/run.mp4" & REC=$!
+          sleep 3
+          python3 -c "import time;print(time.time())" > "$S/rec_start.txt"
+          export TEST_RUNNER_PROMO_SHOTS="$S"
+          xcodebuild test-without-building -project PhotoCleaner.xcodeproj -scheme PromoCapture \
+            -destination "id=$UDID" -derivedDataPath "$RUNNER_TEMP/dd" \
+            -resultBundlePath "$RUNNER_TEMP/r.xcresult" > "$RUNNER_TEMP/test.log" 2>&1 || tail -80 "$RUNNER_TEMP/test.log"
           kill -INT $REC; wait $REC || true
-          shot() { xcrun simctl openurl "$UDID" "$1"; sleep "${3:-5}"; xcrun simctl io "$UDID" screenshot "$S/$2.png"; }
-          for c in similar exactDuplicates bursts screenshots textImages documents qrCodes lowQuality blurry poorLight livePhotos large videos food pets scenery; do
-            shot "photocleaner://category/$c" "cat-$c" 5
-            shot "photocleaner://home" "_home-after-$c" 2
-          done
-          shot "photocleaner://quick/onThisDay" "quick-onThisDay" 5
-          shot "photocleaner://home" "_h1" 2
-          shot "photocleaner://quick/random" "quick-random" 5
-          shot "photocleaner://review" "review" 4
-          shot "photocleaner://home" "02-home-final" 3
-          xcrun simctl io "$UDID" recordVideo --codec h264 --force "$S/nav.mp4" & REC=$!
-          sleep 2
-          shot "photocleaner://category/blurry" "_v1" 4
-          shot "photocleaner://home" "_v2" 3
-          shot "photocleaner://category/similar" "_v3" 4
-          kill -INT $REC; wait $REC || true
+          cp "$RUNNER_TEMP/test.log" "$S/" || true
           ls -la "$S"
       - uses: actions/upload-artifact@v4
         if: always()

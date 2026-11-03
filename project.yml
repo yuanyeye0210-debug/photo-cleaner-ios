@@ -74,6 +74,19 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yeyuanye.photocleaner.tests
         GENERATE_INFOPLIST_FILE: YES
+  # 宣传视频素材用的 UI 自动化（只在 Promo Capture 流程里跑，不在 PhotoCleaner 方案里）
+  PhotoCleanerPromoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - PhotoCleanerPromoUITests
+    dependencies:
+      - target: PhotoCleaner
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yeyuanye.photocleaner.promouitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: PhotoCleaner
 schemes:
   PhotoCleaner:
     build:
@@ -83,3 +96,11 @@ schemes:
     test:
       targets:
         - PhotoCleanerTests
+  PromoCapture:
+    build:
+      targets:
+        PhotoCleaner: all
+        PhotoCleanerPromoUITests: [test]
+    test:
+      targets:
+        - PhotoCleanerPromoUITests
