@@ -18,8 +18,9 @@ struct AssetImageView: View {
     var body: some View {
         // 没加载完时先用内存里已有的图（比如网格/卡片里的缩略图），避免出现空白
         let shown = image ?? PhotoLibraryService.shared.cachedImage(for: asset.localIdentifier)
-        ZStack {
-            Theme.fill
+        // 用 overlay：铺满（fill）的图片不会把视图撑大；clipped + contentShape 让点按范围只等于看得见的区域，
+        // 否则放大溢出的部分会盖住上面的「滑动筛选 / 网格多选」等按钮
+        Theme.fill.overlay {
             if let image = shown {
                 Image(uiImage: image)
                     .resizable()
@@ -40,6 +41,7 @@ struct AssetImageView: View {
             }
         }
         .clipped()
+        .contentShape(Rectangle())
         .onAppear { if shown != nil { loaded?.wrappedValue = true } }
         .task(id: asset.localIdentifier) {
             failed = false

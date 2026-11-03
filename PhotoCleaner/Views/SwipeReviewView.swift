@@ -30,7 +30,7 @@ struct SwipeReviewView: View {
             if loaded && pos >= queue.count {
                 finishedView
             } else {
-                progressHeader
+                progressHeader.zIndex(2)
                 ZStack {
                     ForEach(visibleIndices.reversed(), id: \.self) { i in
                         if let item = store.item(queue[i]) {
@@ -53,8 +53,9 @@ struct SwipeReviewView: View {
                 .animation(Theme.spring, value: showNotLoaded)
                 .padding(.horizontal, Theme.pagePadding)
                 .padding(.top, 6)
+                .zIndex(1)
             }
-            if !(loaded && pos >= queue.count) { controls }
+            if !(loaded && pos >= queue.count) { controls.zIndex(2) }
         }
         .padding(.bottom, 12)
         // 滑卡片时关掉「从屏幕边缘/内容区右滑返回」，免得快滑时退回上一页；左上角返回按钮照常可用
@@ -118,7 +119,9 @@ struct SwipeReviewView: View {
                                                set: { if $0 { loadedIDs.insert(item.id) } }))
                     .frame(width: geo.size.width, height: geo.size.height)
 
-                LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .center, endPoint: .bottom)
+                // 底部压暗，白色照片上也看得清标签和日期
+                LinearGradient(colors: [.clear, .black.opacity(0.35), .black.opacity(0.75)], startPoint: .center, endPoint: .bottom)
+                    .allowsHitTesting(false)
 
                 VStack(alignment: .leading, spacing: 4) {
                     if !tags(for: item).isEmpty {
@@ -134,7 +137,9 @@ struct SwipeReviewView: View {
                         .opacity(0.85)
                 }
                 .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.6), radius: 3, y: 1)
                 .padding(16)
+                .allowsHitTesting(false)
 
                 // 拖动时的提示
                 hint(icon: "trash", text: String(localized: "标记删除"), color: Theme.danger)
@@ -160,6 +165,8 @@ struct SwipeReviewView: View {
         let angle = Double(drag.width) / 22
         return v
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        // 点按/拖动只认看得见的圆角卡片，不会抢到上面的按钮
+        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Color.black.opacity(0.04), lineWidth: 1))
         .shadow(color: .black.opacity(isTop ? 0.10 : 0.04), radius: isTop ? 14 : 6, y: isTop ? 6 : 2)
         .scaleEffect(1 - d * CGFloat(0.04))
@@ -453,7 +460,8 @@ struct Tag: View {
         Text.loc(text)
             .font(.system(size: 11, weight: .medium))
             .padding(.horizontal, 8).padding(.vertical, 3)
-            .background(Color.white.opacity(0.22), in: Capsule())
+            .background(Color.black.opacity(0.5), in: Capsule())
+            .overlay(Capsule().stroke(Color.white.opacity(0.25), lineWidth: 0.5))
             .foregroundStyle(.white)
     }
 }

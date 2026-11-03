@@ -50,6 +50,8 @@ struct CategoryView: View {
             .padding(.horizontal, Theme.pagePadding)
             .padding(.top, 4)
             .padding(.bottom, 8)
+            // 顶部进度和「滑动筛选 / 网格多选」始终在卡片上面，点按优先
+            .zIndex(2)
 
             if ids.isEmpty {
                 EmptyStateView(icon: "checkmark", title: String(localized: "这里很干净"),
