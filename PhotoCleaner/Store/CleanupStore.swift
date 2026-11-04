@@ -242,6 +242,10 @@ final class CleanupStore: ObservableObject {
         phase = .done
         saveCache()
         updateWidget()
+        // 模拟器 UI 自检用：分析完写一个标记文件，测试据此开始点界面（正常使用不会有这个环境变量）
+        if let path = ProcessInfo.processInfo.environment["PC_UITEST_SCAN_DONE_FILE"] {
+            try? "\(items.count)".write(toFile: path, atomically: true, encoding: .utf8)
+        }
         if !todo.isEmpty { Haptics.success() }
         if needsRefresh { startScan() }
     }

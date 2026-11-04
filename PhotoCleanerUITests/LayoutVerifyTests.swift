@@ -38,35 +38,28 @@ final class LayoutVerifyTests: XCTestCase {
         app.descendants(matching: .any).matching(NSPredicate(format: predicate, argumentArray: args))
     }
 
+    /// 点一次 App 里的「允许访问相册」，再点系统弹窗的「允许完全访问」（不重复点，避免和弹窗抢）
     func handlePermission() {
         let allow = app.buttons["允许访问相册"]
-        if allow.waitForExistence(timeout: 8) { allow.tap(); sleep(2) }
-        for _ in 0..<8 {
-            var tapped = false
-            for label in ["允许完全访问", "Allow Full Access", "允许访问所有照片", "Allow Access to All Photos", "好", "OK"] {
-                for root in [springboard, app] {
-                    let b = root.buttons[label]
-                    if b.exists { b.tap(); tapped = true; sleep(2); break }
-                }
-                if tapped { break }
-            }
-            if !tapped {
-                if app.buttons["允许访问相册"].exists { app.buttons["允许访问相册"].tap(); sleep(2); continue }
-                break
-            }
+        guard allow.waitForExistence(timeout: 10) else { log("no permission screen"); return }
+        allow.tap()
+        for label in ["允许完全访问", "Allow Full Access", "允许访问所有照片", "Allow Access to All Photos"] {
+            let b = springboard.buttons[label]
+            if b.waitForExistence(timeout: label == "允许完全访问" ? 12 : 2) { b.tap(); log("tapped \(label)"); return }
         }
+        log("no system alert found")
     }
 
-    /// 等分析完：首页圆环的说明从「已分析 x%」变成「可清理 x%」
+    /// 等分析完。分析期间 App 主线程很忙，查询界面会超时，所以只看 App 写的标记文件 + 定时截图
     func waitForScan(maxSeconds: Int) -> Bool {
-        let done = any("label BEGINSWITH %@ AND label ENDSWITH %@", "可清理 ", "%")
+        let file = (dir as NSString).appendingPathComponent("scan-done.txt")
         var waited = 0
         while waited < maxSeconds {
-            if done.firstMatch.exists { return true }
-            sleep(15); waited += 15
+            if FileManager.default.fileExists(atPath: file) { return true }
+            sleep(10); waited += 10
             if waited % 60 == 0 { shot(String(format: "00-scan-%03ds", waited)) }
         }
-        return done.firstMatch.exists
+        return FileManager.default.fileExists(atPath: file)
     }
 
     func scrollTop() { for _ in 0..<4 { app.swipeDown(velocity: .fast) } ; sleep(1) }
@@ -143,20 +136,16 @@ final class LayoutVerifyTests: XCTestCase {
     func testScreensLookRight() throws {
         continueAfterFailure = true
         app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
-        addUIInterruptionMonitor(withDescription: "photos") { alert in
-            for label in ["允许完全访问", "Allow Full Access", "允许访问所有照片", "Allow Access to All Photos"] {
-                let b = alert.buttons[label]
-                if b.exists { b.tap(); return true }
-            }
-            return false
-        }
+        app.launchEnvironment["PC_UITEST_SCAN_DONE_FILE"] = (dir as NSString).appendingPathComponent("scan-done.txt")
+        try? FileManager.default.removeItem(atPath: (dir as NSString).appendingPathComponent("scan-done.txt"))
         app.launch()
         sleep(3)
         shot("00-launch")
         handlePermission()
-        app.tap()
-        let scanned = waitForScan(maxSeconds: 900)
+        let scanned = waitForScan(maxSeconds: 1200)
         log("scan finished: \(scanned)")
+        check(scanned, "分析完成")
+        sleep(5)
         scrollTop()
         shot("01-home")
         app.swipeUp(velocity: 500); sleep(1); shot("01-home-2")
