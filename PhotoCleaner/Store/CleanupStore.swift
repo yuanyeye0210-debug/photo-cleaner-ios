@@ -538,7 +538,7 @@ final class CleanupStore: ObservableObject {
         await withTaskGroup(of: (String, String?).self) { group in
             while next < min(2, todo.count) { group.addTask(operation: Self.hashOp(todo[next])); next += 1 }
             while let r = await group.next() {
-                ScanTrace.log("main got result \(done + 1)/\(total)")
+                ScanTrace.log("hash result")
                 if Task.isCancelled { group.cancelAll(); break }
                 let id = r.0, d = r.1
                 if let d {
@@ -581,7 +581,7 @@ final class CleanupStore: ObservableObject {
         await withTaskGroup(of: (String, Float?).self) { group in
             while next < min(4, targets.count) { group.addTask(operation: Self.faceOp(targets[next])); next += 1 }
             while let r = await group.next() {
-                ScanTrace.log("main got result \(done + 1)/\(total)")
+                ScanTrace.log("face result")
                 if Task.isCancelled { group.cancelAll(); break }
                 results.append(r)
                 if next < targets.count { group.addTask(operation: Self.faceOp(targets[next])); next += 1 }
