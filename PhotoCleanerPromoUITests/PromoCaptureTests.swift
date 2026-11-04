@@ -100,17 +100,9 @@ final class PromoCaptureTests: XCTestCase {
         if allow.exists { allow.tap(); sleep(3); handleAlerts() }
         app.tap(); sleep(2)
         handleAlerts()
-        // 兜底：系统弹窗找不到按钮时，按位置点「允许完全访问」
-        if !app.buttons["设置"].exists {
-            shot("00b-alert")
-            springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.764)).tap()
-            sleep(3)
-            handleAlerts()
-        }
-        sleep(2)
+        // 分析期间 App 很忙，不查询界面元素，只按时间截图（模拟器上 Vision 比较慢）
         mark("home-scan"); shot("01-home-scanning")
-        sleep(25); shot("02-home-scanning2")
-        sleep(50)
+        for i in 1...9 { sleep(25); shot(String(format: "02-home-t%02d", i)) }
         mark("home"); shot("03-home")
         app.swipeUp(velocity: 500); sleep(1); shot("04-home-2")
         app.swipeUp(velocity: 500); sleep(1); shot("05-home-3")
