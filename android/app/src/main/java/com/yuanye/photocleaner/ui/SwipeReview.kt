@@ -238,7 +238,8 @@ fun SwipeReview(vm: CleanupViewModel, ids: List<String>, modifier: Modifier = Mo
                     modifier = Modifier.clip(CircleShape).background(Color.Black.copy(alpha = 0.75f)).padding(horizontal = 14.dp, vertical = 8.dp))
             }
         }
-        Text("${minOf(pos + 1, queue.size)} / ${queue.size}", color = T.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        // 只显示「还剩几张」：上面已有「已看 x / 总数」，两个分数放一起容易看混（同 iOS）
+        Text(s(R.string.swipe_left_n, maxOf(0, queue.size - pos)), color = T.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         Text(s(R.string.swipe_hint), color = T.text3, fontSize = T.caption)
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(22.dp), verticalAlignment = Alignment.CenterVertically,

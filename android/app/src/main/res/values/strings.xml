@@ -166,6 +166,7 @@
     <string name="action_keep">保留</string>
     <string name="action_later">稍后再看</string>
     <string name="action_undo">撤销</string>
+    <string name="swipe_left_n">还剩 %1$d 张</string>
     <string name="swipe_hint">左滑删除 · 右滑保留 · 上滑稍后 · 不会立即删除</string>
     <string name="swipe_not_loaded">图片还没加载出来，先别删</string>
     <string name="swipe_finished">这一类看完了</string>

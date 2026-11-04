@@ -166,6 +166,7 @@
     <string name="action_keep">Keep</string>
     <string name="action_later">Later</string>
     <string name="action_undo">Undo</string>
+    <string name="swipe_left_n">%1$d left</string>
     <string name="swipe_hint">Left delete · Right keep · Up later · nothing is deleted yet</string>
     <string name="swipe_not_loaded">Not loaded yet — can\'t delete</string>
     <string name="swipe_finished">All reviewed</string>
