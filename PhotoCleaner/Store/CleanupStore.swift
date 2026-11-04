@@ -212,6 +212,16 @@ final class CleanupStore: ObservableObject {
         // 3. 只分析新照片（缓存里没有的）。同时最多 4 张并行，结果成批写回界面
         phase = .analyzing
         let todo = built.todo.compactMap { item($0) }
+        ScanTrace.log("analyze start todo=\(todo.count) items=\(items.count)")
+        if ScanTrace.enabled {
+            // 主线程心跳：看主线程有没有被卡住
+            Task { @MainActor [weak self] in
+                while let self, self.phase != .done {
+                    ScanTrace.log("main alive phase=\(self.phase) analyzed=\(self.analyzedCount)")
+                    try? await Task.sleep(nanoseconds: 5_000_000_000)
+                }
+            }
+        }
         let paused = await analyze(todo, cache: cache, allowCloud: allowCloud)
         if Task.isCancelled { return }
         applyPending(final: true)
@@ -227,14 +237,19 @@ final class CleanupStore: ObservableObject {
         }
 
         // 4. 分组：完全重复（需要真实大小）、相似、人脸质量
+        ScanTrace.log("analyze finished, waiting sizes")
         await sizeTask?.value
         if Task.isCancelled { return }
+        ScanTrace.log("exact duplicates")
         await findExactDuplicates(cache: cache)
         if Task.isCancelled { return }
+        ScanTrace.log("grouping")
         await finishGrouping(cache: cache)
         if Task.isCancelled { return }
+        ScanTrace.log("faces")
         await scoreFaces(cache: cache)
         if Task.isCancelled { return }
+        ScanTrace.log("done")
 
         rebuildCategories()
         progress = 1
@@ -334,6 +349,7 @@ final class CleanupStore: ObservableObject {
                 group.addTask(operation: Self.analyzeOp(todo[next], allowCloud: allowCloud)); next += 1
             }
             while let r = await group.next() {
+                ScanTrace.log("main got result \(done + 1)/\(total)")
                 if Task.isCancelled { group.cancelAll(); break }
                 let mod = item(r.0)?.modificationDate
                 cache.setResult(r.1, for: r.0, modified: mod, cloudOnly: r.1 == nil && r.2)
@@ -386,10 +402,22 @@ final class CleanupStore: ObservableObject {
     /// 单张照片的完整分析：dHash / 清晰度 / 亮度 + Vision（特征、内容、美观、二维码），候选再做文字识别。
     /// 第二个返回值：原图只在 iCloud、没能分析
     nonisolated static func analyzeAsset(_ asset: PHAsset, isScreenshot: Bool, allowNetwork: Bool) async -> (AnalysisResult?, Bool) {
+        let tid = String(asset.localIdentifier.prefix(8))
+        ScanTrace.log("\(tid) image request")
         let (image, inCloud) = await PhotoLibraryService.shared.analysisImage(for: asset, side: 384, allowNetwork: allowNetwork)
-        guard let image, let cg = image.cgImage, var r = ImageAnalyzer.analyze(cg) else { return (nil, inCloud) }
+        ScanTrace.log("\(tid) image \(image == nil ? "nil" : "ok") cloud=\(inCloud)")
+        guard let image, let cg = image.cgImage else { return (nil, inCloud) }
+        let orient = VisionAnalyzer.orientation(image.imageOrientation)
+        // 像素统计 + Vision 都是同步的重活：放到专门线程，不占协作线程池（见 BlockingWork）
+        let basic: (AnalysisResult, VisionAnalyzer.Basic)? = await BlockingWork.run {
+            guard let r = ImageAnalyzer.analyze(cg) else { return nil }
+            return (r, VisionAnalyzer.analyze(cg, orientation: orient))
+        }
+        ScanTrace.log("\(tid) vision \(basic == nil ? "nil" : "done")")
+        guard let basic else { return (nil, inCloud) }
+        var r = basic.0
+        let v = basic.1
         if Task.isCancelled { return (r, false) }
-        let v = VisionAnalyzer.analyze(cg, orientation: VisionAnalyzer.orientation(image.imageOrientation))
         r.feature = v.feature.flatMap { QFeature(normalized: $0) }
         r.aesthetics = v.aesthetics
         r.isUtility = v.isUtility
@@ -409,7 +437,9 @@ final class CleanupStore: ObservableObject {
                                                                 allowNetwork: allowNetwork,
                                                                 cache: false),
                let bcg = big.cgImage {
-                let lines = VisionAnalyzer.recognizeText(bcg, orientation: VisionAnalyzer.orientation(big.imageOrientation))
+                let bo = VisionAnalyzer.orientation(big.imageOrientation)
+                let lines = await BlockingWork.run { VisionAnalyzer.recognizeText(bcg, orientation: bo) }
+                ScanTrace.log("\(tid) text \(lines.count) lines")
                 r.textChecked = true
                 r.textLines = lines.count
                 r.textChars = lines.reduce(0) { $0 + $1.count }
@@ -447,7 +477,8 @@ final class CleanupStore: ObservableObject {
                                                                  contentMode: .aspectFit,
                                                                  cache: false),
               let cg = image.cgImage else { return nil }
-        return VisionAnalyzer.faceQuality(cg, orientation: VisionAnalyzer.orientation(image.imageOrientation))
+        let o = VisionAnalyzer.orientation(image.imageOrientation)
+        return await BlockingWork.run { VisionAnalyzer.faceQuality(cg, orientation: o) }
     }
 
     // MARK: 文件大小（后台批量读，结果进缓存）
@@ -507,6 +538,7 @@ final class CleanupStore: ObservableObject {
         await withTaskGroup(of: (String, String?).self) { group in
             while next < min(2, todo.count) { group.addTask(operation: Self.hashOp(todo[next])); next += 1 }
             while let r = await group.next() {
+                ScanTrace.log("main got result \(done + 1)/\(total)")
                 if Task.isCancelled { group.cancelAll(); break }
                 let id = r.0, d = r.1
                 if let d {
@@ -549,6 +581,7 @@ final class CleanupStore: ObservableObject {
         await withTaskGroup(of: (String, Float?).self) { group in
             while next < min(4, targets.count) { group.addTask(operation: Self.faceOp(targets[next])); next += 1 }
             while let r = await group.next() {
+                ScanTrace.log("main got result \(done + 1)/\(total)")
                 if Task.isCancelled { group.cancelAll(); break }
                 results.append(r)
                 if next < targets.count { group.addTask(operation: Self.faceOp(targets[next])); next += 1 }

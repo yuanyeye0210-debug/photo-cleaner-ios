@@ -153,11 +153,17 @@ final class PhotoLibraryService: @unchecked Sendable {
         options.resizeMode = .fast
         options.isNetworkAccessAllowed = allowNetwork
         options.isSynchronous = false
+        let manager = imageManager
         return await withCheckedContinuation { (cont: CheckedContinuation<(UIImage?, inCloud: Bool), Never>) in
-            imageManager.requestImage(for: asset, targetSize: CGSize(width: side, height: side),
-                                      contentMode: .aspectFit, options: options) { image, info in
+            let once = ResumeOnce(cont)
+            let id = manager.requestImage(for: asset, targetSize: CGSize(width: side, height: side),
+                                          contentMode: .aspectFit, options: options) { image, info in
                 let cloud = (info?[PHImageResultIsInCloudKey] as? Bool) ?? false
-                cont.resume(returning: (image, cloud && image == nil))
+                once.resume((image, cloud && image == nil))
+            }
+            // 保险：PhotoKit 迟迟不回调时（下载卡住等）不让整次分析停在这一张
+            DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + (allowNetwork ? 60 : 20)) {
+                if once.resume((nil, false)) { manager.cancelImageRequest(id) }
             }
         }
     }
@@ -173,12 +179,17 @@ final class PhotoLibraryService: @unchecked Sendable {
         options.resizeMode = .fast
         options.isNetworkAccessAllowed = allowNetwork
         options.isSynchronous = false
+        let manager = imageManager
         let img = await withCheckedContinuation { (cont: CheckedContinuation<UIImage?, Never>) in
-            imageManager.requestImage(for: asset,
-                                      targetSize: targetSize,
-                                      contentMode: contentMode,
-                                      options: options) { image, _ in
-                cont.resume(returning: image)
+            let once = ResumeOnce(cont)
+            let id = manager.requestImage(for: asset,
+                                          targetSize: targetSize,
+                                          contentMode: contentMode,
+                                          options: options) { image, _ in
+                once.resume(image)
+            }
+            DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + (allowNetwork ? 60 : 20)) {
+                if once.resume(nil) { manager.cancelImageRequest(id) }
             }
         }
         guard let raw = img else { return nil }

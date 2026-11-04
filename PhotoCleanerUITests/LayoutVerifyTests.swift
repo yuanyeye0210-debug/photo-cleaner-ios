@@ -137,12 +137,13 @@ final class LayoutVerifyTests: XCTestCase {
         continueAfterFailure = true
         app.launchArguments = ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launchEnvironment["PC_UITEST_SCAN_DONE_FILE"] = (dir as NSString).appendingPathComponent("scan-done.txt")
+        app.launchEnvironment["PC_UITEST_TRACE_FILE"] = (dir as NSString).appendingPathComponent("scan-trace.txt")
         try? FileManager.default.removeItem(atPath: (dir as NSString).appendingPathComponent("scan-done.txt"))
         app.launch()
         sleep(3)
         shot("00-launch")
         handlePermission()
-        let scanned = waitForScan(maxSeconds: 1200)
+        let scanned = waitForScan(maxSeconds: 600)
         log("scan finished: \(scanned)")
         check(scanned, "分析完成")
         sleep(5)
