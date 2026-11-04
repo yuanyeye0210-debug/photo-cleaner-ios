@@ -43,4 +43,30 @@ final class SwipeLogicTests: XCTestCase {
         XCTAssertEqual(d(-80, 10, -300, 260), .none) // 快甩但预测方向斜
         XCTAssertEqual(d(0, 200, 0, 600), .none)     // 下滑不算
     }
+
+    // 卡片摆放：普通照片铺满；截图 / 长图 / 全景整张显示
+    func testNormalPhotoFillsCard() {
+        let card = CGSize(width: 360, height: 480)
+        XCTAssertNil(SwipeCardLayout.fittedSize(imageWidth: 3024, imageHeight: 4032, isScreenshot: false, card: card))
+        XCTAssertNil(SwipeCardLayout.fittedSize(imageWidth: 4032, imageHeight: 3024, isScreenshot: false, card: card))
+    }
+
+    func testScreenshotIsShownWhole() {
+        let card = CGSize(width: 360, height: 480)
+        let f = SwipeCardLayout.fittedSize(imageWidth: 1179, imageHeight: 2556, isScreenshot: true, card: card)
+        XCTAssertNotNil(f)
+        if let f {
+            XCTAssertLessThanOrEqual(f.height, card.height - SwipeCardLayout.inset - SwipeCardLayout.infoHeight + 0.5)
+            XCTAssertLessThanOrEqual(f.width, card.width)
+            XCTAssertEqual(f.width / f.height, 1179.0 / 2556.0, accuracy: 0.02)
+        }
+    }
+
+    func testPanoramaAndLongImageShownWhole() {
+        let card = CGSize(width: 360, height: 480)
+        XCTAssertNotNil(SwipeCardLayout.fittedSize(imageWidth: 8000, imageHeight: 2000, isScreenshot: false, card: card))
+        XCTAssertNotNil(SwipeCardLayout.fittedSize(imageWidth: 1000, imageHeight: 6000, isScreenshot: false, card: card))
+        XCTAssertNotNil(SwipeCardLayout.fittedSize(imageWidth: 1320, imageHeight: 2868, isScreenshot: false, card: card))
+        XCTAssertNil(SwipeCardLayout.fittedSize(imageWidth: 0, imageHeight: 0, isScreenshot: true, card: card))
+    }
 }

@@ -12,6 +12,9 @@ on:
       - '.github/workflows/promo-capture.yml'
       - '.github/promo/**'
       - 'PhotoCleanerPromoUITests/**'
+      - 'PhotoCleanerUITests/**'
+      - '.github/verify/**'
+      - '.github/workflows/ui-verify.yml'
 
 # 连续推送时只保留最新的一次构建
 concurrency:

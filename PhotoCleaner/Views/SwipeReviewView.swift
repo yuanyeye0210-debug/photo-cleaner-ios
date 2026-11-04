@@ -94,7 +94,8 @@ struct SwipeReviewView: View {
     private var progressHeader: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("\(min(pos + 1, queue.count)) / \(queue.count)")
+                // 只显示「还剩几张」：上面的总进度已经是「已处理 / 总数」，两个分数放一起容易看混
+                Text("还剩 \(max(0, queue.count - pos)) 张")
                     .font(Theme.number(13, .medium))
                     .foregroundStyle(Theme.text2)
                     .contentTransition(.numericText())
@@ -125,12 +126,27 @@ struct SwipeReviewView: View {
 
     private func cardFace(_ item: PhotoItem, deleteAmount: Double, keepAmount: Double, laterAmount: Double) -> some View {
         GeometryReader { geo in
+            let loadedBinding = Binding(get: { loadedIDs.contains(item.id) },
+                                        set: { if $0 { loadedIDs.insert(item.id) } })
             ZStack(alignment: .bottomLeading) {
-                AssetImageView(asset: item.asset, targetSize: geo.size, contentMode: .fill,
-                               showsLoading: true,
-                               loaded: Binding(get: { loadedIDs.contains(item.id) },
-                                               set: { if $0 { loadedIDs.insert(item.id) } }))
-                    .frame(width: geo.size.width, height: geo.size.height)
+                if let fitted = SwipeCardLayout.fittedSize(imageWidth: item.pixelWidth, imageHeight: item.pixelHeight,
+                                                          isScreenshot: item.isScreenshot, card: geo.size) {
+                    // 截图 / 长图 / 全景：整张缩小放进卡片（带圆角细边框），一眼能看出这是一张图片，
+                    // 不会把截图里的界面（比如以前截的本 App 页面）看成 App 自己的按钮
+                    Theme.fill
+                    AssetImageView(asset: item.asset, targetSize: fitted, contentMode: .fill,
+                                   showsLoading: true, loaded: loadedBinding)
+                        .frame(width: fitted.width, height: fitted.height)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color.white.opacity(0.22), lineWidth: 1))
+                        .padding(.top, SwipeCardLayout.inset)
+                        .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
+                } else {
+                    AssetImageView(asset: item.asset, targetSize: geo.size, contentMode: .fill,
+                                   showsLoading: true, loaded: loadedBinding)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                }
 
                 // 底部压暗，白色照片上也看得清标签和日期
                 LinearGradient(colors: [.clear, .black.opacity(0.35), .black.opacity(0.75)], startPoint: .center, endPoint: .bottom)
@@ -205,6 +221,7 @@ struct SwipeReviewView: View {
         .allowsHitTesting(isTop)
         .onTapGesture { preview = item }
         .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier(isTop ? "swipeCard" : "swipeCardBehind")
         .accessibilityHidden(!isTop)
         .accessibilityLabel(accessibilityText(for: item))
         .accessibilityHint(Text("向左滑标记删除，向右滑保留，向上滑稍后再看。也可以用操作菜单。"))

@@ -87,6 +87,19 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.yeyuanye.photocleaner.promouitests
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: PhotoCleaner
+  # 上线前自检：模拟器里打开 App 截图并检查界面（只在 UI Verify 流程里跑）
+  PhotoCleanerUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - PhotoCleanerUITests
+    dependencies:
+      - target: PhotoCleaner
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yeyuanye.photocleaner.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: PhotoCleaner
 schemes:
   PhotoCleaner:
     build:
@@ -104,3 +117,11 @@ schemes:
     test:
       targets:
         - PhotoCleanerPromoUITests
+  UIVerify:
+    build:
+      targets:
+        PhotoCleaner: all
+        PhotoCleanerUITests: [test]
+    test:
+      targets:
+        - PhotoCleanerUITests

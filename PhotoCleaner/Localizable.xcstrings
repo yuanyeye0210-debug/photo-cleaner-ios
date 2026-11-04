@@ -2963,6 +2963,16 @@
           }
         }
       }
+    },
+    "还剩 %lld 张": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld left"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

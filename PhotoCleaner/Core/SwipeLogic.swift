@@ -40,3 +40,29 @@ enum SwipeLogic {
         return .none
     }
 }
+
+/// 卡片里图片的摆放：普通照片铺满；截图、长图、全景等比例差很多的，整张缩小放在卡片上半部分
+enum SwipeCardLayout {
+    static let inset: CGFloat = 14
+    /// 给底部标签 / 日期留的高度
+    static let infoHeight: CGFloat = 96
+
+    /// 需要整张显示时返回图片的显示尺寸，铺满时返回 nil
+    static func fittedSize(imageWidth: Int, imageHeight: Int, isScreenshot: Bool, card: CGSize) -> CGSize? {
+        guard imageWidth > 0, imageHeight > 0, card.width > 1, card.height > 1 else { return nil }
+        let img = CGFloat(imageWidth) / CGFloat(imageHeight)
+        let box = card.width / card.height
+        let mismatch = max(img / box, box / img)
+        // 手机屏幕形状的竖长图（19.5:9 等）基本都是截图，即使系统没标成截图（比如别的 App 存下来的）
+        let phoneShaped = CGFloat(imageHeight) / CGFloat(imageWidth) >= 2.0
+        guard isScreenshot || phoneShaped || mismatch > 2.0 else { return nil }
+        let availW = card.width - inset * 2
+        let availH = card.height - inset - infoHeight
+        guard availW > 20, availH > 20 else { return nil }
+        if img > availW / availH {
+            return CGSize(width: availW.rounded(), height: (availW / img).rounded())
+        } else {
+            return CGSize(width: (availH * img).rounded(), height: availH.rounded())
+        }
+    }
+}
