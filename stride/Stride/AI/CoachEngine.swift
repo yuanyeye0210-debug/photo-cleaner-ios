@@ -83,8 +83,11 @@ enum CoachEngine {
         if q.contains("睡") || q.contains("累") || q.contains("疲") || q.contains("没劲") {
             let vols = store.weeklyVolume.map(\.volume)
             if ProgressiveEngine.needsDeload(weeklyVolumes: vols) {
+                let last = vols.last ?? 0
+                let prev = max(1, vols.dropLast().last ?? 1)
+                let dropPercent = Int((1 - last / prev) * 100)
                 return """
-                这周训练量比上周掉了 \(Int((1 - (vols.last ?? 0) / max(1, vols.dropLast().last ?? 1)) * 100))%，确实是该减载的信号。
+                这周训练量比上周掉了 \(dropPercent)%，确实是该减载的信号。
                 这周所有主动作降到 70% 重量、组数砍一半，把睡眠补回来，下周再顶。
                 """
             }

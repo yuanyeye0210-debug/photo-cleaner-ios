@@ -65,15 +65,16 @@ struct ProgressViewScreen: View {
 
     // MARK: - 概览
 
+    private var lifetimeTonnage: Int {
+        let total = store.state.sessions.reduce(0.0) { $0 + $1.totalVolume }
+        return Int(total / 1000)
+    }
+
     private var statsRow: some View {
         HStack(spacing: 10) {
             StatTile(value: "\(store.streak)", label: "连续天数", tint: Palette.green)
             StatTile(value: "\(store.state.sessions.count)", label: "总训练", tint: Palette.text)
-            StatTile(
-                value: "\(Int(store.state.sessions.reduce(0) { $0 + $1.totalVolume } / 1000))t",
-                label: "累计容量",
-                tint: Palette.blue
-            )
+            StatTile(value: "\(lifetimeTonnage)t", label: "累计容量", tint: Palette.blue)
         }
     }
 
