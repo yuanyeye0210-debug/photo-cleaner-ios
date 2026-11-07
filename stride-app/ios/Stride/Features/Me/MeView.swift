@@ -12,6 +12,14 @@ struct MeView: View {
 
     private var profile: Profile { store.state.profile }
 
+    /// 版本号从 Bundle 读，构建脚本注入，不再写死
+    private var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = info?["CFBundleVersion"] as? String ?? "1"
+        return "\(short) (\(build))"
+    }
+
     var body: some View {
         ZStack {
             ScreenBackground()
@@ -222,7 +230,7 @@ struct MeView: View {
 
     private var aboutSection: some View {
         VStack(spacing: 0) {
-            SettingRow(icon: "info.circle", title: "版本", value: "1.0 (1)", tint: Palette.textDim)
+            SettingRow(icon: "info.circle", title: "版本", value: appVersion, tint: Palette.textDim)
             divider
             SettingRow(icon: "lock.shield", title: "数据存储", value: "仅本机", tint: Palette.textDim)
             divider
