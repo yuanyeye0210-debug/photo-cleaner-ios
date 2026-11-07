@@ -1,0 +1,64 @@
+name: build-stride-ipa
+
+# 只构建 stride/ 目录里的 iOS 工程，输出未签名 IPA。
+# 用法：Actions → build-stride-ipa → Run workflow → 跑完在 Artifacts 下载。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'stride/**'
+      - '.github/workflows/stride-ios.yml'
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: stride
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Build (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Stride.xcodeproj \
+            -scheme Stride \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            ENABLE_BITCODE=NO \
+            build
+
+      - name: Package IPA
+        run: |
+          APP="build/Build/Products/Release-iphoneos/Stride.app"
+          test -d "$APP" || { echo "找不到 $APP"; ls -R build/Build/Products | head -60; exit 1; }
+          rm -rf Payload Stride-unsigned.ipa
+          mkdir -p Payload
+          cp -R "$APP" Payload/
+          zip -qr Stride-unsigned.ipa Payload
+          ls -lh Stride-unsigned.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Stride-unsigned-ipa
+          path: stride/Stride-unsigned.ipa
+          retention-days: 30
+          if-no-files-found: error

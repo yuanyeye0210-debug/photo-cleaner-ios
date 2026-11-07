@@ -1,0 +1,43 @@
+# XcodeGen 兜底方案：如果你用的是 Xcode 15（不支持 fileSystemSynchronizedGroups），
+# 先 `brew install xcodegen`，在这个目录执行 `xcodegen generate`，会生成同名的 Stride.xcodeproj。
+name: Stride
+options:
+  bundleIdPrefix: com.yg
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  developmentLanguage: zh-Hans
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  Stride:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Stride
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yg.stride
+        PRODUCT_NAME: Stride
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSCameraUsageDescription: "用于视觉动作计数：相机画面仅在本机用 Vision 分析关节角度，不上传。"
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "选择餐食照片以识别热量与三大营养素。"
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "录制训练动作时同步采集视频（可选）。"
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "记录跑步轨迹并生成足迹画风，只在你点开始时定位。"
+        INFOPLIST_KEY_NSHealthShareUsageDescription: "读取步数、活动能量、心率与体重，用于今日概览和训练负荷判断。"
+        INFOPLIST_KEY_NSHealthUpdateUsageDescription: "把完成的训练写入 Apple 健康，保持你的运动记录完整。"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ENABLE_PREVIEWS: YES
+        CODE_SIGN_STYLE: Automatic
