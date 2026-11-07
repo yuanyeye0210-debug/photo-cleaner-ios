@@ -6,8 +6,26 @@
 StrideApp\
 ├─ iOS\          SwiftUI 原生工程（34 个 Swift 文件 + AppIcon + 云编译配置）
 ├─ Web\          PWA 版（手机浏览器打开即可添加到主屏幕）
-└─ DSH-Plugin\   dsh-craft-anything 插件（逆向研究用的 DSH 接入层）
+├─ DSH-Plugin\   dsh-craft-anything 插件（逆向研究用的 DSH 接入层）
+├─ dist\         下载好的 IPA 放这里（当前 + 上一版，只留 2 个）
+├─ tools\        sync.ps1（同步到 GitHub）· fetch-latest.ps1（拉最新包）· stride-ios.yml（编译脚本母本）
+└─ RELEASE-RULE.md   版本与同步规则
 ```
+
+## 两条规则（自动化，见 RELEASE-RULE.md）
+
+1. **改完代码必须同步 GitHub，云端编译通过才算成品** —— `tools\sync.ps1` 一条命令
+2. **每次新版本备份上一版，更老的自动删** —— 只留当前 + 上一版
+
+```powershell
+# 改完代码
+tools\sync.ps1 -Message "feat: xxx"     # push → Actions 自动编译 → Releases 自动更新
+# 拉新包
+tools\fetch-latest.ps1                  # 下到 dist\，本地也只留 2 个
+# 然后拖 dist\ 里最新的那个 .ipa 进 Sideloadly
+```
+
+（PowerShell 5.1 用 `powershell -File .\tools\sync.ps1`，PowerShell 7 用 `pwsh -File ...`。）
 
 ---
 
