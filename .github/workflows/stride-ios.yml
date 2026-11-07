@@ -1,6 +1,6 @@
 name: build-stride-ipa
 
-# 只构建 stride/ 目录里的 iOS 工程，输出未签名 IPA。
+# 只构建 stride-app/ios 里的工程，输出未签名 IPA。
 # 用法：Actions → build-stride-ipa → Run workflow → 跑完在 Artifacts 下载。
 
 on:
@@ -8,7 +8,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'stride/**'
+      - 'stride-app/**'
       - '.github/workflows/stride-ios.yml'
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 40
     defaults:
       run:
-        working-directory: stride
+        working-directory: stride-app/ios
 
     steps:
       - name: Checkout
@@ -59,6 +59,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Stride-unsigned-ipa
-          path: stride/Stride-unsigned.ipa
+          path: stride-app/ios/Stride-unsigned.ipa
           retention-days: 30
           if-no-files-found: error
