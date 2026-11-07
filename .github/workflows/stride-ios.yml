@@ -3,7 +3,7 @@ name: build-stride-ipa
 # 版本规则：每次构建 = 一个新版本（1.0.<run_number>）
 #   1. 编译 → 产出 Stride-1.0.N.ipa
 #   2. 发布到 Releases（tag: stride-v1.0.N）
-#   3. 只保留最新 2 个版本（当前 + 上一版备份），更早的自动删掉（含 tag）
+#   3. 按版本号数字排序，只保留最新 2 个（当前 + 上一版备份），更早的连同 tag 一起删
 
 on:
   workflow_dispatch:
@@ -74,6 +74,8 @@ jobs:
           zip -qr Stride-unsigned.ipa Payload
           mkdir -p "$GITHUB_WORKSPACE/dist"
           cp Stride-unsigned.ipa "$GITHUB_WORKSPACE/dist/Stride-${{ steps.v.outputs.marketing }}.ipa"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" \
+            "Payload/Stride.app/Info.plist" || true
           ls -lh "$GITHUB_WORKSPACE/dist"
 
       - name: Publish release
@@ -85,14 +87,13 @@ jobs:
           VER='${{ steps.v.outputs.marketing }}'
           IPA="$GITHUB_WORKSPACE/dist/Stride-$VER.ipa"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "release 已存在（重跑），覆盖产物"
+            echo "release 已存在（同一 run 重跑），覆盖产物"
             gh release upload "$TAG" "$IPA" --clobber
           else
             gh release create "$TAG" "$IPA" \
               --title "Stride $VER" \
               --notes "自动构建 #${{ github.run_number }} · ${{ github.sha }}
-          未签名 IPA，用 Sideloadly 以 Apple ID 签名后安装。
-          免费账号 7 天有效，到期重新签一次即可。"
+          未签名 IPA，用 Sideloadly 以 Apple ID 签名后安装；免费账号 7 天有效，到期重新签一次。"
           fi
 
       - name: Prune old releases
@@ -100,22 +101,30 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAGS=$(gh release list --limit 100 --json tagName,createdAt \
-            --jq '[.[] | select(.tagName | startswith("stride-v"))] | sort_by(.createdAt) | reverse | .[].tagName')
-          echo "现有 Stride 版本（新→旧）："
+          KEEP="${KEEP_RELEASES:-2}"
+          echo "保留版本数：$KEEP"
+          TAGS=$(gh release list --limit 100 --json tagName \
+            --jq '[.[] | select(.tagName | startswith("stride-v"))
+                    | { tag: .tagName,
+                        v: (.tagName | sub("stride-v"; "") | split(".") | map(tonumber)) }]
+                  | sort_by(.v) | reverse | .[].tag')
+          echo "按版本号从新到旧："
           echo "$TAGS"
           i=0
           while IFS= read -r t; do
             [ -z "$t" ] && continue
             i=$((i+1))
-            if [ "$i" -gt "$KEEP_RELEASES" ]; then
+            if [ "$i" -gt "$KEEP" ]; then
               echo "删除旧版本：$t"
               gh release delete "$t" --yes --cleanup-tag || echo "  删除失败（忽略）"
             fi
           done <<< "$TAGS"
-          echo "--- 清理后 ---"
-          gh release list --limit 100 --json tagName,createdAt \
-            --jq '[.[] | select(.tagName | startswith("stride-v"))] | sort_by(.createdAt) | reverse | .[].tagName'
+          echo '--- 清理后 ---'
+          gh release list --limit 100 --json tagName \
+            --jq '[.[] | select(.tagName | startswith("stride-v"))
+                    | { tag: .tagName,
+                        v: (.tagName | sub("stride-v"; "") | split(".") | map(tonumber)) }]
+                  | sort_by(.v) | reverse | .[].tag'
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
