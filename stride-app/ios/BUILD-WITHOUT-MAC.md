@@ -17,7 +17,7 @@
 Windows 上已经装了 Git，在 PowerShell 里执行（把 `<你的用户名>` 换成你的 GitHub 用户名）：
 
 ```powershell
-cd "F:\Masats破解版\Stride"
+cd "F:\Masats破解版\StrideApp\iOS"
 git init -b main
 git add .
 git commit -m "Stride iOS app"
@@ -34,7 +34,7 @@ git push -u origin main
 > 第一次 push 会弹浏览器让你登录 GitHub 授权，按提示走即可。
 
 不想用命令行也可以：在 GitHub 网页上 New repository → 进入仓库 → **Add file → Upload files**，
-把 `F:\Masats破解版\Stride` 里的**所有内容**（包括隐藏的 `.github` 文件夹）一起拖进去。
+把 `F:\Masats破解版\StrideApp\iOS` 里的**所有内容**（包括隐藏的 `.github` 文件夹）一起拖进去。
 注意：Windows 资源管理器里要打开「显示隐藏的项目」，否则 `.github` 传不上去，Actions 就不存在。
 
 ---
@@ -108,6 +108,6 @@ git push -u origin main
 
 ## 如果连 GitHub 都不想弄
 
-`F:\Masats破解版\StrideWeb\` 里是同一套 App 的 Web 版，我用本地服务器跑起来了：
+`F:\Masats破解版\StrideApp\Web\` 里是同一套 App 的 Web 版，我用本地服务器跑起来了：
 手机连同一个 Wi-Fi，Safari 打开我给你的地址 → 分享 → 「添加到主屏幕」，桌面就有图标，
 全屏运行，功能除了健康/Watch/相机骨骼识别以外全都在。见同目录 `README.md`。

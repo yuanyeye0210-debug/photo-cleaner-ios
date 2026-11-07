@@ -1,16 +1,18 @@
 name: build-stride-ipa
 
 # 版本规则：每次构建 = 一个新版本（1.0.<run_number>）
-#   1. 编译 → 产出 Stride-1.0.N.ipa
+#   1. 编译 → Stride-1.0.N.ipa
 #   2. 发布到 Releases（tag: stride-v1.0.N）
-#   3. 按版本号数字排序，只保留最新 2 个（当前 + 上一版备份），更早的连同 tag 一起删
+#   3. 按版本号数字排序，只保留最新 2 个（当前 + 上一版），更早的连同 tag 一起删
+#
+# 触发条件：只有 stride-app/ios 里的工程变了才编译；改文档、改 Web、改工具不会产生新版本。
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'stride-app/**'
+      - 'stride-app/ios/**'
       - '.github/workflows/stride-ios.yml'
 
 permissions:

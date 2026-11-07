@@ -1,16 +1,5 @@
 # Stride · 步迹
 
-> 这个目录是一个完整的健身 App，两套实现共享同一套设计：
->
-> - **iOS 原生**：Stride.xcodeproj（SwiftUI，34 个文件）
->   - 云编译：仓库根目录 .github/workflows/stride-ios.yml → Actions 里跑完下载 Stride-unsigned.ipa
->   - 装机步骤见 BUILD-WITHOUT-MAC.md
-> - **Web 版**：web/（PWA，手机浏览器直接打开即可添加到主屏幕）
->
-> 权益默认全解锁；会员方案页可完整交互，接真订阅时替换 Core/Entitlements.swift 里的 PurchaseService。
-
----
-
 一个**独立实现的 iOS 健身 App**：训练记录、渐进式负荷、AI 热量识别与教练、足迹画风、Watch/健康联动。
 功能矩阵按 Msats 的会员页对齐（免费 / Pro / Max 三档），界面沿用同一套深色视觉语言；
 **代码、素材、品牌全部原创**，不包含任何第三方 App 的二进制、资源或破解逻辑。

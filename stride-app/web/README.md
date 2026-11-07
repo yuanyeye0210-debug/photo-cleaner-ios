@@ -77,7 +77,7 @@ self.addEventListener('fetch', e => {
 | Apple 健康 / Apple Watch | ❌ | 浏览器没有这类系统权限，只有原生 App 能给 |
 | 相机骨骼识别计次 | ❌ | Web 版换成手动计数 |
 
-想补齐最后三项，只能走原生包：见 `../Stride/BUILD-WITHOUT-MAC.md`（GitHub 云端编译 → Sideloadly 安装）。
+想补齐最后三项，只能走原生包：见 `../iOS/BUILD-WITHOUT-MAC.md`（GitHub 云端编译 → Sideloadly 安装）。
 
 ---
 
